@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>机器人抓取 · 场景搭建</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main class="viewer">
+    <header class="page-header">
+      <div class="eyebrow">第一阶段 <span>LIVE PHYSICS</span></div>
+      <h1>机器人抓取 <span>· 场景搭建</span></h1>
+      <p class="scope">实时物理仿真 <span aria-hidden="true">/</span> 无视觉识别</p>
+    </header>
+
+    <section class="scene-panel" aria-label="实时物理仿真">
+      <div class="scene-toolbar">
+        <span id="status" class="status" data-kind="connecting" role="status">正在连接</span>
+        <span class="clock">仿真时间 <output id="time">—</output><span> s</span></span>
+      </div>
+      <div class="viewport" id="viewport">
+        <img id="frame" alt="MuJoCo 实时渲染的机械臂与工作台场景" hidden>
+        <div id="empty-frame" class="empty-frame"><span class="empty-mark" aria-hidden="true">＋</span><p>等待仿真器首帧</p><small>仅显示后端物理仿真渲染画面</small></div>
+        <span id="stale-frame" class="stale-frame" hidden>连接已中断 · 最后一帧</span>
+      </div>
+      <div class="controls" aria-label="仿真控制">
+        <button id="toggle" class="primary" type="button" disabled>开始运行</button>
+        <button id="step" type="button" disabled>单步 <span>20 ms</span></button>
+        <button id="reset" type="button" disabled>重置</button>
+        <label class="camera-label" for="camera">视角
+          <select id="camera" disabled>
+            <option value="overview">全景</option>
+            <option value="front">正面</option>
+            <option value="top">俯视</option>
+          </select>
+        </label>
+      </div>
+      <div id="error" class="error" role="alert" hidden></div>
+      <div id="reconnect-panel" class="reconnect-panel" hidden><span>不会自动重连；连接恢复后以仿真器状态为准。</span><button id="reconnect" type="button">重新连接</button></div>
+    </section>
+
+    <section class="telemetry" aria-labelledby="telemetry-title">
+      <div class="section-heading"><h2 id="telemetry-title">仿真器真值</h2><span>世界坐标 · 米</span></div>
+      <dl class="metadata">
+        <div><dt>场景</dt><dd id="scene-name">—</dd></div>
+        <div><dt>机械臂</dt><dd id="robot-name">—</dd></div>
+        <div><dt>夹爪开度</dt><dd><output id="gripper">—</output> <small>mm</small></dd></div>
+        <div><dt>接触数 / 物理步长</dt><dd><output id="contacts">—</output> / <output id="timestep">—</output> <small>ms</small></dd></div>
+      </dl>
+      <p id="telemetry-note" class="telemetry-note">等待后端状态；无估计值。</p>
+      <div id="objects" class="objects" aria-label="物体位置与姿态"></div>
+      <details class="joint-details"><summary>关节位置 <span>rad</span></summary><div id="joints" class="joints">等待后端状态</div></details>
+      <p id="warnings" class="warnings" role="status" hidden></p>
+      <p class="source">场景来源 <span id="source">—</span></p>
+    </section>
+    <footer>画面与数值均来自 MuJoCo 物理仿真，不是视频回放或视觉推断。当前仅搭建场景，尚未接入视觉识别、自动抓取或抓取成功判定。</footer>
+  </main>
+</body>
+</html>
