@@ -11,8 +11,8 @@
 * { box-sizing: border-box; }
 body { margin: 0; }
 [hidden] { display: none !important; }
-.viewer { width: min(100%, 1100px); margin: 0 auto; padding: 24px; }
-.page-header { margin-bottom: 20px; }
+.viewer { width: min(100%, 1440px); margin: 0 auto; padding: 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 20px; align-items: start; }
+.page-header { grid-column: 1 / -1; }
 .eyebrow { color: var(--accent); font-size: 11px; font-weight: 650; letter-spacing: .1em; }
 .eyebrow span { color: var(--muted); margin-left: 12px; font-size: 10px; }
 h1 { font-size: clamp(19px, 3.3vw, 27px); line-height: 1.4; letter-spacing: -.03em; margin: 8px 0; }
@@ -48,6 +48,28 @@ button span { font-size: 10px; margin-left: 2px; }
 .error { margin: 0 12px 12px; padding: 10px; border: 1px solid #734b4e; border-radius: 6px; color: #ffb9b3; background: #382329; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .reconnect-panel { padding: 0 12px 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--muted); }
 .telemetry { margin-top: 22px; }
+.right-pane { min-width: 0; }
+.skill-panel { border: 1px solid var(--border); border-radius: 10px; padding: 14px; background: #151d28; }
+.skill-panel .section-heading { margin-bottom: 10px; }
+.skill-panel .section-heading > span { font-size: 12px; color: #c4d3e4; }
+.skill-panel[data-status="running"] .section-heading > span, .skill-panel[data-status="succeeded"] .section-heading > span { color: var(--accent); }
+.skill-panel[data-status="failed"] .section-heading > span { color: #ffb9b3; }
+.skill-panel[data-status="stale"] .skill-metrics, .skill-panel[data-status="stale"] .skill-stages { opacity: .55; }
+.grasp-button { width: 100%; min-height: 42px; font-size: 14px; }
+.skill-hint, .skill-message, .skill-criteria { font-size: 11px; color: var(--muted); line-height: 1.6; margin: 8px 0; overflow-wrap: anywhere; }
+.skill-stages { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); list-style: none; padding: 0; margin: 12px 0; gap: 4px; }
+.skill-stages li { border-top: 3px solid #364454; padding-top: 6px; font-size: 10px; color: var(--muted); text-align: center; }
+.skill-stages li.completed { border-color: #4b9b86; color: #a6cbbf; }
+.skill-stages li.active { border-color: var(--accent); color: var(--accent); font-weight: 650; }
+.skill-phase { font-size: 12px; margin: 8px 0 0; color: var(--muted); }
+.skill-phase strong { color: #e4eaf1; font-weight: 550; }
+.skill-failure { padding: 8px; border: 1px solid #734b4e; border-radius: 5px; font-size: 12px; line-height: 1.5; color: #ffb9b3; background: #382329; white-space: pre-wrap; overflow-wrap: anywhere; }
+.skill-metrics > div { padding: 8px 10px; }
+.skill-metrics dt { margin-bottom: 4px; }
+.phase-details { margin-top: 10px; }
+.phase-times { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin-bottom: 0; }
+.phase-times dt { margin: 0; align-self: center; }
+.phase-times dd { font-size: 11px; font-family: ui-monospace, monospace; }
 .section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
 h2 { font-size: 14px; margin: 0; font-weight: 600; }
 .section-heading > span { font-size: 10px; color: var(--muted); }
@@ -71,10 +93,14 @@ summary span { font-size: 10px; color: var(--muted); margin-left: 5px; }
 .source { font-size: 10px; color: var(--muted); line-height: 1.6; overflow-wrap: anywhere; }
 .source span { color: #b8c8d9; margin-left: 6px; }
 .warnings { font-size: 12px; color: #f1c789; white-space: pre-wrap; overflow-wrap: anywhere; }
-footer { color: #8a9ab0; font-size: 11px; line-height: 1.8; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border); }
+footer { grid-column: 1 / -1; color: #8a9ab0; font-size: 11px; line-height: 1.8; padding-top: 14px; border-top: 1px solid var(--border); }
+@media (max-width: 900px) {
+  .viewer { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .viewport { max-height: 55vh; }
+}
 @media (max-width: 440px) {
   .viewer { padding: 14px 10px; }
-  .page-header { margin-bottom: 14px; }
+  .page-header { margin-bottom: 0; }
   .controls { gap: 6px; padding: 10px; }
   button, select { padding-inline: 9px; }
   .camera-label { gap: 5px; }

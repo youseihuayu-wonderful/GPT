@@ -10,6 +10,8 @@ import mujoco
 import numpy as np
 from PIL import Image
 
+from grasp import GraspSkill
+
 ROOT = Path(__file__).resolve().parent
 ARM_HOME = np.array([0.0, -0.5, 0.0, -2.2, 0.0, 1.8, 0.7853981634])
 
@@ -22,6 +24,17 @@ class Simulation:
             robot.delete(key)
         for light in list(robot.lights):
             robot.delete(light)
+        robot.body("hand").add_site(
+            name="grasp_center", pos=[0, 0, 0.1034],
+            size=[0.003, 0.003, 0.003], rgba=[0, 0, 0, 0],
+        )
+        # Keep the original tendon and force limits, but command its force.
+        # A zero-width position servo loses squeeze force on a thin bowl rim.
+        gripper = robot.actuator("actuator8")
+        gripper.gainprm[:] = 0
+        gripper.gainprm[0] = 1
+        gripper.biasprm[:] = 0
+        gripper.ctrlrange[:] = [-100, 100]
         scene.attach(robot, frame=scene.frame("robot_mount"), prefix="robot_")
         assets = ROOT / "vendor" / "libero"
         objects = (
@@ -61,6 +74,7 @@ class Simulation:
         # LIBERO collisions use group 0; Menagerie collisions use group 3.
         self.options.geomgroup[0] = 0
         self.options.geomgroup[3] = 0
+        self.skill = GraspSkill(self)
         self.reset()
 
     def reset(self) -> None:
@@ -68,18 +82,24 @@ class Simulation:
         self.data.qpos[self.arm_qpos] = ARM_HOME
         self.data.qpos[self.finger_qpos] = 0.04
         self.data.ctrl[self.arm_actuators] = ARM_HOME
-        self.data.ctrl[self.gripper_actuator] = 255
+        self.data.ctrl[self.gripper_actuator] = 0
         self.data.qpos[self.model.joint("cabinet_bottom_level").qposadr[0]] = -0.12
         mujoco.mj_forward(self.model, self.data)
+        self.skill.reset()
+
+    def start_grasp(self) -> None:
+        self.skill.start()
 
     def step(self, duration_s: float = 0.02) -> None:
         steps = round(duration_s / self.model.opt.timestep)
         if steps < 1 or not np.isclose(steps * self.model.opt.timestep, duration_s):
             raise ValueError("Duration must be a positive multiple of the physics timestep")
-        mujoco.mj_step(self.model, self.data, nstep=steps)
-        # mj_step leaves Cartesian fields from its last forward pass; refresh them
-        # so poses and rendering describe the final integrated state, not t - dt.
-        mujoco.mj_forward(self.model, self.data)
+        for _ in range(steps):
+            self.skill.update()
+            self.skill.apply_control()
+            mujoco.mj_step(self.model, self.data)
+            # Refresh poses/contact forces for the controller at the next step.
+            mujoco.mj_forward(self.model, self.data)
         warnings = self.warning_names()
         if warnings or not np.isfinite(self.data.qpos).all():
             raise RuntimeError(f"MuJoCo state is invalid: {warnings}")
@@ -113,6 +133,7 @@ class Simulation:
             "gripper_opening_m": float(self.data.qpos[self.finger_qpos].sum()),
             "contacts": int(self.data.ncon),
             "warnings": self.warning_names(),
+            "skill": self.skill.state(),
         }
 
     def render(self, view: str = "overview") -> str:
@@ -141,14 +162,21 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seconds", type=float, default=1.0)
     parser.add_argument("--image", type=Path, help="Save an actual MuJoCo-rendered JPEG")
+    parser.add_argument("--grasp", action="store_true", help="Execute the fixed-script grasp until success or failure")
     args = parser.parse_args()
     sim = Simulation()
     try:
         if args.seconds:
             sim.step(args.seconds)
+        if args.grasp:
+            sim.start_grasp()
+            while sim.skill.status == "running":
+                sim.step()
         print(json.dumps(sim.state(), indent=2, ensure_ascii=False))
         if args.image:
             args.image.write_bytes(base64.b64decode(sim.render()))
+        if args.grasp and sim.skill.status != "succeeded":
+            raise SystemExit(1)
     finally:
         sim.close()
 

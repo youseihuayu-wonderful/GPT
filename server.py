@@ -106,6 +106,9 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                 elif action == "reset":
                     app[SIMULATION].reset()
                     app[CONTROLS].paused = True
+                elif action == "grasp":
+                    app[SIMULATION].start_grasp()
+                    app[CONTROLS].paused = False
                 elif action == "step":
                     if not app[CONTROLS].paused:
                         raise ValueError("请先暂停，再单步推进")

@@ -10,12 +10,72 @@ const ui = {
   robot: byId("robot-name"), gripper: byId("gripper"), contacts: byId("contacts"),
   timestep: byId("timestep"), note: byId("telemetry-note"), objects: byId("objects"),
   joints: byId("joints"), source: byId("source"), warnings: byId("warnings"),
+  grasp: byId("grasp"), skillPanel: byId("skill-panel"), skillResult: byId("skill-result"),
+  skillHint: byId("skill-hint"), skillPhase: byId("skill-phase"),
+  skillMessage: byId("skill-message"), skillFailure: byId("skill-failure"),
+  skillElapsed: byId("skill-elapsed"), skillLift: byId("skill-lift"),
+  skillHold: byId("skill-hold"), skillPhaseElapsed: byId("skill-phase-elapsed"),
+  phaseTimes: byId("phase-times"), skillStages: byId("skill-stages"),
 };
 let socket = null;
 let state = null;
 let hasFrame = false;
 const objectRows = [];
 const jointOutputs = [];
+let lastSkill = null;
+const phaseLabels = {
+  idle: "待开始", prepare: "准备", approach: "接近", descend: "下降",
+  close: "闭合夹爪", lift: "抬升", hold: "稳定保持", done: "完成", failed: "失败",
+};
+const skillLabels = { idle: "待开始", running: "执行中", succeeded: "抓取成功", failed: "抓取失败" };
+
+function renderSkill(ready) {
+  const skill = ready ? state.skill : lastSkill;
+  const known = skill && Object.hasOwn(skillLabels, skill.status);
+  ui.grasp.disabled = !ready || !known || skill.status !== "idle";
+  ui.skillPanel.dataset.status = !ready ? "stale" : known ? skill.status : "waiting";
+  ui.skillResult.textContent = known
+    ? `${skillLabels[skill.status]}${!ready ? " · 最后状态" : skill.status === "running" && state.paused ? " · 已暂停" : ""}`
+    : "等待状态";
+  ui.skillHint.textContent = !ready
+    ? "未连接或状态不可用；已有数值仅为最后状态，无法确认当前执行结果。"
+    : !known ? "等待后端技能状态；暂不能开始抓取。"
+    : skill.status === "idle" ? "点击启动固定脚本；将自动恢复物理仿真。"
+    : skill.status === "running" ? "任务执行中，可暂停；重新尝试前请先重置。"
+    : "本次任务已结束；请点击「重置」后重新尝试。";
+  ui.skillPhase.textContent = known ? (phaseLabels[skill.phase] || skill.phase || "未报告") : "等待状态";
+  ui.skillMessage.textContent = known ? (skill.message || "后端未提供阶段说明。") : "等待后端技能数据，不推断进度或结果。";
+  ui.skillFailure.textContent = known && skill.failure_reason ? `失败原因：${skill.failure_reason}` : "";
+  ui.skillFailure.hidden = !ui.skillFailure.textContent;
+  ui.skillElapsed.textContent = number(known ? skill.elapsed_s : undefined, 2);
+  ui.skillLift.textContent = number(known && Number.isFinite(skill.lift_height_m) ? skill.lift_height_m * 100 : undefined, 1);
+  ui.skillHold.textContent = number(known ? skill.hold_elapsed_s : undefined, 2);
+  ui.skillPhaseElapsed.textContent = number(known ? skill.phase_elapsed_s : undefined, 2);
+  const stages = Array.from(ui.skillStages.children);
+  const current = known ? stages.findIndex((stage) => stage.dataset.phase === skill.phase) : -1;
+  stages.forEach((stage, index) => {
+    const active = known && stage.dataset.phase === skill.phase;
+    stage.classList.toggle("active", active);
+    stage.classList.toggle("completed", known && (skill.status === "succeeded" || (current >= 0 && index < current)));
+    if (active) stage.setAttribute("aria-current", "step");
+    else stage.removeAttribute("aria-current");
+  });
+  ui.phaseTimes.replaceChildren();
+  const times = known && skill.phase_times_s && typeof skill.phase_times_s === "object"
+    ? Object.entries(skill.phase_times_s) : [];
+  if (!times.length) {
+    const waiting = document.createElement("dt");
+    waiting.textContent = known ? "后端尚未报告阶段耗时" : "等待后端状态";
+    ui.phaseTimes.append(waiting);
+  }
+  times.forEach(([phase, elapsed]) => {
+    const label = document.createElement("dt");
+    const value = document.createElement("dd");
+    label.textContent = phaseLabels[phase] || phase;
+    value.textContent = `${number(elapsed, 2)} s`;
+    ui.phaseTimes.append(label, value);
+  });
+}
 
 function number(value, decimals = 4) {
   return Number.isFinite(value) ? value.toFixed(decimals) : "—";
@@ -33,6 +93,7 @@ function updateControls() {
   ui.camera.disabled = !ready;
   ui.step.disabled = !ready || !state.paused;
   ui.toggle.textContent = state && !state.paused ? "暂停" : "开始运行";
+  renderSkill(ready);
 }
 
 function showError(message) {
@@ -105,6 +166,7 @@ function renderState(next) {
     throw new Error("后端状态字段不完整，无法更新仿真状态。");
   }
   state = next;
+  if (state.skill) lastSkill = state.skill;
   ui.time.textContent = number(state.time_s, 3);
   ui.scene.textContent = state.scene_name;
   ui.robot.textContent = state.robot_name;
@@ -209,6 +271,9 @@ ui.frame.addEventListener("error", () => {
 ui.toggle.addEventListener("click", () => send({ action: state?.paused ? "play" : "pause" }));
 ui.step.addEventListener("click", () => { if (state?.paused) send({ action: "step" }); });
 ui.reset.addEventListener("click", () => send({ action: "reset" }));
+ui.grasp.addEventListener("click", () => {
+  if (state?.skill?.status === "idle") send({ action: "grasp" });
+});
 ui.camera.addEventListener("change", () => send({ action: "camera", view: ui.camera.value }));
 ui.reconnect.addEventListener("click", connect);
 connect();

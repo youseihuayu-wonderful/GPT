@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>机器人抓取 · 场景搭建</title>
+  <title>第二阶段 · 固定脚本抓取</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
   <main class="viewer">
     <header class="page-header">
-      <div class="eyebrow">第一阶段 <span>LIVE PHYSICS</span></div>
-      <h1>机器人抓取 <span>· 场景搭建</span></h1>
-      <p class="scope">实时物理仿真 <span aria-hidden="true">/</span> 无视觉识别</p>
+      <div class="eyebrow">第二阶段 <span>LIVE PHYSICS</span></div>
+      <h1>第二阶段 <span>· 固定脚本抓取</span></h1>
+      <p class="scope">黑碗抓取与抬升 <span aria-hidden="true">/</span> 实时物理仿真</p>
     </header>
 
     <section class="scene-panel" aria-label="实时物理仿真">
@@ -42,6 +42,26 @@
       <div id="reconnect-panel" class="reconnect-panel" hidden><span>不会自动重连；连接恢复后以仿真器状态为准。</span><button id="reconnect" type="button">重新连接</button></div>
     </section>
 
+    <aside class="right-pane" aria-label="抓取任务与仿真状态">
+      <section id="skill-panel" class="skill-panel" aria-labelledby="skill-title" data-status="waiting">
+        <div class="section-heading"><h2 id="skill-title">黑碗抓取任务</h2><span id="skill-result" role="status">等待状态</span></div>
+        <button id="grasp" class="primary grasp-button" type="button" disabled aria-describedby="skill-hint">开始抓取黑碗</button>
+        <p id="skill-hint" class="skill-hint">等待后端技能状态。</p>
+        <ol id="skill-stages" class="skill-stages" aria-label="固定脚本执行阶段">
+          <li data-phase="prepare">准备</li><li data-phase="approach">接近</li><li data-phase="descend">下降</li><li data-phase="close">闭合</li><li data-phase="lift">抬升</li><li data-phase="hold">保持</li>
+        </ol>
+        <p class="skill-phase">当前阶段：<strong id="skill-phase">等待状态</strong></p>
+        <p id="skill-message" class="skill-message">仅显示后端执行结果，不由页面推断成功。</p>
+        <p id="skill-failure" class="skill-failure" role="alert" hidden></p>
+        <dl class="metadata skill-metrics">
+          <div><dt>执行时间 · 仿真秒</dt><dd><output id="skill-elapsed">—</output> <small>s</small></dd></div>
+          <div><dt>实际抬升 · 相对稳定碗位</dt><dd><output id="skill-lift">—</output> <small>cm</small></dd></div>
+          <div><dt>稳定保持时间</dt><dd><output id="skill-hold">—</output> <small>s</small></dd></div>
+          <div><dt>当前阶段时间</dt><dd><output id="skill-phase-elapsed">—</output> <small>s</small></dd></div>
+        </dl>
+        <p class="skill-criteria">目标：实际抬升 ≥ 10 cm，夹爪接触并稳定保持 1 s；由后端判定。</p>
+        <details class="phase-details"><summary>各阶段耗时 <span>仿真秒</span></summary><dl id="phase-times" class="phase-times"><dt>等待后端状态</dt></dl></details>
+      </section>
     <section class="telemetry" aria-labelledby="telemetry-title">
       <div class="section-heading"><h2 id="telemetry-title">仿真器真值</h2><span>世界坐标 · 米</span></div>
       <dl class="metadata">
@@ -56,7 +76,8 @@
       <p id="warnings" class="warnings" role="status" hidden></p>
       <p class="source">场景来源 <span id="source">—</span></p>
     </section>
-    <footer>画面与数值均来自 MuJoCo 物理仿真，不是视频回放或视觉推断。当前仅搭建场景，尚未接入视觉识别、自动抓取或抓取成功判定。</footer>
+    </aside>
+    <footer>画面、数值与抓取结果均来自 MuJoCo 实时物理仿真，不是视频回放或视觉推断。当前为固定脚本物理抓取，尚未接入 GPT 或视觉识别；未来可作为 GPT 多子任务规划调用的抓取执行技能。</footer>
   </main>
 </body>
 </html>
