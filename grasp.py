@@ -184,11 +184,11 @@ class GraspSkill:
         return elapsed >= self.motion_duration and arrived and slow
 
     def update(self) -> None:
-        if self.status != "running":
+        if self.status not in ("running", "succeeded"):
             return
         dt = float(self.model.opt.timestep)
         elapsed = float(self.data.time) - self.phase_started_at
-        if self.data.time - self.started_at >= self.WATCHDOG:
+        if self.status == "running" and self.data.time - self.started_at >= self.WATCHDOG:
             self.fail("抓取执行超时")
             return
         bilateral, table_support = self._contacts()
@@ -228,13 +228,15 @@ class GraspSkill:
                 self._move("lift", self.grasp_position + [0.0, 0.0, 0.15])
             elif elapsed > 2.0:
                 self.fail("夹爪未建立稳定的双侧接触")
-        elif self.phase == "hold":
+        elif self.phase in ("hold", "done"):
             relative = bowl_pos - self.data.site_xpos[self.tcp]
             stable = np.linalg.norm(relative - self.hold_relative) < 0.01
             lifted = float(bowl_pos[2]) - self.reference_z >= self.TARGET_LIFT
             if not (bilateral and not table_support and lifted and stable):
                 self.hold_elapsed = 0.0
                 self.fail("黑碗掉落、滑移或未达到要求的离桌高度")
+                return
+            if self.phase == "done":
                 return
             self.hold_elapsed += dt
             if self.hold_elapsed + 1e-9 >= self.REQUIRED_HOLD:

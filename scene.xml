@@ -1,6 +1,7 @@
 <mujoco model="Panda tabletop scene">
   <compiler inertiagrouprange="0 0"/>
-  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast"/>
+  <!-- Resolve soft-contact friction drift without changing material friction. -->
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast" noslip_iterations="5"/>
   <visual>
     <global offwidth="960" offheight="720"/>
     <headlight ambient="0.25 0.25 0.25" diffuse="0.40 0.40 0.40" specular="0.10 0.10 0.10"/>

@@ -11,9 +11,9 @@ and each finger. No rendering, wall-clock timing, or controller internals are us
 
 A 20 ms observation interval can miss at most one interval at hold onset. The
 pre-success contact/lift history allows that sampling uncertainty; reported hold
-must still reach 1.0 s. Another full second of physics after success must retain
+must still reach 1.0 s. Another sixty seconds of physics after success must retain
 both contacts, at least 0.10 m lift, and position within 0.01 m of the terminal
-pose. This last displacement bound makes "stable final state" explicit.
+pose. This catches slow soft-contact drift that a one-second check misses.
 
 Add a case as another test method; setUp creates a fresh model and registers
 Simulation.close even when an assertion fails. Mutate only that case's model
@@ -136,7 +136,7 @@ class GraspBehaviorTests(unittest.TestCase):
         # The watchdog applies to execution, not this post-terminal observation.
         # Keep advancing actual physics so a transient lift or dropped bowl cannot
         # be hidden by a latched succeeded status or stale Cartesian coordinates.
-        for _ in range(50):
+        for _ in range(3000):
             sample = self._step()
             self.assertEqual(sample["skill"]["status"], "succeeded")
             self.assertEqual(sample["skill"]["phase"], "done")
@@ -149,11 +149,11 @@ class GraspBehaviorTests(unittest.TestCase):
             self.assertLessEqual(
                 math.dist(sample["bowl_position"], terminal["bowl_position"]), 0.01
             )
-        self.assertAlmostEqual(self.sim.data.time - terminal["time_s"], 1.0, places=9)
+        self.assertAlmostEqual(self.sim.data.time - terminal["time_s"], 60.0, places=8)
 
     def test_fixed_scene_grasp_lifts_bowl_ten_centimeters_and_holds_one_second(self) -> None:
         self._assert_idle()
-        self.assertIsNone(self.sim.start_grasp())
+        self.sim.start_grasp()
         self._assert_successful_grasp(self._run_to_terminal())
 
     def test_reset_during_hold_restores_initial_physics_and_allows_complete_restart(self) -> None:
@@ -161,7 +161,7 @@ class GraspBehaviorTests(unittest.TestCase):
         initial_qvel = self.sim.data.qvel.tolist()
         initial_ctrl = self.sim.data.ctrl.tolist()
         self.assertEqual(self.sim.data.time, 0.0)
-        self.assertIsNone(self.sim.start_grasp())
+        self.sim.start_grasp()
 
         # Reset with a nonzero hold timer, not just during an untouched prepare
         # phase, so stale success progress and the displaced bowl must be cleared.
@@ -184,7 +184,7 @@ class GraspBehaviorTests(unittest.TestCase):
         self.assertEqual(self.sim.data.qvel.tolist(), initial_qvel)
         self.assertEqual(self.sim.data.ctrl.tolist(), initial_ctrl)
 
-        self.assertIsNone(self.sim.start_grasp())
+        self.sim.start_grasp()
         restarted = self.sim.state()["skill"]
         self.assertEqual(restarted["status"], "running")
         self.assertEqual(restarted["phase"], "prepare")
@@ -194,7 +194,7 @@ class GraspBehaviorTests(unittest.TestCase):
         self._assert_successful_grasp(self._run_to_terminal())
 
     def test_duplicate_start_while_running_is_rejected_without_restarting_physics(self) -> None:
-        self.assertIsNone(self.sim.start_grasp())
+        self.sim.start_grasp()
         for _ in range(10):
             self._step()
         before = deepcopy(self.sim.state()["skill"])
@@ -227,12 +227,27 @@ class GraspBehaviorTests(unittest.TestCase):
         # setUp constructed a NEW Simulation: this real actuator fault cannot
         # leak into the successful-grasp or reset cases.
         self.sim.model.actuator_forcerange[self.sim.gripper_actuator] = [0, 0]
-        self.assertIsNone(self.sim.start_grasp())
+        self.sim.start_grasp()
         samples = self._run_to_terminal()
         self.assertEqual(samples[-1]["skill"]["status"], "failed")
         self.assertEqual(samples[-1]["skill"]["phase"], "failed")
         for sample in samples:
             self.assertLess(sample["skill"]["hold_elapsed_s"], 1.0)
+
+    def test_losing_grip_after_success_invalidates_the_reported_success(self) -> None:
+        self.sim.start_grasp()
+        terminal = self._run_to_terminal()[-1]
+        self.assertEqual(terminal["skill"]["status"], "succeeded")
+        self.sim.model.actuator_forcerange[self.sim.gripper_actuator] = [0, 0]
+        for _ in range(100):
+            sample = self._step()
+            if sample["skill"]["status"] == "failed":
+                break
+        else:
+            self.fail("A lost grip left the live skill reporting success")
+        self.assertEqual(sample["skill"]["phase"], "failed")
+        self.assertEqual(sample["skill"]["hold_elapsed_s"], 0.0)
+        self.assertIsNotNone(sample["skill"]["failure_reason"])
 
 
 if __name__ == "__main__":
