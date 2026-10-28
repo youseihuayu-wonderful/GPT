@@ -10,7 +10,7 @@ import mujoco
 import numpy as np
 from PIL import Image
 
-from grasp import GraspSkill
+from grasp import GraspParameters, GraspSkill
 
 ROOT = Path(__file__).resolve().parent
 ARM_HOME = np.array([0.0, -0.5, 0.0, -2.2, 0.0, 1.8, 0.7853981634])
@@ -87,8 +87,8 @@ class Simulation:
         mujoco.mj_forward(self.model, self.data)
         self.skill.reset()
 
-    def start_grasp(self) -> None:
-        self.skill.start()
+    def start_grasp(self, parameters: GraspParameters | None = None) -> None:
+        self.skill.start(parameters)
 
     def step(self, duration_s: float = 0.02) -> None:
         steps = round(duration_s / self.model.opt.timestep)
@@ -163,13 +163,37 @@ def main() -> None:
     parser.add_argument("--seconds", type=float, default=1.0)
     parser.add_argument("--image", type=Path, help="Save an actual MuJoCo-rendered JPEG")
     parser.add_argument("--grasp", action="store_true", help="Execute the fixed-script grasp until success or failure")
+    options = (
+        ("--initial-opening-mm", "initial_opening_m", "Initial finger opening", "mm"),
+        ("--descent-speed-mm-s", "descent_speed_m_s", "Nominal descent speed", "mm/s"),
+        ("--close-trigger-height-mm", "close_trigger_height_m", "Remaining descent height to start closing", "mm"),
+    )
+    limits = GraspParameters.limits()
+    defaults = GraspParameters().to_dict()
+    for flag, name, description, unit in options:
+        bounds = limits[name]
+        parser.add_argument(
+            flag, dest=name, type=float,
+            help=(f"{description}: {bounds['min'] * 1000:g}–{bounds['max'] * 1000:g} {unit}, "
+                  f"default {defaults[name] * 1000:g}; requires --grasp"),
+        )
     args = parser.parse_args()
+    supplied = {
+        name: getattr(args, name) / 1000.0
+        for _, name, _, _ in options if getattr(args, name) is not None
+    }
+    if supplied and not args.grasp:
+        parser.error("Grasp parameter options require --grasp")
+    try:
+        parameters = GraspParameters(**supplied) if supplied else None
+    except ValueError as exc:
+        parser.error(str(exc))
     sim = Simulation()
     try:
         if args.seconds:
             sim.step(args.seconds)
         if args.grasp:
-            sim.start_grasp()
+            sim.start_grasp(parameters)
             while sim.skill.status == "running":
                 sim.step()
         print(json.dumps(sim.state(), indent=2, ensure_ascii=False))

@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>第二阶段 · 固定脚本抓取</title>
+  <title>第三阶段 · 参数化物理抓取</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
   <main class="viewer">
     <header class="page-header">
-      <div class="eyebrow">第二阶段 <span>LIVE PHYSICS</span></div>
-      <h1>第二阶段 <span>· 固定脚本抓取</span></h1>
-      <p class="scope">黑碗抓取与抬升 <span aria-hidden="true">/</span> 实时物理仿真</p>
+      <div class="eyebrow">第三阶段 <span>LIVE PHYSICS</span></div>
+      <h1>第三阶段 <span>· 参数化物理抓取</span></h1>
+      <p class="scope">固定 baseline 对照 <span aria-hidden="true">/</span> 下降与闭合重叠 · 实时物理仿真</p>
     </header>
 
     <section class="scene-panel" aria-label="实时物理仿真">
@@ -45,22 +45,52 @@
     <aside class="right-pane" aria-label="抓取任务与仿真状态">
       <section id="skill-panel" class="skill-panel" aria-labelledby="skill-title" data-status="waiting">
         <div class="section-heading"><h2 id="skill-title">黑碗抓取任务</h2><span id="skill-result" role="status">等待状态</span></div>
-        <button id="grasp" class="primary grasp-button" type="button" disabled aria-describedby="skill-hint">开始抓取黑碗</button>
+        <div class="grasp-actions">
+          <button id="grasp" class="grasp-button" type="button" disabled aria-describedby="skill-hint">运行固定 baseline</button>
+          <button id="grasp-custom" class="primary grasp-button" type="button" disabled aria-describedby="skill-hint parameter-error">运行自定义参数</button>
+        </div>
+        <div class="parameter-inputs" aria-label="自定义抓取参数">
+          <label for="initial-opening">初始开度 <span>mm</span><input id="initial-opening" type="number" value="80" step="any" required disabled aria-describedby="initial-opening-range"><small id="initial-opening-range">等待后端范围</small></label>
+          <label for="descent-speed">下降速度 <span>mm/s</span><input id="descent-speed" type="number" value="100" step="any" required disabled aria-describedby="descent-speed-range"><small id="descent-speed-range">等待后端范围</small></label>
+          <label for="close-trigger-height">提前闭合高度 <span>mm</span><input id="close-trigger-height" type="number" value="0" step="any" required disabled aria-describedby="close-trigger-height-range"><small id="close-trigger-height-range">等待后端范围</small></label>
+        </div>
+        <p class="skill-criteria">固定 baseline：80 mm / 100 mm/s / 0 mm，确认下降到位后闭合。下降速度为轨迹设定值，并非恒定实测速度；闭合高度相对下降目标。修改参数不会自动运行或重置。</p>
+        <p id="parameter-error" class="skill-failure" role="alert" hidden></p>
         <p id="skill-hint" class="skill-hint">等待后端技能状态。</p>
-        <ol id="skill-stages" class="skill-stages" aria-label="固定脚本执行阶段">
+        <ol id="skill-stages" class="skill-stages" aria-label="抓取执行阶段">
           <li data-phase="prepare">准备</li><li data-phase="approach">接近</li><li data-phase="descend">下降</li><li data-phase="close">闭合</li><li data-phase="lift">抬升</li><li data-phase="hold">保持</li>
         </ol>
         <p class="skill-phase">当前阶段：<strong id="skill-phase">等待状态</strong></p>
         <p id="skill-message" class="skill-message">仅显示后端执行结果，不由页面推断成功。</p>
+        <p id="early-close" class="early-close" role="status" hidden></p>
+        <p id="applied-parameters" class="applied-parameters">后端参数：等待状态</p>
         <p id="skill-failure" class="skill-failure" role="alert" hidden></p>
         <dl class="metadata skill-metrics">
           <div><dt>执行时间 · 仿真秒</dt><dd><output id="skill-elapsed">—</output> <small>s</small></dd></div>
           <div><dt>实际抬升 · 相对稳定碗位</dt><dd><output id="skill-lift">—</output> <small>cm</small></dd></div>
           <div><dt>稳定保持时间</dt><dd><output id="skill-hold">—</output> <small>s</small></dd></div>
           <div><dt>当前阶段时间</dt><dd><output id="skill-phase-elapsed">—</output> <small>s</small></dd></div>
+          <div><dt>实际下降 / 闭合重叠</dt><dd><output id="skill-overlap">—</output> <small>s</small></dd></div>
+          <div><dt>闭合开始 / 下降完成 · 相对任务起点</dt><dd><output id="close-started">—</output> / <output id="descent-completed">—</output> <small>s</small></dd></div>
         </dl>
         <p class="skill-criteria">目标：实际抬升 ≥ 10 cm，夹爪接触并稳定保持 1 s；由后端判定。</p>
         <details class="phase-details"><summary>各阶段耗时 <span>仿真秒</span></summary><dl id="phase-times" class="phase-times"><dt>等待后端状态</dt></dl></details>
+      </section>
+      <section class="experiments" aria-labelledby="experiments-title">
+        <div class="section-heading"><h2 id="experiments-title">已存储实验 · 非实时</h2><button id="experiments-refresh" type="button">刷新报告</button></div>
+        <p class="experiment-note">固定场景参数对照：每组仅运行一次、相同重置初态。不是统计成功率证据；与上方当前任务独立。</p>
+        <p id="experiments-status" class="experiment-note" role="status">正在读取实验报告…</p>
+        <p id="experiments-error" class="skill-failure" role="alert" hidden></p>
+        <div id="experiments-report" hidden>
+          <p id="experiments-meta" class="experiment-note"></p>
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="固定场景单次实验对照表，可横向滚动">
+            <table class="experiment-table">
+              <caption>真实物理运行记录（耗时均为仿真秒）</caption>
+              <thead><tr><th scope="col">配置 / 参数<br>mm · mm/s · mm</th><th scope="col">结果 / 失败原因</th><th scope="col">执行 / 验证<br>s</th><th scope="col">抬升 / 保持<br>cm / s</th><th scope="col">实际重叠<br>s</th><th scope="col">闭合开始 / 下降完成<br>相对起点 s</th><th scope="col">阶段耗时 / 警告</th><th scope="col">操作</th></tr></thead>
+              <tbody id="experiment-runs"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
     <section class="telemetry" aria-labelledby="telemetry-title">
       <div class="section-heading"><h2 id="telemetry-title">仿真器真值</h2><span>世界坐标 · 米</span></div>
@@ -77,7 +107,7 @@
       <p class="source">场景来源 <span id="source">—</span></p>
     </section>
     </aside>
-    <footer>画面、数值与抓取结果均来自 MuJoCo 实时物理仿真，不是视频回放或视觉推断。当前为固定脚本物理抓取，尚未接入 GPT 或视觉识别；未来可作为 GPT 多子任务规划调用的抓取执行技能。</footer>
+    <footer>实时画面、数值与抓取结果来自 MuJoCo 物理仿真，不是视频回放或视觉推断；实验表为另行保存的真实运行记录。当前为参数化脚本抓取，保留固定 baseline，尚未接入 GPT 或视觉识别。</footer>
   </main>
 </body>
 </html>

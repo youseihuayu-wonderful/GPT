@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+import json
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,6 +10,7 @@ import time
 
 from aiohttp import WSMsgType, web
 
+from grasp import GraspParameters
 from simulation import Simulation
 
 
@@ -107,7 +109,10 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     app[SIMULATION].reset()
                     app[CONTROLS].paused = True
                 elif action == "grasp":
-                    app[SIMULATION].start_grasp()
+                    parameters = command.get("parameters", {})
+                    if not isinstance(parameters, dict):
+                        raise ValueError("抓取参数必须是 JSON 对象")
+                    app[SIMULATION].start_grasp(GraspParameters(**parameters))
                     app[CONTROLS].paused = False
                 elif action == "step":
                     if not app[CONTROLS].paused:
@@ -135,6 +140,16 @@ async def state(request: web.Request) -> web.Response:
     return web.json_response(result, headers={"Cache-Control": "no-store"})
 
 
+async def experiments(request: web.Request) -> web.Response:
+    try:
+        report = json.loads((ROOT / "results" / "parameter_sweep.json").read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise web.HTTPNotFound(text="尚无参数实验结果；请先运行 experiments.py") from exc
+    except (OSError, json.JSONDecodeError) as exc:
+        raise web.HTTPInternalServerError(text=f"读取参数实验结果失败：{exc}") from exc
+    return web.json_response(report, headers={"Cache-Control": "no-store"})
+
+
 async def asset(request: web.Request) -> web.FileResponse:
     name = request.match_info.get("name", "index.html")
     if name not in ("index.html", "app.js", "style.css"):
@@ -152,6 +167,7 @@ def main() -> None:
     app.cleanup_ctx.append(lifecycle)
     app.router.add_get("/ws", websocket)
     app.router.add_get("/api/state", state)
+    app.router.add_get("/api/experiments", experiments)
     app.router.add_get("/", asset)
     app.router.add_get("/{name}", asset)
     web.run_app(app, host="127.0.0.1", port=args.port, access_log=None)

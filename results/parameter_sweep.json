@@ -1,0 +1,217 @@
+{
+  "kind": "fixed_scene_parameter_sweep",
+  "generated_at": "2026-10-28T03:11:40.928208+00:00",
+  "mujoco_version": "3.3.7",
+  "validation_hold_s": 5.0,
+  "note": "同一固定初始场景，各配置仅执行一次；成功后继续物理验证 5 秒。不代表统计成功率或跨场景性能。",
+  "runs": [
+    {
+      "name": "baseline",
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "status": "succeeded",
+      "elapsed_s": 13.272000000001102,
+      "lift_height_m": 0.13931118591293246,
+      "hold_elapsed_s": 1.0000000000000007,
+      "descent_close_overlap_s": 0.0,
+      "close_started_s": 9.231999999999752,
+      "descent_completed_s": 9.231999999999752,
+      "phase_times_s": {
+        "prepare": 0.25400000000000017,
+        "approach": 5.9759999999995355,
+        "descend": 3.0020000000002165,
+        "close": 0.22800000000007614,
+        "lift": 2.812000000000939,
+        "hold": 1.000000000000334
+      },
+      "failure_reason": null,
+      "validation_elapsed_s": 4.999999999999643,
+      "warnings": []
+    },
+    {
+      "name": "smaller_opening",
+      "parameters": {
+        "initial_opening_m": 0.05,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "status": "succeeded",
+      "elapsed_s": 13.318000000001117,
+      "lift_height_m": 0.13924267070301344,
+      "hold_elapsed_s": 1.0000000000000007,
+      "descent_close_overlap_s": 0.0,
+      "close_started_s": 9.323999999999783,
+      "descent_completed_s": 9.323999999999783,
+      "phase_times_s": {
+        "prepare": 0.34800000000000025,
+        "approach": 5.973999999999526,
+        "descend": 3.0020000000002574,
+        "close": 0.18200000000006078,
+        "lift": 2.812000000000939,
+        "hold": 1.000000000000334
+      },
+      "failure_reason": null,
+      "validation_elapsed_s": 4.999999999999607,
+      "warnings": []
+    },
+    {
+      "name": "faster_descent",
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.16,
+        "close_trigger_height_m": 0.0
+      },
+      "status": "succeeded",
+      "elapsed_s": 12.146000000000726,
+      "lift_height_m": 0.13916564132876774,
+      "hold_elapsed_s": 1.0000000000000007,
+      "descent_close_overlap_s": 0.0,
+      "close_started_s": 8.105999999999376,
+      "descent_completed_s": 8.105999999999376,
+      "phase_times_s": {
+        "prepare": 0.25400000000000017,
+        "approach": 5.9759999999995355,
+        "descend": 1.8759999999998405,
+        "close": 0.22800000000007614,
+        "lift": 2.812000000000939,
+        "hold": 1.000000000000334
+      },
+      "failure_reason": null,
+      "validation_elapsed_s": 5.000000000000638,
+      "warnings": []
+    },
+    {
+      "name": "overlap",
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.004
+      },
+      "status": "succeeded",
+      "elapsed_s": 13.140000000001058,
+      "lift_height_m": 0.13695673448699264,
+      "hold_elapsed_s": 1.0000000000000007,
+      "descent_close_overlap_s": 0.1440000000000001,
+      "close_started_s": 8.907999999999644,
+      "descent_completed_s": 9.231999999999752,
+      "phase_times_s": {
+        "prepare": 0.25400000000000017,
+        "approach": 5.9759999999995355,
+        "descend": 3.0020000000002165,
+        "close": 0.1000000000000334,
+        "lift": 2.8080000000009377,
+        "hold": 1.000000000000334
+      },
+      "failure_reason": null,
+      "validation_elapsed_s": 4.9999999999997495,
+      "warnings": []
+    },
+    {
+      "name": "fast_overlap",
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.16,
+        "close_trigger_height_m": 0.004
+      },
+      "status": "succeeded",
+      "elapsed_s": 12.01200000000068,
+      "lift_height_m": 0.13749814975343966,
+      "hold_elapsed_s": 1.0000000000000007,
+      "descent_close_overlap_s": 0.1420000000000001,
+      "close_started_s": 7.959999999999345,
+      "descent_completed_s": 8.105999999999376,
+      "phase_times_s": {
+        "prepare": 0.25400000000000017,
+        "approach": 5.9759999999995355,
+        "descend": 1.8759999999998405,
+        "close": 0.1000000000000334,
+        "lift": 2.806000000000937,
+        "hold": 1.000000000000334
+      },
+      "failure_reason": null,
+      "validation_elapsed_s": 5.000000000000762,
+      "warnings": []
+    },
+    {
+      "name": "higher_speed_overlap",
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "status": "succeeded",
+      "elapsed_s": 11.684000000000571,
+      "lift_height_m": 0.13761489974915408,
+      "hold_elapsed_s": 1.0000000000000007,
+      "descent_close_overlap_s": 0.08400000000000006,
+      "close_started_s": 7.64799999999938,
+      "descent_completed_s": 7.7319999999993705,
+      "phase_times_s": {
+        "prepare": 0.25400000000000017,
+        "approach": 5.9759999999995355,
+        "descend": 1.5019999999998346,
+        "close": 0.14599999999998392,
+        "lift": 2.806000000000883,
+        "hold": 1.000000000000334
+      },
+      "failure_reason": null,
+      "validation_elapsed_s": 5.000000000001046,
+      "warnings": []
+    },
+    {
+      "name": "combined",
+      "parameters": {
+        "initial_opening_m": 0.05,
+        "descent_speed_m_s": 0.16,
+        "close_trigger_height_m": 0.004
+      },
+      "status": "succeeded",
+      "elapsed_s": 12.10200000000071,
+      "lift_height_m": 0.13682444307434216,
+      "hold_elapsed_s": 1.0000000000000007,
+      "descent_close_overlap_s": 0.09600000000000007,
+      "close_started_s": 8.051999999999358,
+      "descent_completed_s": 8.197999999999407,
+      "phase_times_s": {
+        "prepare": 0.34800000000000025,
+        "approach": 5.973999999999526,
+        "descend": 1.8759999999998813,
+        "close": 0.1000000000000334,
+        "lift": 2.8040000000009364,
+        "hold": 1.000000000000334
+      },
+      "failure_reason": null,
+      "validation_elapsed_s": 5.000000000000673,
+      "warnings": []
+    },
+    {
+      "name": "early_closure",
+      "parameters": {
+        "initial_opening_m": 0.05,
+        "descent_speed_m_s": 0.16,
+        "close_trigger_height_m": 0.02
+      },
+      "status": "succeeded",
+      "elapsed_s": 12.10000000000071,
+      "lift_height_m": 0.12245506377277404,
+      "hold_elapsed_s": 1.0000000000000007,
+      "descent_close_overlap_s": 0.16000000000000011,
+      "close_started_s": 7.803999999999363,
+      "descent_completed_s": 8.197999999999407,
+      "phase_times_s": {
+        "prepare": 0.34800000000000025,
+        "approach": 5.973999999999526,
+        "descend": 1.8759999999998813,
+        "close": 0.1000000000000334,
+        "lift": 2.8020000000009357,
+        "hold": 1.000000000000334
+      },
+      "failure_reason": null,
+      "validation_elapsed_s": 5.000000000000673,
+      "warnings": []
+    }
+  ]
+}

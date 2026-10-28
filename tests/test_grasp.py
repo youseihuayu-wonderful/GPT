@@ -24,7 +24,26 @@ from copy import deepcopy
 import math
 import unittest
 
+from grasp import GraspParameters
 from simulation import Simulation
+
+
+class GraspParameterTests(unittest.TestCase):
+
+    def test_invalid_types_nonfinite_values_and_out_of_range_values_are_rejected(self) -> None:
+        for name, bounds in GraspParameters.limits().items():
+            invalid = (
+                True, False, "0.06", None, [], {}, complex(0.06, 0),
+                float("nan"), float("inf"), float("-inf"),
+                10**400, -(10**400),
+                bounds["min"] - 1e-6, bounds["max"] + 1e-6,
+            )
+            for value in invalid:
+                with self.subTest(name=name, value=value):
+                    with self.assertRaises(ValueError):
+                        GraspParameters(**{name: value})
+        with self.assertRaises(TypeError):
+            GraspParameters(unknown_parameter=0.06)
 
 
 class GraspBehaviorTests(unittest.TestCase):
@@ -55,6 +74,8 @@ class GraspBehaviorTests(unittest.TestCase):
             "bowl_position": tuple(self.sim.data.body("bowl_object").xpos),
             "bowl_free_z": float(self.sim.data.qpos[self.bowl_qpos + 2]),
             "touching_fingers": touching_fingers,
+            "tcp_position": tuple(self.sim.data.site("robot_grasp_center").xpos),
+            "gripper_opening_m": float(self.sim.data.qpos[self.sim.finger_qpos].sum()),
         }
 
     def _step(self) -> dict:
@@ -91,6 +112,11 @@ class GraspBehaviorTests(unittest.TestCase):
         for elapsed_s in skill["phase_times_s"].values():
             self.assertEqual(elapsed_s, 0.0)
         self.assertIsNone(skill["failure_reason"])
+        self.assertEqual(skill["parameters"], GraspParameters().to_dict())
+        self.assertEqual(skill["parameter_limits"], GraspParameters.limits())
+        self.assertIsNone(skill["close_started_s"])
+        self.assertIsNone(skill["descent_completed_s"])
+        self.assertEqual(skill["descent_close_overlap_s"], 0.0)
 
     def _has_physical_hold(self, sample: dict, baseline: dict) -> bool:
         return (
@@ -154,7 +180,12 @@ class GraspBehaviorTests(unittest.TestCase):
     def test_fixed_scene_grasp_lifts_bowl_ten_centimeters_and_holds_one_second(self) -> None:
         self._assert_idle()
         self.sim.start_grasp()
-        self._assert_successful_grasp(self._run_to_terminal())
+        samples = self._run_to_terminal()
+        terminal = samples[-1]["skill"]
+        self.assertIsNotNone(terminal["close_started_s"])
+        self.assertEqual(terminal["close_started_s"], terminal["descent_completed_s"])
+        self.assertTrue(all(sample["skill"]["descent_close_overlap_s"] == 0.0 for sample in samples))
+        self._assert_successful_grasp(samples)
 
     def test_reset_during_hold_restores_initial_physics_and_allows_complete_restart(self) -> None:
         initial_qpos = self.sim.data.qpos.tolist()
@@ -206,12 +237,13 @@ class GraspBehaviorTests(unittest.TestCase):
         before_time = float(self.sim.data.time)
         progress_fields = (
             "status", "phase", "elapsed_s", "phase_elapsed_s", "hold_elapsed_s",
-            "lift_height_m", "phase_times_s",
+            "lift_height_m", "phase_times_s", "parameters", "close_started_s",
+            "descent_completed_s", "descent_close_overlap_s",
         )
         before_progress = {field: before[field] for field in progress_fields}
 
         with self.assertRaises(ValueError):
-            self.sim.start_grasp()
+            self.sim.start_grasp(GraspParameters(initial_opening_m=0.06))
 
         after = self.sim.state()["skill"]
         self.assertEqual({field: after[field] for field in progress_fields}, before_progress)
@@ -233,6 +265,14 @@ class GraspBehaviorTests(unittest.TestCase):
         self.assertEqual(samples[-1]["skill"]["phase"], "failed")
         for sample in samples:
             self.assertLess(sample["skill"]["hold_elapsed_s"], 1.0)
+        terminal = samples[-1]["skill"]
+        self.assertEqual(terminal["descent_close_overlap_s"], 0.0)
+        for _ in range(10):
+            sample = self._step()
+            self.assertEqual(sample["skill"]["status"], "failed")
+            self.assertEqual(sample["skill"]["phase"], "failed")
+            self.assertEqual(sample["skill"]["phase_times_s"], terminal["phase_times_s"])
+            self.assertEqual(sample["skill"]["descent_close_overlap_s"], 0.0)
 
     def test_losing_grip_after_success_invalidates_the_reported_success(self) -> None:
         self.sim.start_grasp()
@@ -248,6 +288,91 @@ class GraspBehaviorTests(unittest.TestCase):
         self.assertEqual(sample["skill"]["phase"], "failed")
         self.assertEqual(sample["skill"]["hold_elapsed_s"], 0.0)
         self.assertIsNotNone(sample["skill"]["failure_reason"])
+
+    def test_custom_opening_reaches_requested_physical_gap_before_approach(self) -> None:
+        parameters = GraspParameters(initial_opening_m=0.06)
+        initial_gap = self.sim.state()["gripper_opening_m"]
+        self.sim.start_grasp(parameters)
+        self.assertEqual(self.sim.state()["skill"]["parameters"], parameters.to_dict())
+        self.assertEqual(self.sim.state()["gripper_opening_m"], initial_gap)
+        for _ in range(101):
+            sample = self._step()
+            self.assertEqual(sample["skill"]["status"], "running")
+            if sample["skill"]["phase"] != "prepare":
+                break
+        else:
+            self.fail("Custom opening never became ready")
+        self.assertEqual(sample["skill"]["phase"], "approach")
+        self.assertAlmostEqual(sample["gripper_opening_m"], 0.06, delta=0.002)
+        self.assertLess(sample["gripper_opening_m"], initial_gap - 0.015)
+        self.assertIsNone(sample["skill"]["close_started_s"])
+        self.assertEqual(sample["skill"]["descent_close_overlap_s"], 0.0)
+        for _ in range(10):
+            sample = self._step()
+            self.assertEqual(sample["skill"]["phase"], "approach")
+            self.assertAlmostEqual(sample["gripper_opening_m"], 0.06, delta=0.002)
+        self.sim.reset()
+        self._assert_idle()
+        self.assertAlmostEqual(self.sim.state()["gripper_opening_m"], initial_gap)
+
+    def test_faster_descent_and_early_trigger_produce_actual_overlapping_motion(self) -> None:
+        self.sim.start_grasp()
+        baseline = self._run_to_terminal()[-1]["skill"]
+        self.sim.reset()
+        parameters = GraspParameters(
+            initial_opening_m=0.05, descent_speed_m_s=0.16, close_trigger_height_m=0.004,
+        )
+        self.sim.start_grasp(parameters)
+        samples = self._run_to_terminal()
+        terminal = samples[-1]["skill"]
+        self.assertEqual(terminal["status"], "succeeded")
+        self.assertLess(terminal["elapsed_s"], baseline["elapsed_s"])
+        self.assertEqual(terminal["parameters"], parameters.to_dict())
+        self.assertIsNotNone(terminal["close_started_s"])
+        self.assertIsNotNone(terminal["descent_completed_s"])
+        self.assertLess(terminal["close_started_s"], terminal["descent_completed_s"])
+        self.assertLess(terminal["phase_times_s"]["descend"], baseline["phase_times_s"]["descend"])
+        self.assertAlmostEqual(
+            terminal["phase_times_s"]["approach"], baseline["phase_times_s"]["approach"], delta=0.02,
+        )
+        self.assertGreater(terminal["descent_close_overlap_s"], 0.0)
+        self.assertLessEqual(
+            terminal["descent_close_overlap_s"],
+            terminal["descent_completed_s"] - terminal["close_started_s"] + 1e-9,
+        )
+        physical_overlap = [
+            (before, after) for before, after in zip(samples, samples[1:])
+            if before["skill"]["phase"] == after["skill"]["phase"] == "descend"
+            and before["skill"]["close_started_s"] is not None
+            and after["tcp_position"][2] < before["tcp_position"][2] - 1e-5
+            and after["gripper_opening_m"] < before["gripper_opening_m"] - 1e-5
+        ]
+        self.assertTrue(physical_overlap, "No observed simultaneous TCP descent and finger closure")
+        self.assertTrue(any(
+            after["skill"]["descent_close_overlap_s"] > before["skill"]["descent_close_overlap_s"]
+            for before, after in physical_overlap
+        ))
+        for sample in samples:
+            if sample["skill"]["phase"] in ("lift", "hold", "done"):
+                self.assertIsNotNone(sample["skill"]["descent_completed_s"])
+                self.assertLessEqual(sample["skill"]["descent_completed_s"], sample["skill"]["elapsed_s"])
+        self._assert_successful_grasp(samples)
+        self.sim.reset()
+        self._assert_idle()
+
+    def test_invalid_parameter_objects_leave_idle_physics_unchanged(self) -> None:
+        before = deepcopy(self.sim.state())
+        initial_qpos = self.sim.data.qpos.tolist()
+        initial_qvel = self.sim.data.qvel.tolist()
+        initial_ctrl = self.sim.data.ctrl.tolist()
+        for parameters in ({}, {"initial_opening_m": 0.06}, True, 0.06, "default"):
+            with self.subTest(parameters=parameters):
+                with self.assertRaises(ValueError):
+                    self.sim.start_grasp(parameters)
+                self.assertEqual(self.sim.state(), before)
+                self.assertEqual(self.sim.data.qpos.tolist(), initial_qpos)
+                self.assertEqual(self.sim.data.qvel.tolist(), initial_qvel)
+                self.assertEqual(self.sim.data.ctrl.tolist(), initial_ctrl)
 
 
 if __name__ == "__main__":
