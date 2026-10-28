@@ -44,7 +44,7 @@
 
     <aside class="right-pane" aria-label="抓取任务与仿真状态">
       <section id="planner-panel" class="planner-panel" aria-labelledby="planner-title" data-status="waiting">
-        <div class="section-heading"><h2 id="planner-title">GPT 任务规划</h2><span id="planner-status" role="status">等待状态</span></div>
+        <div class="section-heading"><h2 id="planner-title">GPT 订阅规划</h2><span id="planner-status" role="status">等待状态</span></div>
         <p id="planner-scope" class="planner-note">仅支持黑碗抓取与稳定保持。GPT 可在后端范围内选择三个抓取参数、说明固定六阶段，不可重排控制器、生成动作代码、开抽屉或操作瓶子。下降与闭合可按触发高度重叠。</p>
         <label class="task-label" for="planner-task">任务描述 <span>最多 1000 字符</span></label>
         <textarea id="planner-task" rows="3" maxlength="1000" required disabled aria-describedby="planner-scope planner-hint">抓起黑碗并稳定保持，在抓取成功的前提下尽量减少耗时。</textarea>
@@ -53,11 +53,11 @@
           <button id="plan-execute" type="button" disabled>执行已校验计划</button>
           <button id="plan-cancel" type="button" disabled>取消规划</button>
         </div>
-        <p id="planner-hint" class="planner-note">等待后端状态；不会自动请求 API 或执行计划。</p>
-        <p id="planner-setup" class="planner-setup" hidden>尚未配置 API 密钥。仅在本机项目的 .env 中填写 OPENAI_API_KEY；模型由 OPENAI_MODEL 设置。保存后点击「生成 GPT 计划」重新读取。不要在页面、聊天或报告中发送密钥。</p>
+        <p id="planner-hint" class="planner-note">使用当前 ChatGPT 订阅；不会自动请求模型或执行计划。</p>
+        <p id="planner-setup" class="planner-setup" hidden>请安装官方 Codex CLI，并在本机运行 codex login 使用 ChatGPT 订阅登录。无需 API 密钥。模型可通过本机 .env 的 CODEX_MODEL 设置；不要复制或上传 Codex 登录凭证。</p>
         <p id="planner-error" class="skill-failure" role="alert" hidden></p>
         <dl class="metadata planner-metadata">
-          <div><dt id="planner-model-label">请求模型 · 尚无 API 响应</dt><dd id="planner-model">—</dd></div>
+          <div><dt id="planner-model-label">Codex 请求模型 · 当前 ChatGPT 订阅</dt><dd id="planner-model">—</dd></div>
           <div><dt>规划延迟 · 墙钟时间 WALL CLOCK</dt><dd><output id="planner-latency">—</output> <small>s · 非仿真秒</small></dd></div>
         </dl>
         <p id="planner-response" class="planner-note" hidden></p>

@@ -68,7 +68,7 @@ class PlanningSession:
         self._task_text = task.strip()
         if not self._load_config():
             if self._status == "unconfigured":
-                self._error = "尚未配置 OPENAI_API_KEY；请在本机 .env 填写后重新生成，不要在网页或聊天中提交密钥。"
+                self._error = "未找到官方 Codex CLI；请安装并运行 codex login 使用当前 ChatGPT 订阅。"
             return False
         scene = self._simulation.state()
         self._status = "planning"
@@ -98,10 +98,10 @@ class PlanningSession:
                 self._latency_s = time.monotonic() - started
                 self._status = "failed"
                 self._error = str(exc)
-        except Exception:
+        except Exception as exc:
             LOGGER.error(
-                "GPT planning failed unexpectedly:\n%s",
-                traceback.format_exc().replace(config.api_key, "[redacted]"),
+                "GPT planning failed unexpectedly (%s):\n%s",
+                type(exc).__name__, "".join(traceback.format_tb(exc.__traceback__)),
             )
             if revision == self._revision and self._status == "planning":
                 self._latency_s = time.monotonic() - started
@@ -151,7 +151,8 @@ class PlanningSession:
             "plan_id": self._revision,
             "plan": self._result.plan.to_dict() if self._result else None,
             "latency_s": self._latency_s,
-            "response_id": self._result.response_id if self._result else None,
+            "thread_id": self._result.thread_id if self._result else None,
+            "diagnostic_count": self._result.diagnostic_count if self._result else 0,
             "error": self._error,
         }
 

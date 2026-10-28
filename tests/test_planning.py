@@ -31,7 +31,7 @@ def planned_result(label: str = "current") -> PlanResult:
 
 class PlanningSessionTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        self.config = PlannerConfig("test-key-never-real")
+        self.config = PlannerConfig("test-only-codex")
         config_patch = patch("planning.PlannerConfig.load", return_value=self.config)
         self.loader = config_patch.start()
         self.addCleanup(config_patch.stop)
@@ -61,8 +61,8 @@ class PlanningSessionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.sim.skill.status, "idle")
         return self.state()["plan_id"]
 
-    async def test_missing_key_does_not_call_provider_or_start_physics(self) -> None:
-        self.loader.return_value = PlannerConfig("")
+    async def test_missing_cli_does_not_call_provider_or_start_physics(self) -> None:
+        self.loader.return_value = PlannerConfig(None)
         self.assertFalse(self.session.start("抓起黑碗", {}))
         self.request.assert_not_awaited()
         self.assertEqual(self.state()["status"], "unconfigured")
@@ -158,7 +158,7 @@ class PlanningSessionTests(unittest.IsolatedAsyncioTestCase):
                 current = self.state()
                 self.assertEqual(current["status"], "ready")
                 self.assertEqual(current["plan_id"], new_id)
-                self.assertEqual(current["response_id"], "fixture-replacement")
+                self.assertEqual(current["thread_id"], "fixture-replacement")
                 self.assertIsNone(current["error"])
                 with self.assertRaises(ValueError):
                     self.session.execute(old_id)
@@ -194,17 +194,19 @@ class PlanningSessionTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             self.session.execute(self.state()["plan_id"])
 
-    async def test_unexpected_failure_is_visible_but_key_is_redacted_from_logs(self) -> None:
+    async def test_unexpected_failure_does_not_expose_private_diagnostics(self) -> None:
+        private_diagnostic = "private-transport-diagnostic-test"
+
         async def fail(*args):
             self.finished.set()
-            raise RuntimeError(f"unexpected transport failure: {self.config.api_key}")
+            raise RuntimeError(private_diagnostic)
 
         self.request.side_effect = fail
         with self.assertLogs("planning", level="ERROR") as logs:
             self.session.start("抓起黑碗", {})
             await asyncio.wait_for(self.finished.wait(), 1)
-        self.assertNotIn(self.config.api_key, "\n".join(logs.output))
-        self.assertNotIn(self.config.api_key, self.state()["error"])
+        self.assertNotIn(private_diagnostic, "\n".join(logs.output))
+        self.assertNotIn(private_diagnostic, self.state()["error"])
         self.assertEqual(self.state()["status"], "failed")
         self.assertEqual(self.sim.skill.status, "idle")
 

@@ -1,6 +1,6 @@
 # GPT — 机器人多子任务执行仿真
 
-为 GPT 高层任务规划提供可调用的机器人执行能力。现有物理场景、固定脚本 baseline、参数化抓取与时序控制，以及第四阶段的 OpenAI 结构化规划接口、计划预览和本地执行衔接。**真实 OpenAI 端到端验收仍待本机配置有效 API 密钥**；没有用固定回复冒充 GPT。尚未加入视觉识别或 DP。
+为 GPT 高层任务规划提供可调用的机器人执行能力。现有物理场景、固定脚本 baseline、参数化抓取与时序控制，以及第四阶段的订阅规划、计划预览和本地执行衔接。**已通过官方 Codex CLI 使用当前 ChatGPT 订阅，实际完成模型规划 → 本地校验 → MuJoCo 物理抓取**；不需要 API 密钥，没有用固定回复冒充 GPT。尚未加入视觉识别或 DP。
 
 仓库：https://github.com/youseihuayu-wonderful/GPT
 
@@ -11,7 +11,7 @@
 1. 搭建仿真场景：已完成，读取物体真值位姿。
 2. 固定脚本抓取：已完成，保留顺序执行 baseline。
 3. 参数化抓取与时序控制：已完成，支持真实运动重叠及固定场景参数小实验。
-4. GPT 规划层：接口、校验、预览和执行衔接已实现；真实 GPT 联调待配置 API 密钥。
+4. GPT 规划层：已完成当前黑碗抓取能力内的真实订阅联调与右侧物理演示。
 5. 跨物体、位置与方法的对比实验：尚未开展；当前参数小实验不等于这一阶段。
 
 ## 启动与右侧显示
@@ -31,7 +31,7 @@ uv run python server.py --port 8765
 terminal-browser open http://127.0.0.1:8765 --split right --size 0.48
 ```
 
-也可以直接在浏览器打开 http://127.0.0.1:8765 。服务停止后重新执行启动命令，再点击页面的“重新连接”。物理仿真与手动 baseline 不依赖 API key、外部 CDN 或 GPU 服务；GPT 规划需要下述 OpenAI API 配置。
+也可以直接在浏览器打开 http://127.0.0.1:8765 。服务停止后重新执行启动命令，再点击页面的“重新连接”。物理仿真与手动 baseline 不依赖外部模型或 GPU 服务；GPT 规划需要下述 Codex CLI 与有效的 ChatGPT 订阅登录。
 
 - 运行固定 baseline：以 80 mm 开口、100 mm/s 名义下降速度、0 mm 提前闭合执行。技能执行期间不能重复启动；成功或失败后需先重置。
 - 运行自定义参数：校验并使用三个输入值，自动开始物理积分。编辑输入框不会改变正在执行的参数；“实际应用”显示后端采用的配置。
@@ -49,28 +49,33 @@ terminal-browser open http://127.0.0.1:8765 --split right --size 0.48
 
 放置、松手、抓酒瓶、放入抽屉、关闭抽屉等均未开放；提示词要求对包含未实现动作的整项任务返回 `unsupported`，不能偷偷只执行抓碗部分。模型可能误解自然语言，必须检查预览；本地校验能保证动作白名单和参数边界，不能证明模型正确理解了每个用户意图，也不保证物理抓取成功。
 
-### 配置官方 API
+### 使用现有 ChatGPT 订阅
 
-使用独立的 [OpenAI API 密钥](https://platform.openai.com/api-keys) 和 API 额度；ChatGPT 订阅不能代替 API 凭证。首次创建本机配置，不覆盖已有文件：
+采用官方 [Codex 认证](https://developers.openai.com/codex/auth/)与[非交互执行](https://developers.openai.com/codex/noninteractive/)，复用本机已有的 ChatGPT 登录。本轮实际验证版本为 `codex-cli 0.164.0`。新机器先安装官方 CLI，并选择 ChatGPT 订阅登录：
 
 ```sh
-test -f .env || cp .env.example .env
-chmod 600 .env
+npm install -g @openai/codex
+codex login
+codex login status
 ```
 
-在 `.env` 中填写 `OPENAI_API_KEY`，不要填写到 `.env.example`，不要提交到 GitHub、网页或聊天。`.env` 与其他 `.env.*` 已忽略，仅无密钥的 `.env.example` 入库；同名环境变量优先于文件。每次点击生成都会重新读取配置，无需重启服务。
+已登录的机器不需要重新登录。应用在每次规划前运行 `codex login status`，只接受 ChatGPT 登录；API-key 登录、未登录、额度不足或模型不可用都明确失败，不改用 API 付费。应用不读取、复制或上传 Codex 的认证文件。
 
-默认模型为 [GPT-5.6 Terra](https://developers.openai.com/api/docs/models/gpt-5.6-terra)，可用 `OPENAI_MODEL` 修改。替换模型需支持 Responses API、严格 JSON Schema 和 `reasoning.effort=none`；不支持时明确报错，不自动降级。使用官方 [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)，单次请求最多 4096 输出 token、60 s 总超时，不自动重试、不启用模型工具。
+默认请求模型为 `gpt-5.6-terra`，已用本机订阅实测。不同账号的模型权限可能不同；模型目录缓存只是候选信息，不保证调用成功。可选的本机 `.env` 只设置 `CODEX_MODEL`，同名环境变量优先，每次生成重新读取。配置示例见 `.env.example`；实际 `.env` 不入库。
 
-请求仅通过 HTTPS 发往 `https://api.openai.com/v1/responses`，不跟随重定向、不读取环境代理；需保证本机能直连该 API。发送任务文本、仿真状态及 `results/parameter_sweep.json` 的实验记录，不上传图像、PDF 或其他本机文件。密钥只用于 Authorization 请求头，不进入提示词、前端状态或仓库。请求设置 `store=false`；这不是对服务商所有数据保留政策的额外保证。
+规划通过 `codex exec --json --output-schema` 执行，使用独立临时目录、只读沙箱、临时会话与严格配置。关闭 shell、浏览器、应用、插件、MCP、子代理等能力，不加载项目说明或本机技能目录；忽略用户自定义 CLI 配置，但保留官方登录方式。应用传入任务文本、仿真状态、参数实验记录和规划约束，不主动加入图像或 PDF。
+
+登录检查超时为 10 s，规划进程超时为 90 s。超时或取消会终止本地进程组；进程不响应终止信号时强制停止。应用没有自动重试或模型降级；CLI 自身可能进行有限的网络重连，仍受进程超时约束。`--ephemeral` 不保存本次 CLI 会话历史，不代表服务商端零数据保留。
+
+该版本 CLI 对实验性技能隔离、被禁用的 Code Mode 各产生一条非致命诊断。页面保留诊断数量，不输出可能包含本机信息的原始消息。只有完整的 `turn.completed` 和有效计划才能执行；致命错误、失败回合或任何非规划工具事件仍被拒绝。
 
 ### 操作与安全边界
 
-1. 重置场景，在任务框填写黑碗抓取与保持的要求，点击“生成 GPT 计划”。只请求规划，不自动运动；没有密钥时显示缺失配置，不生成替代计划。
+1. 重置场景，在任务框填写黑碗抓取与保持的要求，点击“生成 GPT 计划”。只请求规划，不自动运动；CLI 或订阅登录不可用时明确报错，不生成替代计划。
 2. 查看本次任务、模型实际回复、参数和子阶段，再点击“执行已校验计划”。模型生成的文本只作显示；执行端只使用已校验的参数，不运行模型代码或任意指令。
 3. 实际阶段、接触、抬升与保持决定成功或失败。GPT 文字不能设置成功标志；成功后的失抓也会撤销规划器的成功状态。
 
-规划中和待执行时冻结场景，禁止手动开始、单步或另起抓取；仍可暂停、换视角、取消规划或重置。“取消规划”只取消请求或丢弃待执行计划，已开始的物理动作使用暂停／重置。取消本机请求不能保证远端已经产生的 API 费用被撤销。
+规划中和待执行时冻结场景，禁止手动开始、单步或另起抓取；仍可暂停、换视角、取消规划或重置。“取消规划”只取消请求或丢弃待执行计划，已开始的物理动作使用暂停／重置。取消本地请求不能保证恢复已经消耗的订阅额度。
 
 每个计划绑定一个代次标识。取消、重置会使旧标识失效；即使旧请求后来返回，也不能恢复旧计划。执行只接受当前 `ready` 计划，不能重复消费；多个页面共享计划和仿真。断线后显示最后状态并禁用执行，重连不会自动重新规划或启动动作。
 
@@ -84,9 +89,9 @@ chmod 600 .env
 - `execute_plan`：携带当前 `state.planner.plan_id`，执行后端保存的计划；不从客户端接收替换计划或参数。
 - `{"action":"cancel_plan"}`：取消规划或放弃待执行计划。
 
-`/api/state` 和实时消息包含 `planner`：`status`、`configured`、`model`、`task`、`plan_id`、`plan`、`latency_s`、`response_id`、`error`。`configured` 仅表示已读取到密钥，不等于认证成功。计划中含 `decision / summary / reason / target_object / steps / parameters`；不支持时目标和参数为 null，步骤为空。
+`/api/state` 和实时消息包含 `planner`：`status`、`configured`、`model`、`task`、`plan_id`、`plan`、`latency_s`、`thread_id`、`diagnostic_count`、`error`。`configured` 仅表示找到 Codex CLI，不等于认证成功。计划中含 `decision / summary / reason / target_object / steps / parameters`；不支持时目标和参数为 null，步骤为空。
 
-`latency_s` 是规划请求的墙钟耗时；原 `skill.elapsed_s` 是物理仿真时间，两者不能直接相加当作端到端墙钟时间。只有真实成功返回的 API 响应才提供响应模型和 ID；未完成规划时不会伪造这些信息。此阶段没有开展 GPT 与规则方法的性能比较。
+`latency_s` 是登录检查与规划的墙钟耗时；`skill.elapsed_s` 是物理仿真时间，两者不能直接相加当作端到端墙钟时间。`model` 明确表示请求型号，不冒充服务端返回的模型快照；`thread_id` 仅在真实完成并校验后提供。此阶段没有开展 GPT 与规则方法的性能比较。
 
 ## 位姿接口
 
@@ -226,12 +231,13 @@ uv run python experiments.py --output results/parameter_sweep.json
 - `simulation.py`：模型组合、物理积分、重置、位姿读取、渲染及命令行入口。
 - `grasp.py`：不可变参数配置、抓取状态机、数值逆运动学、执行器控制、运动重叠测量及成功／失败检查。
 - `tests/test_grasp.py`：不依赖图像或 mock 的真实物理行为检查。
-- `planner.py`：官方 Responses API 客户端、密钥配置、结构化计划协议与安全校验。
+- `planner.py`：官方 Codex 订阅客户端、子进程生命周期、结构化计划协议与安全校验。
 - `planning.py`：异步请求、取消／重置代次隔离、计划消费和物理结果衔接。
 - `tests/test_planner.py`、`tests/test_planning.py`：计划边界、错误、取消竞争与物理结果同步检查；受控回复只用于测试，不是 GPT 证据。
 - `.env.example`：不含密钥的本机配置示例；实际 `.env` 不入库。
 - `experiments.py`：独立真实物理参数对照入口。
 - `results/parameter_sweep.json`：已执行的八组原始测量报告，不是手工填充数据。
+- `results/subscription_grasp.json`：真实订阅请求、预览互锁、物理阶段及成功后保持的实测记录，不含认证信息或模型思考内容。
 - `server.py`：本地 HTTP／WebSocket 服务。
 - `web/`：中文预览界面。
 - `vendor/panda/`：[MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie/tree/da76818e269b82289eba39808e2fb91d679d6994/franka_emika_panda)，提交 `da76818e269b82289eba39808e2fb91d679d6994`，保留 Apache-2.0 LICENSE。
@@ -253,10 +259,12 @@ uv run python experiments.py --output results/parameter_sweep.json
 uv run python -m unittest discover -s tests -v
 ```
 
-本轮 41 项用例已逐项通过，覆盖原物理行为、结构化计划拒绝、配置安全、接口失败、取消／重置后迟到回复、过期／重复执行拒绝，以及真实物理成功后失抓对规划状态的更新。一次测试中的普通词误判已删除并单独复验；不依赖消息措辞判断业务行为。
+本轮全部 38 项检查通过，覆盖真实物理行为、计划边界、配置安全、API-key 登录拒绝、不完整／失败／工具调用事件拒绝、取消／重置后迟到回复、过期／重复执行拒绝，以及成功后失抓对规划状态的更新。还实际启动带子进程的进程组，验证超时、取消和强制终止不会留下执行进程；验证 API 计费凭证不会传入规划子进程。
 
-另用一次性、本机受控 HTTP 服务走通实际客户端请求、JSON 解析、WebSocket 互锁和物理执行：80/200/4 配置抓取成功，额外保持 5 s，无 MuJoCo 警告。验证了跨源及非本机 Host 拒绝、重定向不跟随、HTTP 401／拒答／损坏 JSON／越界计划不执行，以及重置取消请求。该服务与脚本不属于运行时产品，也未作为 GPT 接口替代品保留。
+真实模型验证：当前 ChatGPT 订阅通过 Codex 请求 `gpt-5.6-terra`，返回六阶段计划与 80/200/4 参数；另一条真实 CLI 请求“把黑碗放进抽屉，然后关闭抽屉”返回 `unsupported`、空步骤和空参数。不是受控回复或固定预设。
 
-浏览器实际验证了无密钥时保持 idle、计划预览、手动动作互锁、取消、拒绝不支持或不安全计划、断线禁用与重连不重复请求、点击执行后真实抓取。模型中的 HTML 字符串仅显示为文本，没有执行；605 CSS px 界面无横向溢出、无页面脚本错误。右侧正式服务使用真实官方 API 客户端，缺少密钥时明确提示，不能执行 GPT 计划。
+右侧正式服务完成实际浏览器流程：点击生成后，物理保持 idle 且暂停，页面显示真实计划，手动启动被锁定；明确点击执行后，依次观察到六阶段及完成状态。该次规划耗时 6.142 s（墙钟），抓取耗时 11.486 s（仿真），抬升约 0.13746 m，稳定保持判定 1 s；成功后额外推进约 5.05 s，仍持物且无 MuJoCo 数值警告。实际下降／闭合重叠为 0.084 s。完整记录见 `results/subscription_grasp.json`。
 
-**尚未验证：使用用户有效凭证调用真实 OpenAI 并完成物理抓取。** 以上受控接口和物理测试不证明 GPT 已成功理解任务、真实 API 的模型权限或跨场景性能；也不等于第五阶段对比实验。
+右侧保留实际渲染的成功抓取画面并暂停，仍可恢复物理积分；重新演示需重置、生成新计划并明确执行。当前浏览器缩放下无横向溢出。此前已验证断线禁用、重连不自动重复请求、HTML 仅按文本显示等页面边界。
+
+**范围限制：一次固定场景的真实订阅联调，不是成功率、跨场景泛化或 GPT 优于规则控制的证据。** 本次执行前桌面已静置，不能把本轮耗时与参数扫描结果直接相减作为提速结论；第五阶段对比实验仍未开展。

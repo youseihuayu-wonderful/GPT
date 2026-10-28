@@ -1,12 +1,16 @@
-"""OpenAI planning only: validated bowl-grasp intent, never robot commands."""
+"""Subscription-backed Codex planning; no credential extraction or robot commands."""
 
-from dataclasses import dataclass, field
+import asyncio
+from contextlib import suppress
+from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
+import shutil
+import signal
+import tempfile
 import time
 
-import aiohttp
 from dotenv import dotenv_values
 
 from grasp import GraspParameters
@@ -23,24 +27,22 @@ class PlannerError(Exception):
 
 @dataclass(frozen=True)
 class PlannerConfig:
-    api_key: str = field(repr=False)
+    executable: str | None
     model: str = DEFAULT_MODEL
 
     def __post_init__(self) -> None:
-        key = self.api_key
-        model = self.model
-        if not isinstance(key, str) or not isinstance(model, str):
-            raise PlannerError("OpenAI 配置无效，请检查本地 .env。")
-        if key.strip() and any(not 33 <= ord(char) <= 126 for char in key):
-            raise PlannerError("OpenAI 密钥包含无效字符，请检查本地 .env。")
-        if model.strip() and any(not 33 <= ord(char) <= 126 for char in model):
-            raise PlannerError("OpenAI 模型配置包含无效字符，请检查本地 .env。")
-        object.__setattr__(self, "api_key", key if key.strip() else "")
-        object.__setattr__(self, "model", model if model.strip() else DEFAULT_MODEL)
+        if self.executable is not None and not isinstance(self.executable, str):
+            raise PlannerError("Codex 可执行文件配置无效。")
+        if not isinstance(self.model, str):
+            raise PlannerError("CODEX_MODEL 配置无效，请检查本地 .env。")
+        model = self.model.strip() or DEFAULT_MODEL
+        if any(not 33 <= ord(char) <= 126 for char in model) or model.startswith("-"):
+            raise PlannerError("CODEX_MODEL 配置无效，请检查本地 .env。")
+        object.__setattr__(self, "model", model)
 
     @property
     def configured(self) -> bool:
-        return bool(self.api_key)
+        return bool(self.executable)
 
     @classmethod
     def load(cls, root: Path) -> "PlannerConfig":
@@ -50,10 +52,10 @@ class PlannerConfig:
         except FileNotFoundError:
             values = {}
         except (OSError, UnicodeError):
-            raise PlannerError("无法读取本地 OpenAI 配置，请检查 .env 文件及权限。") from None
+            raise PlannerError("无法读取本地模型配置，请检查 .env 文件及权限。") from None
         return cls(
-            api_key=os.environ.get("OPENAI_API_KEY", values.get("OPENAI_API_KEY") or ""),
-            model=os.environ.get("OPENAI_MODEL", values.get("OPENAI_MODEL") or ""),
+            executable=shutil.which("codex"),
+            model=os.environ.get("CODEX_MODEL", values.get("CODEX_MODEL") or ""),
         )
 
 
@@ -90,8 +92,9 @@ class TaskPlan:
 class PlanResult:
     plan: TaskPlan
     model: str
-    response_id: str
+    thread_id: str
     latency_s: float
+    diagnostic_count: int = 0
 
 
 def _bounded_text(value: object, maximum: int) -> bool:
@@ -207,97 +210,165 @@ def _parse_json(text: str | bytes, message: str) -> object:
         raise PlannerError(message) from None
 
 
-def _decode_response(payload: object) -> tuple[TaskPlan, str, str]:
-    invalid = "OpenAI 返回了无效或有歧义的响应，未生成可执行计划。"
-    if not isinstance(payload, dict):
-        raise PlannerError(invalid)
-    status = payload.get("status")
-    if status == "incomplete" or payload.get("incomplete_details") is not None:
-        raise PlannerError("OpenAI 输出未完成，未生成可执行计划。")
-    if status != "completed" or payload.get("error") is not None:
-        raise PlannerError(invalid)
-    model, response_id = payload.get("model"), payload.get("id")
-    if not isinstance(model, str) or not model.strip() or not isinstance(response_id, str) or not response_id.strip():
-        raise PlannerError(invalid)
-    output = payload.get("output")
-    if not isinstance(output, list):
-        raise PlannerError(invalid)
-    texts = []
-    messages = 0
-    for item in output:
-        if not isinstance(item, dict):
-            raise PlannerError(invalid)
-        if item.get("type") == "reasoning":
+_DISABLED_FEATURES = (
+    "shell_tool", "unified_exec", "apps", "plugins", "hooks", "multi_agent",
+    "browser_use", "computer_use", "image_generation", "view_image",
+    "code_mode_host", "skill_search", "skill_mcp_dependency_install",
+    "memories", "shell_snapshot", "unbounded_connection_retries",
+    "daemon_auto_start", "workspace_dependencies",
+)
+
+
+def _subscription_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    for name in (
+        "OPENAI_API_KEY", "CODEX_API_KEY", "CODEX_ACCESS_TOKEN",
+        "OPENAI_BASE_URL", "RUST_LOG",
+    ):
+        environment.pop(name, None)
+    return environment
+
+
+def _codex_command(config: PlannerConfig, directory: Path) -> list[str]:
+    command = [
+        config.executable, "exec", "--ignore-user-config", "--strict-config",
+        "--ephemeral", "--skip-git-repo-check", "--sandbox", "read-only",
+        "--json", "--color", "never", "--model", config.model,
+        "--output-schema", str(directory / "schema.json"),
+        "--output-last-message", str(directory / "plan.json"),
+    ]
+    for setting in (
+        'approval_policy="never"', 'web_search="disabled"', "project_doc_max_bytes=0",
+        'history.persistence="none"', 'model_reasoning_effort="low"',
+        'model_provider="openai"', "mcp_servers={}",
+        "model_instructions_file=" + json.dumps(str(directory / "instructions.txt")),
+    ):
+        command.extend(("-c", setting))
+    for feature in _DISABLED_FEATURES:
+        command.extend(("--disable", feature))
+    command.extend(("--enable", "skip_host_skill_discovery", "-"))
+    return command
+
+
+async def _run_cli(
+    command: list[str], directory: Path, environment: dict[str, str],
+    input_data: bytes | None = None, timeout: float = 90,
+) -> tuple[int, bytes, bytes]:
+    process = await asyncio.create_subprocess_exec(
+        *command, cwd=directory, env=environment, start_new_session=True,
+        stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    communication = asyncio.create_task(process.communicate(input_data))
+    try:
+        stdout, stderr = await asyncio.wait_for(asyncio.shield(communication), timeout)
+    except (asyncio.CancelledError, TimeoutError):
+        with suppress(ProcessLookupError):
+            os.killpg(process.pid, signal.SIGTERM)
+        try:
+            await asyncio.wait_for(asyncio.shield(communication), 2)
+        except TimeoutError:
+            with suppress(ProcessLookupError):
+                os.killpg(process.pid, signal.SIGKILL)
+            await communication
+        raise
+    return process.returncode, stdout, stderr
+
+
+def _cli_error(diagnostic: bytes) -> PlannerError:
+    text = diagnostic.decode("utf-8", errors="replace").lower()
+    if any(word in text for word in ("usage limit", "rate limit", "quota", "credits", "429")):
+        return PlannerError("当前 ChatGPT/Codex 订阅额度受限，请检查订阅用量后重试；不会改用 API 付费。")
+    if any(word in text for word in ("unauthorized", "401", "token_expired", "not logged in")):
+        return PlannerError("Codex 订阅登录已失效，请在本机运行 codex login。")
+    return PlannerError("Codex 规划失败，请检查 CLI 版本、网络和订阅模型权限；未执行任何动作。")
+
+
+def _completed_thread(raw: bytes) -> tuple[str, int]:
+    invalid = "Codex 输出未完整结束或事件格式无效，未生成可执行计划。"
+    thread_id = None
+    diagnostic_count = 0
+    started = completed = False
+    for line in raw.splitlines():
+        if not line.strip():
             continue
-        if item.get("type") != "message" or item.get("role") != "assistant":
+        event = _parse_json(line, invalid)
+        if not isinstance(event, dict):
             raise PlannerError(invalid)
-        if item.get("status") != "completed":
-            raise PlannerError("OpenAI 输出未完成，未生成可执行计划。")
-        messages += 1
-        content = item.get("content")
-        if not isinstance(content, list) or not content:
+        kind = event.get("type")
+        if kind in ("error", "turn.failed"):
+            raise _cli_error(line)
+        if completed:
             raise PlannerError(invalid)
-        for part in content:
-            if not isinstance(part, dict):
+        if kind == "thread.started":
+            if thread_id is not None or started:
                 raise PlannerError(invalid)
-            if part.get("type") == "refusal":
-                raise PlannerError("OpenAI 拒绝了此规划请求，未执行任何动作。")
-            if part.get("type") != "output_text" or not isinstance(part.get("text"), str):
+            thread_id = event.get("thread_id")
+            if not isinstance(thread_id, str) or not thread_id.strip():
                 raise PlannerError(invalid)
-            texts.append(part["text"])
-    if messages != 1 or len(texts) != 1 or not texts[0].strip():
+        elif kind == "turn.started":
+            if thread_id is None or started:
+                raise PlannerError(invalid)
+            started = True
+        elif kind in ("item.started", "item.updated", "item.completed"):
+            item = event.get("item")
+            if thread_id is None or not isinstance(item, dict):
+                raise PlannerError(invalid)
+            # Codex defines item.error as non-fatal, unlike error/turn.failed.
+            if kind == "item.completed" and item.get("type") == "error":
+                if not isinstance(item.get("message"), str) or not item["message"].strip():
+                    raise PlannerError(invalid)
+                diagnostic_count += 1
+                continue
+            if not started:
+                raise PlannerError(invalid)
+            if item.get("type") not in ("agent_message", "reasoning"):
+                raise PlannerError("Codex 尝试了规划以外的工具操作，拒绝执行该计划。")
+        elif kind == "turn.completed":
+            if not started:
+                raise PlannerError(invalid)
+            completed = True
+        else:
+            raise PlannerError(invalid)
+    if not completed or thread_id is None:
         raise PlannerError(invalid)
-    plan = validate_plan(_parse_json(texts[0], "OpenAI 计划不是有效 JSON，未执行任何动作。"))
-    return plan, model, response_id
-
-
-def _http_error(status: int) -> PlannerError:
-    if status in (401, 403):
-        return PlannerError("OpenAI 身份验证或权限失败，请检查本地密钥及模型访问权限。")
-    if status == 429:
-        return PlannerError("OpenAI 请求受限或额度不足，请检查账户后重新发起规划。")
-    if status in (400, 404, 422):
-        return PlannerError("OpenAI 不接受此模型或规划请求，请检查模型配置及接口支持。")
-    return PlannerError(f"OpenAI 服务请求失败（HTTP {status}），未生成可执行计划。")
+    return thread_id, diagnostic_count
 
 
 async def request_plan(config: PlannerConfig, task: str, scene: dict, experiments: dict) -> PlanResult:
-    """Make one official Responses request; no retries, fallback, or execution."""
+    """Use cached ChatGPT login through the official CLI, never through raw tokens."""
     if not config.configured:
-        raise PlannerError("尚未配置 OpenAI 密钥，请在本地 .env 中填写 OPENAI_API_KEY。")
+        raise PlannerError("未找到官方 Codex CLI，请安装后运行 codex login 使用 ChatGPT 订阅登录。")
     started = time.monotonic()
-    body = {
-        "model": config.model,
-        "instructions": _INSTRUCTIONS,
-        "input": [{
-            "role": "user",
-            "content": json.dumps(
-                {"task": task, "scene": scene, "experiments": experiments},
-                ensure_ascii=False, allow_nan=False,
-            ),
-        }],
-        "text": {"format": {
-            "type": "json_schema", "name": "grasp_plan", "strict": True,
-            "schema": _plan_schema(),
-        }},
-        "reasoning": {"effort": "none"},
-        "max_output_tokens": 4096,
-        "store": False,
-    }
+    environment = _subscription_environment()
+    prompt = json.dumps(
+        {"task": task, "scene": scene, "experiments": experiments},
+        ensure_ascii=False, allow_nan=False,
+    ).encode("utf-8")
     try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60), trust_env=False) as session:
-            async with session.post(
-                "https://api.openai.com/v1/responses",
-                headers={"Authorization": f"Bearer {config.api_key}"},
-                json=body, allow_redirects=False,
-            ) as response:
-                if not 200 <= response.status < 300:
-                    raise _http_error(response.status)
-                raw = await response.read()
+        with tempfile.TemporaryDirectory(prefix="gpt-plan-") as temporary:
+            directory = Path(temporary)
+            code, stdout, stderr = await _run_cli(
+                [config.executable, "login", "status"], directory, environment, timeout=10,
+            )
+            login = (stdout + b"\n" + stderr).decode("utf-8", errors="replace").lower()
+            if code or "logged in using chatgpt" not in login:
+                raise PlannerError("当前 Codex 不是有效的 ChatGPT 订阅登录；请运行 codex login，不使用 API 密钥。")
+            (directory / "schema.json").write_text(json.dumps(_plan_schema()), encoding="utf-8")
+            (directory / "instructions.txt").write_text(_INSTRUCTIONS, encoding="utf-8")
+            code, stdout, stderr = await _run_cli(
+                _codex_command(config, directory), directory, environment, prompt,
+            )
+            if code:
+                raise _cli_error(stdout + b"\n" + stderr)
+            thread_id, diagnostic_count = _completed_thread(stdout)
+            try:
+                raw_plan = (directory / "plan.json").read_bytes()
+            except OSError:
+                raise PlannerError("Codex 未写出完整计划，未执行任何动作。") from None
+            plan = validate_plan(_parse_json(raw_plan, "Codex 计划不是有效 JSON，未执行任何动作。"))
     except TimeoutError:
-        raise PlannerError("OpenAI 规划请求超时，未生成可执行计划。") from None
-    except aiohttp.ClientError:
-        raise PlannerError("无法连接 OpenAI 或响应传输失败，请检查网络后重新发起规划。") from None
-    payload = _parse_json(raw, "OpenAI 返回了无效的响应 JSON，未生成可执行计划。")
-    plan, model, response_id = _decode_response(payload)
-    return PlanResult(plan, model, response_id, time.monotonic() - started)
+        raise PlannerError("Codex 调用超时，已停止本地请求进程；未执行任何动作。") from None
+    except OSError:
+        raise PlannerError("无法启动 Codex 或创建临时规划文件，请检查安装与本机权限。") from None
+    return PlanResult(plan, config.model, thread_id, time.monotonic() - started, diagnostic_count)

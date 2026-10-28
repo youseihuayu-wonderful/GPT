@@ -1,18 +1,21 @@
 """Deterministic contract tests, not evidence of live GPT or physical success."""
 
 import asyncio
+from contextlib import suppress
 from copy import deepcopy
 from dataclasses import FrozenInstanceError
 import json
+import os
 from pathlib import Path
+import sys
 import tempfile
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import aiohttp
+from unittest.mock import AsyncMock, patch
 
 from grasp import GraspParameters
-from planner import PlannerConfig, PlannerError, request_plan, validate_plan
+from planner import (
+    PlannerConfig, PlannerError, _run_cli, _subscription_environment, request_plan, validate_plan,
+)
 
 
 def plan_payload() -> dict:
@@ -44,17 +47,6 @@ def unsupported_payload() -> dict:
         "decision": "unsupported", "summary": "无法完成整项任务",
         "reason": "没有放置能力，不能只执行抓取部分。",
         "target_object": None, "steps": [], "parameters": None,
-    }
-
-
-def response_payload(plan: dict | None = None) -> dict:
-    return {
-        "id": "resp_test_only", "model": "test-provider-snapshot",
-        "status": "completed", "error": None, "incomplete_details": None,
-        "output": [{
-            "type": "message", "role": "assistant", "status": "completed",
-            "content": [{"type": "output_text", "text": json.dumps(plan if plan is not None else plan_payload())}],
-        }],
     }
 
 
@@ -165,35 +157,27 @@ class PlanValidationTests(unittest.TestCase):
 
 class PlannerConfigTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.directory = tempfile.TemporaryDirectory()
-        self.addCleanup(self.directory.cleanup)
-        self.root = Path(self.directory.name)
-        self.environment = patch.dict("os.environ", {}, clear=True)
-        self.environment.start()
-        self.addCleanup(self.environment.stop)
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        environment = patch.dict(os.environ, {}, clear=True)
+        environment.start()
+        self.addCleanup(environment.stop)
 
-    def test_environment_wins_without_interpolation_or_mutating_environment(self) -> None:
-        (self.root / ".env").write_text(
-            "OPENAI_API_KEY='file-${UNRELATED_SECRET}'\nOPENAI_MODEL=file-model\n", encoding="utf-8",
-        )
-        with patch.dict("os.environ", {"UNRELATED_SECRET": "private-other-value"}):
+    def test_model_override_precedence_does_not_expand_private_environment(self) -> None:
+        (self.root / ".env").write_text("CODEX_MODEL=${PRIVATE_VALUE}\n", encoding="utf-8")
+        with patch.dict(os.environ, {"PRIVATE_VALUE": "private-secret"}):
             config = PlannerConfig.load(self.root)
-            self.assertEqual(config.api_key, "file-${UNRELATED_SECRET}")
-            self.assertNotIn("private-other-value", repr(config))
-        with patch.dict("os.environ", {"OPENAI_API_KEY": "environment-key", "OPENAI_MODEL": "environment-model"}):
-            config = PlannerConfig.load(self.root)
-            self.assertEqual(config.api_key, "environment-key")
-            self.assertEqual(config.model, "environment-model")
-            self.assertNotIn("environment-key", repr(config))
-        with patch.dict("os.environ", {"OPENAI_API_KEY": ""}):
-            self.assertFalse(PlannerConfig.load(self.root).configured)
+            self.assertEqual(config.model, "${PRIVATE_VALUE}")
+            self.assertNotIn("private-secret", repr(config))
+            self.assertNotIn("CODEX_MODEL", os.environ)
+        with patch.dict(os.environ, {"CODEX_MODEL": "environment-model"}):
+            self.assertEqual(PlannerConfig.load(self.root).model, "environment-model")
 
-    def test_missing_file_is_unconfigured_and_reloading_reads_new_key(self) -> None:
-        self.assertFalse(PlannerConfig.load(self.root).configured)
-        (self.root / ".env").write_text("OPENAI_API_KEY=test-local-only\n", encoding="utf-8")
-        self.assertTrue(PlannerConfig.load(self.root).configured)
-        (self.root / ".env").write_text("OPENAI_API_KEY=''\n", encoding="utf-8")
-        self.assertFalse(PlannerConfig.load(self.root).configured)
+    def test_api_credentials_cannot_replace_missing_cli(self) -> None:
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-not-a-real-key"}):
+            with patch("planner.shutil.which", return_value=None):
+                self.assertFalse(PlannerConfig.load(self.root).configured)
 
     def test_unreadable_config_has_safe_error_without_raw_exception(self) -> None:
         for error in (PermissionError("private-path-and-secret"), UnicodeError("private-content")):
@@ -203,179 +187,165 @@ class PlannerConfigTests(unittest.TestCase):
             self.assertNotIn("private-", str(caught.exception))
             self.assertTrue(caught.exception.__suppress_context__)
 
-    def test_key_header_injection_is_rejected_before_network(self) -> None:
-        for key in ("secret\r\nX-Injected: true", "secret\x00", "secret\t", "密钥", "secret key"):
-            with self.subTest(key=key), self.assertRaises(PlannerError):
-                PlannerConfig(key)
+    def test_invalid_model_cannot_become_an_option_or_multiline_argument(self) -> None:
+        for model in ("--dangerously-bypass-approvals-and-sandbox", "x\nmodel", "x\x00", "x\tmodel", "模型", "two models", None):
+            with self.subTest(model=model), self.assertRaises(PlannerError):
+                PlannerConfig("test-codex", model)
+
+
 
 
 class PlannerRequestTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        self.config = PlannerConfig("test-key-never-real", "test-requested-model")
-        self.scene = {"object": {"name": "bowl", "position": [0.1, 0.2, 0.3]}}
-        self.experiments = {"runs": [{"success": False, "elapsed_s": 8.5}]}
-        self.response = MagicMock()
-        self.response.status = 200
-        self.response.read = AsyncMock(return_value=json.dumps(response_payload()).encode())
-        self.response.__aenter__ = AsyncMock(return_value=self.response)
-        self.response.__aexit__ = AsyncMock(return_value=False)
-        self.session = MagicMock()
-        self.session.post.return_value = self.response
-        self.session.__aenter__ = AsyncMock(return_value=self.session)
-        self.session.__aexit__ = AsyncMock(return_value=False)
-        self.factory_patch = patch("planner.aiohttp.ClientSession", return_value=self.session)
-        self.factory = self.factory_patch.start()
-        self.addCleanup(self.factory_patch.stop)
+        self.config = PlannerConfig("test-only-codex", "test-requested-model")
+        self.events = [
+            {"type": "thread.started", "thread_id": "test-completed-thread"},
+            {"type": "turn.started"},
+            {"type": "item.completed", "item": {"type": "agent_message", "text": "structured plan"}},
+            {"type": "turn.completed"},
+        ]
+        self.plan = json.dumps(plan_payload()).encode()
+        self.login = (0, b"", b"Logged in using ChatGPT")
+        self.exit_code = 0
+        self.stderr = b""
+        runner = patch("planner._run_cli", new=AsyncMock(side_effect=self.run_cli))
+        runner.start()
+        self.addCleanup(runner.stop)
+
+    async def run_cli(self, command, directory, environment, input_data=None, timeout=90):
+        if command[1:3] == ["login", "status"]:
+            return self.login
+        if self.plan is not None:
+            (directory / "plan.json").write_bytes(self.plan)
+        return self.exit_code, b"\n".join(json.dumps(event).encode() for event in self.events), self.stderr
 
     async def request(self):
-        return await request_plan(self.config, "抓起黑碗并保持", self.scene, self.experiments)
+        return await request_plan(self.config, "抓起黑碗", {"object": {"name": "bowl"}}, {})
 
-    def set_response(self, payload: object) -> None:
-        self.response.read.return_value = json.dumps(payload).encode()
+    async def test_api_login_or_signed_out_cannot_produce_an_executable_plan(self) -> None:
+        for login in ((0, b"", b"Logged in using an API key"), (1, b"", b"Not logged in")):
+            self.login = login
+            with self.subTest(login=login), self.assertRaises(PlannerError):
+                await self.request()
 
-    async def test_missing_key_never_opens_a_network_session(self) -> None:
-        with self.assertRaises(PlannerError):
-            await request_plan(PlannerConfig(""), "抓碗", self.scene, self.experiments)
-        self.factory.assert_not_called()
+    async def test_plan_file_cannot_bypass_incomplete_failed_or_tool_using_turn(self) -> None:
+        original = deepcopy(self.events)
+        candidates = [
+            [], original[:-1], original[1:], original + [original[-1]],
+            [original[0], original[0], *original[1:]],
+            [original[0], {"type": "turn.failed", "error": {"message": "failure"}}],
+            [original[0], {"type": "error", "message": "failure"}],
+            [original[0], {"type": "item.completed", "item": {"type": "agent_message"}}, *original[1:]],
+        ]
+        for tool in ("command_execution", "file_change", "mcp_tool_call", "web_search", "collab_tool_call"):
+            candidates.append([*original[:2], {"type": "item.completed", "item": {"type": tool}}, original[-1]])
+        for events in candidates:
+            self.events = events
+            with self.subTest(events=events), self.assertRaises(PlannerError):
+                await self.request()
 
-    async def test_unsupported_response_is_not_replaced_with_an_executable_plan(self) -> None:
-        self.set_response(response_payload(unsupported_payload()))
+    async def test_nonfatal_diagnostics_remain_visible_without_exposing_contents(self) -> None:
+        private = "private-startup-diagnostic"
+        diagnostic = {"type": "item.completed", "item": {"type": "error", "message": private}}
+        self.events.insert(1, diagnostic)
+        self.events.insert(-1, diagnostic)
         result = await self.request()
-        self.assertEqual(result.plan.to_dict(), unsupported_payload())
-        self.assertIsNone(result.plan.parameters)
-
-    async def test_reasoning_metadata_is_ignored_but_not_treated_as_a_plan(self) -> None:
-        payload = response_payload()
-        reasoning = {"type": "reasoning", "summary": [{"text": "not a plan"}]}
-        payload["output"].insert(0, reasoning)
-        self.set_response(payload)
-        self.assertEqual((await self.request()).plan.target_object, "bowl")
-        payload["output"] = [reasoning]
-        self.set_response(payload)
-        with self.assertRaises(PlannerError):
-            await self.request()
-
-    async def test_refusal_and_incomplete_have_distinct_safe_failures(self) -> None:
-        refusal = response_payload()
-        refusal["output"][0]["content"] = [{"type": "refusal", "refusal": self.config.api_key}]
-        incomplete = response_payload()
-        incomplete["status"] = "incomplete"
-        incomplete["incomplete_details"] = {"reason": "max_output_tokens"}
-        messages = []
-        for payload in (refusal, incomplete):
-            self.set_response(payload)
-            with self.assertRaises(PlannerError) as caught:
-                await self.request()
-            messages.append(str(caught.exception))
-            self.assertNotIn(self.config.api_key, messages[-1])
-        self.assertNotEqual(*messages)
-
-    async def test_empty_ambiguous_unknown_and_unfinished_output_is_rejected(self) -> None:
-        original = response_payload()["output"][0]
-        candidates = (
-            [], None, [None], [original, original],
-            [dict(original, role="user")], [dict(original, status="in_progress")],
-            [dict(original, content=[])], [dict(original, content=[None])],
-            [dict(original, content=original["content"] * 2)],
-            [dict(original, content=[{"type": "output_text", "text": " "}])],
-            [dict(original, content=[{"type": "output_text", "text": {}}])],
-            [dict(original, content=[{"type": "tool_call", "text": "{}"}])],
-            [original, {"type": "function_call", "name": "move_robot"}],
-        )
-        for output in candidates:
-            self.set_response(dict(response_payload(), output=output))
-            with self.subTest(output=output), self.assertRaises(PlannerError):
-                await self.request()
-
-    async def test_invalid_envelope_and_missing_metadata_are_rejected(self) -> None:
-        candidates = [None, [], "response"]
-        for field, value in (
-            ("status", "failed"), ("status", None), ("model", ""), ("id", None),
-            ("model", 1), ("error", {"message": self.config.api_key}),
-        ):
-            candidates.append(dict(response_payload(), **{field: value}))
-        for payload in candidates:
-            self.set_response(payload)
-            with self.subTest(payload=payload), self.assertRaises(PlannerError) as caught:
-                await self.request()
-            self.assertNotIn(self.config.api_key, str(caught.exception))
-
-    async def test_malformed_duplicate_and_nonfinite_json_cannot_pass_validation(self) -> None:
-        valid = json.dumps(plan_payload())
-        texts = (
-            valid[:-1], "```json\n" + valid + "\n```", "[]", "null",
-            valid[:-1] + ', "decision": "unsupported"}',
-            valid.replace('"phase": "prepare"', '"phase": "prepare", "phase": "release"'),
-            valid.replace('"initial_opening_m": 0.05', '"initial_opening_m": NaN'),
-            valid.replace('"initial_opening_m": 0.05', '"initial_opening_m": Infinity'),
-            valid.replace('"initial_opening_m": 0.05', '"initial_opening_m": 1e999'),
-        )
-        for text in texts:
-            payload = response_payload()
-            payload["output"][0]["content"][0]["text"] = text
-            self.set_response(payload)
-            with self.subTest(text=text), self.assertRaises(PlannerError):
-                await self.request()
-        for raw in (b"not-json", b"\xff", b'{"status":"completed","status":"incomplete"}'):
-            self.response.read.return_value = raw
-            with self.subTest(raw=raw), self.assertRaises(PlannerError):
-                await self.request()
-
-    async def test_http_errors_are_secret_safe_and_not_retried_or_decoded(self) -> None:
-        messages = {}
-        for status in (301, 400, 401, 403, 404, 422, 429, 500, 503):
-            self.response.status = status
-            self.response.read.return_value = self.config.api_key.encode()
-            self.response.read.reset_mock()
-            self.session.post.reset_mock()
-            with self.subTest(status=status), self.assertRaises(PlannerError) as caught:
-                await self.request()
-            messages[status] = str(caught.exception)
-            self.assertNotIn(self.config.api_key, messages[status])
-            self.response.read.assert_not_awaited()
-            self.session.post.assert_called_once()
-        self.assertNotEqual(messages[401], messages[429])
-        self.assertNotEqual(messages[429], messages[500])
-
-    async def test_network_timeout_and_unsafe_plan_are_distinct_and_sanitized(self) -> None:
-        messages = []
-        for error in (aiohttp.ClientConnectionError(self.config.api_key), TimeoutError(self.config.api_key)):
-            self.response.read.side_effect = error
-            with self.assertRaises(PlannerError) as caught:
-                await self.request()
-            messages.append(str(caught.exception))
-            self.assertNotIn(self.config.api_key, messages[-1])
-            self.assertTrue(caught.exception.__suppress_context__)
-        self.response.read.side_effect = None
-        unsafe = plan_payload()
-        unsafe["target_object"] = "bottle"
-        self.set_response(response_payload(unsafe))
+        self.assertEqual(result.diagnostic_count, 2)
+        self.assertNotIn(private, repr(result))
+        self.events[-1] = {"type": "turn.failed", "error": {"message": private}}
         with self.assertRaises(PlannerError) as caught:
             await self.request()
-        messages.append(str(caught.exception))
-        self.assertEqual(len(set(messages)), 3)
+        self.assertNotIn(private, str(caught.exception))
 
-    async def test_cancellation_propagates_and_closes_the_request_contexts(self) -> None:
-        reading = asyncio.Event()
+    async def test_completed_turn_cannot_bypass_missing_or_invalid_plan_file(self) -> None:
+        unsafe = plan_payload()
+        unsafe["parameters"]["initial_opening_m"] = 100
+        for plan in (
+            None, b"", b"```json\n{}\n```", b'{"decision":"plan","decision":"unsupported"}',
+            b'{"value":NaN}', b"\xff", json.dumps(unsafe).encode(),
+        ):
+            self.plan = plan
+            with self.subTest(plan=plan), self.assertRaises(PlannerError):
+                await self.request()
 
-        async def blocked_read():
-            reading.set()
-            await asyncio.Future()
+    async def test_failed_cli_never_returns_its_plan_or_private_diagnostic(self) -> None:
+        self.exit_code = 1
+        for message in (b"401 private-token", b"429 private-token", b"unknown private-token"):
+            self.stderr = message
+            with self.subTest(message=message), self.assertRaises(PlannerError) as caught:
+                await self.request()
+            self.assertNotIn("private-token", str(caught.exception))
 
-        self.response.read.side_effect = blocked_read
-        task = asyncio.create_task(self.request())
-        await reading.wait()
-        task.cancel()
-        with self.assertRaises(asyncio.CancelledError):
-            await task
-        self.response.__aexit__.assert_awaited_once()
-        self.session.__aexit__.assert_awaited_once()
-        self.session.post.assert_called_once()
+    async def test_unexpected_errors_are_not_converted_to_synthetic_plans(self) -> None:
+        with patch("planner._run_cli", side_effect=RuntimeError("test-programming-error")):
+            with self.assertRaises(RuntimeError):
+                await self.request()
 
-    async def test_unexpected_programmer_errors_are_not_converted_to_fallbacks(self) -> None:
-        self.response.read.side_effect = RuntimeError("programmer-error")
-        with self.assertRaises(RuntimeError):
-            await self.request()
+
+class CliProcessTests(unittest.IsolatedAsyncioTestCase):
+    async def test_real_child_cannot_receive_api_billing_credentials(self) -> None:
+        keys = ("OPENAI_API_KEY", "CODEX_API_KEY", "CODEX_ACCESS_TOKEN", "OPENAI_BASE_URL")
+        injected = {key: "private-test-value" for key in keys}
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, injected):
+            code, stdout, stderr = await _run_cli(
+                [sys.executable, "-c", f"import os,json; print(json.dumps([k for k in {keys!r} if k in os.environ]))"],
+                Path(directory), _subscription_environment(),
+            )
+        self.assertEqual((code, json.loads(stdout), stderr), (0, [], b""))
+
+    async def test_cancel_and_timeout_stop_real_process_group_including_descendants(self) -> None:
+        for cancel in (True, False):
+            with self.subTest(cancel=cancel):
+                connected, disconnected = set(), set()
+                ready, stopped = asyncio.Event(), asyncio.Event()
+
+                async def connection(reader, writer):
+                    role = (await reader.readline()).decode().strip()
+                    connected.add(role)
+                    if connected == {"parent", "child"}:
+                        ready.set()
+                    await reader.read()
+                    disconnected.add(role)
+                    if disconnected == {"parent", "child"}:
+                        stopped.set()
+                    writer.close()
+                    await writer.wait_closed()
+
+                server = await asyncio.start_server(connection, "127.0.0.1", 0)
+                port = server.sockets[0].getsockname()[1]
+                child = (
+                    "import signal,socket\n"
+                    + ("signal.signal(signal.SIGTERM, signal.SIG_IGN)\n" if cancel else "")
+                    + f"s=socket.create_connection(('127.0.0.1',{port}))\n"
+                    + "s.sendall(b'child\\n')\nsignal.pause()\n"
+                )
+                parent = (
+                    "import signal,socket,subprocess,sys\n"
+                    + ("signal.signal(signal.SIGTERM, signal.SIG_IGN)\n" if cancel else "")
+                    + f"s=socket.create_connection(('127.0.0.1',{port}))\ns.sendall(b'parent\\n')\n"
+                    + f"subprocess.Popen([sys.executable,'-c',{child!r}])\nsignal.pause()\n"
+                )
+                async with server:
+                    with tempfile.TemporaryDirectory() as directory:
+                        task = asyncio.create_task(_run_cli(
+                            [sys.executable, "-c", parent], Path(directory), os.environ.copy(),
+                            timeout=20 if cancel else 5,
+                        ))
+                        try:
+                            await asyncio.wait_for(ready.wait(), 3)
+                            if cancel:
+                                task.cancel()
+                            with self.assertRaises(asyncio.CancelledError if cancel else TimeoutError):
+                                await task
+                            await asyncio.wait_for(stopped.wait(), 2)
+                            self.assertEqual(disconnected, {"parent", "child"})
+                        finally:
+                            if not task.done():
+                                task.cancel()
+                            with suppress(asyncio.CancelledError, TimeoutError):
+                                await task
+
+
 
 
 if __name__ == "__main__":

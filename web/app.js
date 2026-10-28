@@ -46,7 +46,7 @@ let pendingPlannerAction = null;
 let plannerDisplayKey = null;
 let planPreviewKey = null;
 const plannerLabels = {
-  unconfigured: "未配置 API 密钥", idle: "待规划", planning: "正在请求 GPT",
+  unconfigured: "未找到 Codex CLI", idle: "待规划", planning: "正在请求 GPT",
   ready: "计划已校验 · 待执行", unsupported: "任务不受支持", failed: "失败",
   executing: "物理执行中", succeeded: "物理抓取成功", cancelled: "规划已取消",
 };
@@ -219,7 +219,7 @@ function renderPlanner(ready) {
   ui.planCancel.textContent = known && planner.status === "ready" ? "放弃待执行计划" : "取消规划";
 
   const displayKey = JSON.stringify([ready, planner?.plan_id, planner?.status, planner?.configured,
-    planner?.model, planner?.latency_s, planner?.response_id, planner?.error, pendingPlannerAction,
+    planner?.model, planner?.latency_s, planner?.thread_id, planner?.diagnostic_count, planner?.error, pendingPlannerAction,
     state?.skill?.status, state?.skill?.phase, state?.paused]);
   if (displayKey === plannerDisplayKey) return;
   plannerDisplayKey = displayKey;
@@ -228,23 +228,25 @@ function renderPlanner(ready) {
     ? `${plannerLabels[planner.status]}${!ready ? " · 最后状态" : planner.status === "executing" && state.paused ? " · 已暂停" : ""}`
     : "等待规划状态";
   ui.plannerHint.textContent = !ready
-    ? "连接或状态不可用；预览仅为最后状态，不能确认当前规划或物理结果。不会自动重连、请求 API 或执行。"
+    ? "连接或状态不可用；预览仅为最后状态，不能确认当前规划或物理结果。不会自动重连、请求模型或执行。"
     : !known ? "后端尚未报告规划功能状态，暂不能请求或执行。"
     : pending ? "操作已发送，等待后端确认；不会重复提交。"
-    : planner.status === "planning" ? "正在等待真实 API 响应；场景已冻结。可取消规划或重置，不会自动执行。"
+    : planner.status === "planning" ? "正在通过 Codex CLI 使用当前 ChatGPT 订阅；场景已冻结。可取消规划或重置，不会自动执行。"
     : planner.status === "ready" ? "请检查下方本次任务和真实计划，再明确点击执行；放弃计划后才能使用手动控制。"
     : planner.status === "unsupported" ? "GPT 判定任务超出固定控制器能力；没有可执行动作。请修改任务后重新生成。"
     : planner.status === "executing" ? "已交由真实物理控制器执行；可暂停或重置，不能用「取消规划」中止物理执行。"
     : !idle ? "物理任务不在待开始状态；请先重置，再生成新计划。抓取结果以下方物理真值为准。"
     : planner.status === "failed" ? "本次规划未获得可执行结果；请查看错误并按需重新生成，不会自动重试。"
-    : "生成只请求规划，不会执行。密钥仅从本机 .env 读取；已配置不代表认证成功。";
+    : "使用当前 ChatGPT 订阅登录，不需要 API 密钥。生成前会检查 Codex 登录；生成只请求规划，不会执行。";
   ui.plannerSetup.hidden = !known || planner.configured;
   ui.plannerError.textContent = known ? planner.error || "" : "";
   ui.plannerError.hidden = !ui.plannerError.textContent;
-  ui.plannerModelLabel.textContent = known && planner.response_id ? "实际 API 响应模型" : "请求模型 · 尚无 API 响应";
+  ui.plannerModelLabel.textContent = "Codex 请求模型 · 当前 ChatGPT 订阅";
   ui.plannerModel.textContent = known ? planner.model : "—";
   ui.plannerLatency.textContent = number(known ? planner.latency_s : undefined, 2);
-  ui.plannerResponse.textContent = known && planner.response_id ? `实际 API 响应 ID：${planner.response_id}` : "";
+  ui.plannerResponse.textContent = known && planner.thread_id
+    ? `已完成的 Codex 会话 ID：${planner.thread_id}${planner.diagnostic_count ? ` · 非致命诊断 ${planner.diagnostic_count} 条（CLI 隔离设置会产生启动提示）` : ""}`
+    : "";
   ui.plannerResponse.hidden = !ui.plannerResponse.textContent;
   ui.plannerSubmitted.hidden = !known || !planner.task;
   ui.plannerSubmittedTask.textContent = known ? planner.task : "";
