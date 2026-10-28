@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>第三阶段 · 参数化物理抓取</title>
+  <title>第四阶段 · GPT 规划与真实物理抓取</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
   <main class="viewer">
     <header class="page-header">
-      <div class="eyebrow">第三阶段 <span>LIVE PHYSICS</span></div>
-      <h1>第三阶段 <span>· 参数化物理抓取</span></h1>
-      <p class="scope">固定 baseline 对照 <span aria-hidden="true">/</span> 下降与闭合重叠 · 实时物理仿真</p>
+      <div class="eyebrow">第四阶段 <span>GPT + LIVE PHYSICS</span></div>
+      <h1>第四阶段 <span>· GPT 规划与真实物理抓取</span></h1>
+      <p class="scope">自然语言任务 <span aria-hidden="true">/</span> 受限规划 · 显式执行 · MuJoCo 真值验证</p>
     </header>
 
     <section class="scene-panel" aria-label="实时物理仿真">
@@ -43,8 +43,36 @@
     </section>
 
     <aside class="right-pane" aria-label="抓取任务与仿真状态">
+      <section id="planner-panel" class="planner-panel" aria-labelledby="planner-title" data-status="waiting">
+        <div class="section-heading"><h2 id="planner-title">GPT 任务规划</h2><span id="planner-status" role="status">等待状态</span></div>
+        <p id="planner-scope" class="planner-note">仅支持黑碗抓取与稳定保持。GPT 可在后端范围内选择三个抓取参数、说明固定六阶段，不可重排控制器、生成动作代码、开抽屉或操作瓶子。下降与闭合可按触发高度重叠。</p>
+        <label class="task-label" for="planner-task">任务描述 <span>最多 1000 字符</span></label>
+        <textarea id="planner-task" rows="3" maxlength="1000" required disabled aria-describedby="planner-scope planner-hint">抓起黑碗并稳定保持，在抓取成功的前提下尽量减少耗时。</textarea>
+        <div class="planner-actions">
+          <button id="plan-generate" class="primary" type="button" disabled>生成 GPT 计划</button>
+          <button id="plan-execute" type="button" disabled>执行已校验计划</button>
+          <button id="plan-cancel" type="button" disabled>取消规划</button>
+        </div>
+        <p id="planner-hint" class="planner-note">等待后端状态；不会自动请求 API 或执行计划。</p>
+        <p id="planner-setup" class="planner-setup" hidden>尚未配置 API 密钥。仅在本机项目的 .env 中填写 OPENAI_API_KEY；模型由 OPENAI_MODEL 设置。保存后点击「生成 GPT 计划」重新读取。不要在页面、聊天或报告中发送密钥。</p>
+        <p id="planner-error" class="skill-failure" role="alert" hidden></p>
+        <dl class="metadata planner-metadata">
+          <div><dt id="planner-model-label">请求模型 · 尚无 API 响应</dt><dd id="planner-model">—</dd></div>
+          <div><dt>规划延迟 · 墙钟时间 WALL CLOCK</dt><dd><output id="planner-latency">—</output> <small>s · 非仿真秒</small></dd></div>
+        </dl>
+        <p id="planner-response" class="planner-note" hidden></p>
+        <div id="planner-submitted" class="planner-submitted" hidden><h3>后端本次任务 · 所有客户端共享</h3><p id="planner-submitted-task"></p></div>
+        <div id="plan-preview" class="plan-preview" hidden>
+          <h3 id="plan-preview-title">后端已校验计划 · 尚未执行</h3>
+          <p id="plan-summary"></p>
+          <p id="plan-reason" class="planner-note"></p>
+          <p id="plan-parameters" class="applied-parameters" hidden></p>
+          <ol id="plan-steps" class="plan-steps" aria-label="GPT 固定阶段计划"></ol>
+          <p class="planner-note">规划文本不是成功证据。实际阶段、执行时间（仿真秒）与抓取成败以下方后端物理状态为准。</p>
+        </div>
+      </section>
       <section id="skill-panel" class="skill-panel" aria-labelledby="skill-title" data-status="waiting">
-        <div class="section-heading"><h2 id="skill-title">黑碗抓取任务</h2><span id="skill-result" role="status">等待状态</span></div>
+        <div class="section-heading"><h2 id="skill-title">黑碗抓取 · 物理执行与手动对照</h2><span id="skill-result" role="status">等待状态</span></div>
         <div class="grasp-actions">
           <button id="grasp" class="grasp-button" type="button" disabled aria-describedby="skill-hint">运行固定 baseline</button>
           <button id="grasp-custom" class="primary grasp-button" type="button" disabled aria-describedby="skill-hint parameter-error">运行自定义参数</button>
@@ -107,7 +135,7 @@
       <p class="source">场景来源 <span id="source">—</span></p>
     </section>
     </aside>
-    <footer>实时画面、数值与抓取结果来自 MuJoCo 物理仿真，不是视频回放或视觉推断；实验表为另行保存的真实运行记录。当前为参数化脚本抓取，保留固定 baseline，尚未接入 GPT 或视觉识别。</footer>
+    <footer>GPT 经官方 OpenAI API 生成受限计划，后端严格校验后仍须手动执行；未配置或请求失败时不会生成替代计划。实时画面、数值与抓取结果来自 MuJoCo 物理仿真，不是视频回放或模型判断；固定 baseline、自定义参数与已存储实验保留，尚未接入视觉识别。</footer>
   </main>
 </body>
 </html>

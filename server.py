@@ -11,6 +11,7 @@ import time
 from aiohttp import WSMsgType, web
 
 from grasp import GraspParameters
+from planning import PlanningSession
 from simulation import Simulation
 
 
@@ -24,13 +25,19 @@ ROOT = Path(__file__).resolve().parent
 SIMULATION = web.AppKey("simulation", Simulation)
 CLIENTS = web.AppKey("clients", set)
 CONTROLS = web.AppKey("controls", Controls)
+PLANNING = web.AppKey("planning", PlanningSession)
 FRAME_PERIOD = 0.05
 
 
-def packet(app: web.Application) -> dict:
+def public_state(app: web.Application) -> dict:
     state = app[SIMULATION].state()
     state["paused"] = app[CONTROLS].paused
-    return {"state": state, "image": app[SIMULATION].render(app[CONTROLS].view)}
+    state["planner"] = app[PLANNING].state(state["skill"])
+    return state
+
+
+def packet(app: web.Application) -> dict:
+    return {"state": public_state(app), "image": app[SIMULATION].render(app[CONTROLS].view)}
 
 
 async def broadcast(app: web.Application) -> None:
@@ -66,6 +73,7 @@ async def physics_loop(app: web.Application) -> None:
 
 async def lifecycle(app: web.Application):
     app[SIMULATION] = Simulation()
+    app[PLANNING] = PlanningSession(ROOT, app[SIMULATION])
     task = asyncio.create_task(physics_loop(app), name="mujoco-physics")
     try:
         yield
@@ -75,9 +83,19 @@ async def lifecycle(app: web.Application):
             with suppress(asyncio.CancelledError):
                 await task
         finally:
-            for client in tuple(app[CLIENTS]):
-                await client.close(code=1001, message=b"Server shutdown")
-            app[SIMULATION].close()
+            try:
+                await app[PLANNING].close()
+            finally:
+                for client in tuple(app[CLIENTS]):
+                    await client.close(code=1001, message=b"Server shutdown")
+                app[SIMULATION].close()
+
+
+@web.middleware
+async def local_only(request: web.Request, handler):
+    if request.url.host not in ("127.0.0.1", "localhost"):
+        raise web.HTTPForbidden(text="Only localhost access is allowed")
+    return await handler(request)
 
 
 async def websocket(request: web.Request) -> web.WebSocketResponse:
@@ -85,7 +103,7 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
     origin = request.headers.get("Origin")
     if origin is not None and origin != f"http://{request.host}":
         raise web.HTTPForbidden(text="Cross-origin simulation control is not allowed")
-    ws = web.WebSocketResponse(heartbeat=20, max_msg_size=4096)
+    ws = web.WebSocketResponse(heartbeat=20, max_msg_size=16384)
     await ws.prepare(request)
     app = request.app
     app[CLIENTS].add(ws)
@@ -101,11 +119,15 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                 if not isinstance(command, dict):
                     raise ValueError("命令必须是 JSON 对象")
                 action = command.get("action")
+                planner = app[PLANNING]
+                if action in ("play", "step", "grasp") and planner.locks_scene:
+                    raise ValueError("规划中的场景已锁定，请先取消计划或重置，再手动运行")
                 if action == "pause":
                     app[CONTROLS].paused = True
                 elif action == "play":
                     app[CONTROLS].paused = False
                 elif action == "reset":
+                    planner.reset()
                     app[SIMULATION].reset()
                     app[CONTROLS].paused = True
                 elif action == "grasp":
@@ -118,6 +140,21 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     if not app[CONTROLS].paused:
                         raise ValueError("请先暂停，再单步推进")
                     app[SIMULATION].step(0.02)
+                elif action == "plan":
+                    try:
+                        report = load_experiment_report()
+                    except (OSError, json.JSONDecodeError) as exc:
+                        raise ValueError("无法读取本地参数实验记录，未调用 GPT；请检查 results/parameter_sweep.json") from exc
+                    if not isinstance(report, dict):
+                        raise ValueError("参数实验报告必须是 JSON 对象，未调用 GPT")
+                    if planner.start(command.get("task"), report):
+                        app[CONTROLS].paused = True
+                elif action == "execute_plan":
+                    planner.execute(command.get("plan_id"))
+                    app[CONTROLS].paused = False
+                elif action == "cancel_plan":
+                    planner.cancel()
+                    app[CONTROLS].paused = True
                 elif action == "camera":
                     view = command.get("view")
                     if view not in ("overview", "front", "top"):
@@ -135,14 +172,16 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
 
 
 async def state(request: web.Request) -> web.Response:
-    result = request.app[SIMULATION].state()
-    result["paused"] = request.app[CONTROLS].paused
-    return web.json_response(result, headers={"Cache-Control": "no-store"})
+    return web.json_response(public_state(request.app), headers={"Cache-Control": "no-store"})
+
+
+def load_experiment_report() -> dict:
+    return json.loads((ROOT / "results" / "parameter_sweep.json").read_text(encoding="utf-8"))
 
 
 async def experiments(request: web.Request) -> web.Response:
     try:
-        report = json.loads((ROOT / "results" / "parameter_sweep.json").read_text(encoding="utf-8"))
+        report = load_experiment_report()
     except FileNotFoundError as exc:
         raise web.HTTPNotFound(text="尚无参数实验结果；请先运行 experiments.py") from exc
     except (OSError, json.JSONDecodeError) as exc:
@@ -157,11 +196,8 @@ async def asset(request: web.Request) -> web.FileResponse:
     return web.FileResponse(ROOT / "web" / name, headers={"Cache-Control": "no-cache"})
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--port", type=int, default=8765)
-    args = parser.parse_args()
-    app = web.Application()
+def create_app() -> web.Application:
+    app = web.Application(middlewares=[local_only])
     app[CLIENTS] = set()
     app[CONTROLS] = Controls()
     app.cleanup_ctx.append(lifecycle)
@@ -170,7 +206,14 @@ def main() -> None:
     app.router.add_get("/api/experiments", experiments)
     app.router.add_get("/", asset)
     app.router.add_get("/{name}", asset)
-    web.run_app(app, host="127.0.0.1", port=args.port, access_log=None)
+    return app
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--port", type=int, default=8765)
+    args = parser.parse_args()
+    web.run_app(create_app(), host="127.0.0.1", port=args.port, access_log=None)
 
 
 if __name__ == "__main__":

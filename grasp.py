@@ -38,7 +38,7 @@ class GraspSkill:
     REQUIRED_HOLD = 1.0
     WATCHDOG = 20.0
     MESSAGES = {
-        "idle": "等待开始；固定脚本，不使用 GPT",
+        "idle": "等待开始；由本地物理控制器执行抓取",
         "prepare": "设置夹爪初始开度，确认黑碗已在桌面稳定",
         "approach": "移动到黑碗上方",
         "descend": "下降到抓取位置；按实际高度触发闭合",
