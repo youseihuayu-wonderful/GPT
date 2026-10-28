@@ -13,7 +13,7 @@ from PIL import Image
 from grasp import GraspParameters, GraspSkill
 from collisions import CollisionTracker
 from scenarios import DEFAULT_CASE, TARGETS, SceneCase
-from task_specs import TASKS
+from task_specs import SKILLS, TASKS
 
 ROOT = Path(__file__).resolve().parent
 ARM_HOME = np.array([0.0, -0.5, 0.0, -2.2, 0.0, 1.8, 0.7853981634])
@@ -108,33 +108,53 @@ class Simulation:
         mujoco.mj_forward(self.model, self.data)
         self.skill.reset()
         self.collisions.reset()
+        self._numerical_failure = None
 
     def start_task(self, task_kind: str, parameters: GraspParameters | None = None) -> None:
         self.skill.start(task_kind, parameters)
         self.collisions.reset()
 
+    def start_skill(self, skill_name: str, parameters: GraspParameters | None = None) -> None:
+        self.skill.start_skill(skill_name, parameters)
+
     def step(self, duration_s: float = 0.02) -> None:
         steps = round(duration_s / self.model.opt.timestep)
         if steps < 1 or not np.isclose(steps * self.model.opt.timestep, duration_s):
             raise ValueError("Duration must be a positive multiple of the physics timestep")
+        self._check_numerical_state()
         for _ in range(steps):
             self.skill.update()
             self.skill.apply_control()
+            self._check_numerical_state()
             track_contacts = self.skill.status in ("running", "succeeded")
             mujoco.mj_step(self.model, self.data)
             # Refresh poses/contact forces for the controller at the next step.
             mujoco.mj_forward(self.model, self.data)
+            self._check_numerical_state()
             if track_contacts:
                 self.collisions.update(float(self.model.opt.timestep), self.skill)
-                if self.skill.task_kind == "store_bowl" and self.collisions.records:
-                    self.skill.fail("Unplanned contact during bowl storage")
-                elif (self.skill.status == "succeeded" and self.skill.storage is not None
-                      and not self.skill.storage.final_valid()):
-                    self.skill.storage.verification_hold_s = 0.0
-                    self.skill.fail("Stored-state verification lost after physics integration")
+                if (self.skill.task_kind == "store_bowl" or self.skill.execution_mode == "skill") and self.collisions.records:
+                    self.skill.fail("Unplanned contact during skill execution")
+                else:
+                    self.skill.verify_terminal()
+
+    def numerical_error(self) -> str | None:
+        if self._numerical_failure is not None:
+            return self._numerical_failure
         warnings = self.warning_names()
-        if warnings or not np.isfinite(self.data.qpos).all():
-            raise RuntimeError(f"MuJoCo state is invalid: {warnings}")
+        invalid = [name for name in ("qpos", "qvel", "qacc", "ctrl")
+                   if not np.isfinite(getattr(self.data, name)).all()]
+        if warnings or invalid:
+            return f"MuJoCo state is invalid: warnings={warnings}, nonfinite={invalid}"
+        return None
+
+    def _check_numerical_state(self) -> None:
+        error = self.numerical_error()
+        if error is not None:
+            self._numerical_failure = error
+            if self.skill.status != "failed":
+                self.skill.fail(error)
+            raise RuntimeError(error)
 
     def get_object_pose(self, name: str) -> dict:
         if name not in self.object_names:
@@ -165,6 +185,7 @@ class Simulation:
             "scenario": self.case.to_dict(),
             "available_tasks": [task.to_dict() for task in TASKS.values()
                                 if self.target.name in task.target_objects],
+            "available_skills": self.skill.available_skills(),
             "collisions": self.collisions.state(),
             "objects": [self.get_object_pose(name) for name in self.object_names],
             "joint_positions_rad": self.data.qpos[self.arm_qpos].tolist(),
@@ -200,7 +221,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seconds", type=float, default=1.0)
     parser.add_argument("--image", type=Path, help="Save an actual MuJoCo-rendered JPEG")
-    parser.add_argument("--task", choices=tuple(TASKS), help="Execute grasp-and-hold or complete bowl storage")
+    execution = parser.add_mutually_exclusive_group()
+    execution.add_argument("--task", choices=tuple(TASKS), help="Execute a fixed task using the shared skills")
+    execution.add_argument("--skill", choices=tuple(SKILLS), nargs="+", help="Call these independent skills in order without resetting")
     parser.add_argument("--target", choices=tuple(TARGETS), default="bowl", help="Object to grasp")
     options = (
         ("--initial-opening-mm", "initial_opening_m", "Initial finger opening", "mm"),
@@ -214,15 +237,15 @@ def main() -> None:
         parser.add_argument(
             flag, dest=name, type=float,
             help=(f"{description}: {bounds['min'] * 1000:g}–{bounds['max'] * 1000:g} {unit}, "
-                  f"default {defaults[name] * 1000:g}; requires --task"),
+                  f"default {defaults[name] * 1000:g}; requires a grasp task/skill"),
         )
     args = parser.parse_args()
     supplied = {
         name: getattr(args, name) / 1000.0
         for _, name, _, _ in options if getattr(args, name) is not None
     }
-    if supplied and not args.task:
-        parser.error("Grasp parameter options require --task")
+    if supplied and not (args.task or (args.skill and "grasp_and_hold" in args.skill)):
+        parser.error("Grasp parameter options require a grasp task or grasp_and_hold skill")
     try:
         parameters = GraspParameters(**supplied) if supplied else None
     except ValueError as exc:
@@ -236,10 +259,17 @@ def main() -> None:
             sim.start_task(args.task, parameters)
             while sim.skill.status == "running":
                 sim.step()
+        elif args.skill:
+            for name in args.skill:
+                sim.start_skill(name, parameters if name == "grasp_and_hold" else None)
+                while sim.skill.status == "running":
+                    sim.step()
+                if sim.skill.status != "succeeded":
+                    break
         print(json.dumps(sim.state(), indent=2, ensure_ascii=False))
         if args.image:
             args.image.write_bytes(base64.b64decode(sim.render()))
-        if args.task and sim.skill.status != "succeeded":
+        if (args.task or args.skill) and sim.skill.status != "succeeded":
             raise SystemExit(1)
     finally:
         sim.close()

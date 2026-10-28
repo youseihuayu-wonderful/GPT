@@ -83,6 +83,18 @@ button span { font-size: 10px; margin-left: 2px; }
 .skill-panel[data-status="running"] .section-heading > span, .skill-panel[data-status="succeeded"] .section-heading > span { color: var(--accent); }
 .skill-panel[data-status="failed"] .section-heading > span { color: #ffb9b3; }
 .skill-panel[data-status="stale"] .skill-metrics, .skill-panel[data-status="stale"] .skill-stages { opacity: .55; }
+.manual-skills { border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 12px; }
+.manual-skills h3, .fixed-task-title, .postconditions-title { font-size: 12px; font-weight: 600; margin: 10px 0 8px; }
+.manual-skill-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.manual-skill-actions label { flex: 1 1 230px; min-width: 0; font-size: 11px; color: var(--muted); }
+.manual-skill-actions select { display: block; width: 100%; min-width: 0; margin-top: 5px; }
+.manual-skill-actions button { flex: 1 1 150px; }
+#manual-skill-readiness[data-ready="true"] { color: var(--accent); }
+.manual-skills h4 { font-size: 11px; font-weight: 550; margin: 10px 0 4px; }
+.contract-list { margin: 0; padding-left: 18px; color: var(--muted); font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+#skill-postconditions dd[data-passed="true"] { color: var(--accent); }
+#skill-postconditions dd[data-passed="false"] { color: #f1d19a; }
+.skill-panel[data-status="stale"] #skill-postconditions { opacity: .55; }
 .grasp-button { width: 100%; min-height: 42px; font-size: 14px; }
 .grasp-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .store-button { grid-column: 1 / -1; }

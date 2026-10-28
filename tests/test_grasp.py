@@ -104,7 +104,6 @@ class GraspBehaviorTests(unittest.TestCase):
 
     def _assert_idle(self) -> None:
         skill = self.sim.state()["skill"]
-        self.assertEqual(skill["name"], f"grasp_{self.sim.case.target_object}")
         self.assertEqual(skill["status"], "idle")
         self.assertEqual(skill["phase"], "idle")
         self.assertEqual(skill["elapsed_s"], 0.0)
@@ -116,8 +115,6 @@ class GraspBehaviorTests(unittest.TestCase):
         for elapsed_s in skill["phase_times_s"].values():
             self.assertEqual(elapsed_s, 0.0)
         self.assertIsNone(skill["failure_reason"])
-        self.assertEqual(skill["parameters"], GraspParameters().to_dict())
-        self.assertEqual(skill["parameter_limits"], GraspParameters.limits())
         self.assertIsNone(skill["close_started_s"])
         self.assertIsNone(skill["descent_completed_s"])
         self.assertEqual(skill["descent_close_overlap_s"], 0.0)

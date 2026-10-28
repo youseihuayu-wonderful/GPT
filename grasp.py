@@ -7,7 +7,7 @@ from numbers import Real
 import mujoco
 import numpy as np
 
-from task_specs import TASKS
+from task_specs import SKILLS, TASKS, TASK_SKILLS
 
 
 @dataclass(frozen=True)
@@ -113,33 +113,194 @@ class GraspSkill:
         self.descent_completed_s = None
         self.descent_close_overlap_s = 0.0
         self.task_kind = "grasp"
+        self.execution_mode = "task"
+        self.skill_name = "grasp_and_hold"
+        self.invocation_id = 0
+        self._storage_observer = None
         self.storage = None
         self.opening_target = self.parameters.initial_opening_m
         self.orientation_target = np.array([0.0, 1.0, 0.0, 0.0])
 
+    def _storage_context(self):
+        if self.storage is not None:
+            return self.storage
+        if self._storage_observer is None:
+            from storage import BowlStorage
+            self._storage_observer = BowlStorage(self)
+        return self._storage_observer
+
+    def precondition_error(self, name):
+        if not isinstance(name, str) or name not in SKILLS:
+            return "Unsupported skill name"
+        if self.status == "running":
+            return "A skill is already running; wait for its physical completion"
+        if self.status == "failed":
+            return "Execution failed; reset before starting another skill"
+        numerical_error = self.sim.numerical_error()
+        if numerical_error is not None:
+            return numerical_error
+        if self.status == "succeeded" and not all(self.postconditions().values()):
+            return "Previous completion no longer matches the physical state; reset before handoff"
+        if self.target.name not in SKILLS[name].target_objects:
+            return "Skill does not support the selected target"
+        storage = self._storage_context()
+        if name == "grasp_and_hold":
+            if not storage.empty_hand() or self.gripper_closed:
+                return "Grasp requires an empty released gripper"
+            _, table_support = self._contacts()
+            velocity = self.data.qvel[self.target_dof:self.target_dof + 6]
+            if not (table_support and np.linalg.norm(velocity[:3]) < 0.01
+                    and np.linalg.norm(velocity[3:]) < 0.1):
+                return "Grasp requires a target stably supported on the table"
+            if not storage.hand_clear() or self.data.site_xpos[self.tcp, 2] < 1.03:
+                return "Grasp requires an empty elevated hand outside the drawer"
+            return None
+        return storage.precondition_error(name)
+
+    def available_skills(self):
+        result = []
+        for name, spec in SKILLS.items():
+            reason = self.precondition_error(name)
+            result.append({**spec.to_dict(), "available": reason is None, "unavailable_reason": reason})
+        return result
+
+    def _start_operation(self, task_kind, name, parameters):
+        self.task_kind = task_kind
+        self.execution_mode = "task" if task_kind is not None else "skill"
+        self.invocation_id += 1
+        self.status = "running"
+        self.phase = "idle"
+        self.started_at = float(self.data.time)
+        self.phase_started_at = self.started_at
+        self.finished_at = None
+        self.failure_reason = None
+        self.phase_times = {}
+        self.stable_elapsed = 0.0
+        self.lost_contact_elapsed = 0.0
+        self.arm_target = self.data.qpos[self.sim.arm_qpos].copy()
+        if name == "grasp_and_hold":
+            self.parameters = parameters or GraspParameters()
+            self.reference_z = None
+            self.hold_relative = None
+            self.hold_elapsed = 0.0
+            self.close_started_s = None
+            self.descent_completed_s = None
+            self.descent_close_overlap_s = 0.0
+        self._begin_primitive(name)
+
+    def _begin_primitive(self, name):
+        self.skill_name = name
+        if name == "grasp_and_hold":
+            self.opening_target = self.parameters.initial_opening_m
+            self.gripper_closed = False
+            self.orientation_target = np.array([0.0, 1.0, 0.0, 0.0])
+            self._enter("prepare")
+        elif name == "place_and_release":
+            self.storage.transfer_aligned = False
+            self.storage.released = False
+            self.storage.begin()
+        elif name == "withdraw_from_drawer":
+            self.storage.begin_withdrawal()
+        elif name == "close_drawer":
+            self.storage.begin_closing()
+        elif name == "return_home":
+            self.storage.begin_home()
+
     def start(self, task_kind: str, parameters: GraspParameters | None = None) -> None:
         if self.status != "idle":
-            raise ValueError("请先重置场景，再开始新的抓取")
+            raise ValueError("请先重置场景，再开始新的固定任务")
         if parameters is not None and not isinstance(parameters, GraspParameters):
             raise ValueError("parameters must be GraspParameters or None")
         if not isinstance(task_kind, str) or task_kind not in TASKS:
             raise ValueError("Unsupported task kind")
         if self.target.name not in TASKS[task_kind].target_objects:
             raise ValueError("Task does not support the selected target")
-        storage = None
+        numerical_error = self.sim.numerical_error()
+        if numerical_error is not None:
+            raise ValueError(numerical_error)
         if task_kind == "store_bowl":
-            from storage import BowlStorage
-            storage = BowlStorage(self)
+            storage = self._storage_context()
             storage.validate(parameters or GraspParameters())
-        self.parameters = parameters if parameters is not None else GraspParameters()
-        self.task_kind = task_kind
-        self.storage = storage
-        self.opening_target = self.parameters.initial_opening_m
-        self.status = "running"
-        self.started_at = float(self.data.time)
-        self.arm_target = self.data.qpos[self.sim.arm_qpos].copy()
-        self._enter("prepare")
-        self.gripper_closed = False
+            self.storage = storage
+        self._start_operation(task_kind, TASK_SKILLS[task_kind][0], parameters)
+
+    def start_skill(self, name: str, parameters: GraspParameters | None = None) -> None:
+        reason = self.precondition_error(name)
+        if reason is not None:
+            raise ValueError(reason)
+        if parameters is not None:
+            if not SKILLS[name].accepts_grasp_parameters:
+                raise ValueError("Only grasp_and_hold accepts grasp parameters")
+            if not isinstance(parameters, GraspParameters):
+                raise ValueError("parameters must be GraspParameters or None")
+        if name == "grasp_and_hold":
+            self.storage = None
+        else:
+            self.storage = self._storage_context()
+            if name != "place_and_release":
+                self.storage.released = self.storage.support_and_clear()[1]
+        self._start_operation(None, name, parameters)
+
+    def grasp_postconditions(self):
+        bilateral, table_support = self._contacts()
+        target = self.data.xpos[self.target_body]
+        relative = target - self.data.site_xpos[self.tcp]
+        return {
+            "bilateral_grip": bilateral,
+            "clear_of_table": not table_support,
+            "target_lifted": bool(self.reference_z is not None and target[2] - self.reference_z >= self.TARGET_LIFT),
+            "relative_pose_stable": bool(self.hold_relative is not None and np.linalg.norm(relative - self.hold_relative) < 0.01),
+            "verified_hold": self.hold_elapsed + 1e-9 >= self.REQUIRED_HOLD,
+        }
+
+    def primitive_postconditions(self):
+        if self.skill_name == "grasp_and_hold":
+            return self.grasp_postconditions()
+        return self.storage.postconditions(self.skill_name)
+
+    def postconditions(self):
+        if self.status == "idle":
+            return {}
+        if self.task_kind == "store_bowl":
+            state = self.storage.state()
+            return {
+                key: bool(state[key]) for key in (
+                    "bowl_inside_drawer", "bowl_supported", "gripper_clear",
+                    "hand_clear_of_drawer", "drawer_closed", "home_reached", "push_contact_seen",
+                )
+            } | {"bowl_settled": self.storage.bowl_settled()}
+        return self.primitive_postconditions()
+
+    def verify_terminal(self):
+        if self.status != "succeeded":
+            return
+        if not all(self.postconditions().values()):
+            if self.skill_name == "grasp_and_hold":
+                self.hold_elapsed = 0.0
+            if self.storage is not None:
+                self.storage.verification_hold_s = 0.0
+            self.fail("Physical postconditions lost after completion")
+
+    def complete_skill(self):
+        if not all(self.primitive_postconditions().values()):
+            self.fail(f"Physical postconditions failed for {self.skill_name}")
+            return
+        if self.execution_mode == "skill" or self.task_kind == "grasp":
+            self._enter("done")
+            self.status = "succeeded"
+            self.finished_at = float(self.data.time)
+            return
+        sequence = TASK_SKILLS[self.task_kind]
+        index = sequence.index(self.skill_name) + 1
+        if index == len(sequence):
+            self._enter("verify_store")
+            return
+        next_name = sequence[index]
+        reason = self.storage.precondition_error(next_name)
+        if reason is not None:
+            self.fail(f"Cannot hand off to {next_name}: {reason}")
+            return
+        self._begin_primitive(next_name)
 
     def _enter(self, phase: str) -> None:
         now = float(self.data.time)
@@ -273,10 +434,16 @@ class GraspSkill:
         dt = float(self.model.opt.timestep)
         self._record_overlap(dt)
         elapsed = float(self.data.time) - self.phase_started_at
-        if self.status == "running" and self.data.time - self.started_at >= TASKS[self.task_kind].watchdog_s:
-            self.fail("抓取执行超时")
+        watchdog = TASKS[self.task_kind].watchdog_s if self.task_kind is not None else SKILLS[self.skill_name].watchdog_s
+        if self.status == "running" and self.data.time - self.started_at >= watchdog:
+            self.fail("技能执行超时")
             return
-        if self.storage is not None and self.phase not in TASKS["grasp"].phases:
+        if self.status == "succeeded":
+            self.verify_terminal()
+            if self.task_kind == "store_bowl" and self.status == "succeeded":
+                self.storage.verification_hold_s += dt
+            return
+        if self.skill_name != "grasp_and_hold" or self.phase == "verify_store":
             self.storage.update(dt, elapsed)
             return
         bilateral, table_support = self._contacts()
@@ -330,7 +497,7 @@ class GraspSkill:
                 self._move("lift", self.grasp_position + [0.0, 0.0, 0.15])
             elif elapsed > 2.0:
                 self.fail("夹爪未建立稳定的双侧接触")
-        elif self.phase in ("hold", "done"):
+        elif self.phase == "hold":
             relative = target_pos - self.data.site_xpos[self.tcp]
             stable = np.linalg.norm(relative - self.hold_relative) < 0.01
             lifted = float(target_pos[2]) - self.reference_z >= self.TARGET_LIFT
@@ -338,29 +505,29 @@ class GraspSkill:
                 self.hold_elapsed = 0.0
                 self.fail(f"{self.target.label}掉落、滑移或未达到要求的离桌高度")
                 return
-            if self.phase == "done":
-                return
             self.hold_elapsed += dt
             if self.hold_elapsed + 1e-9 >= self.REQUIRED_HOLD:
-                if self.storage is not None:
-                    self.storage.begin()
-                    return
-                self._enter("done")
-                self.status = "succeeded"
-                self.finished_at = float(self.data.time)
+                self.complete_skill()
 
     def state(self) -> dict:
         end = float(self.data.time) if self.finished_at is None else self.finished_at
         message = self.MESSAGES[self.phase].format(target=self.target.label)
-        if self.storage is not None and self.phase == "done":
-            message = "黑碗已入屉、抽屉已通过接触推关、机械臂已归位；持续验证中"
+        if self.phase == "done":
+            message = ("黑碗已入屉、抽屉已通过接触推关、机械臂已归位；持续验证中"
+                       if self.task_kind == "store_bowl"
+                       else f"{SKILLS[self.skill_name].label}已完成；持续物理验证，可调用下一项技能")
+        phases = TASKS[self.task_kind].phases if self.task_kind is not None else SKILLS[self.skill_name].phases
         return {
-            "name": f"grasp_{self.target.name}" if self.storage is None else "store_bowl",
+            "name": f"grasp_{self.target.name}" if self.task_kind == "grasp" else (self.task_kind or self.skill_name),
             "target_label": self.target.label,
             "status": self.status, "phase": self.phase,
             "task_kind": self.task_kind,
-            "phase_order": list(TASKS[self.task_kind].phases),
+            "execution_mode": self.execution_mode,
+            "skill_name": self.skill_name,
+            "invocation_id": self.invocation_id,
+            "phase_order": list(phases),
             "storage": self.storage.state() if self.storage is not None else None,
+            "postconditions": self.postconditions(),
             "message": self.failure_reason or message,
             "elapsed_s": end - self.started_at if self.status != "idle" else 0.0,
             "phase_elapsed_s": end - self.phase_started_at if self.status == "running" else 0.0,

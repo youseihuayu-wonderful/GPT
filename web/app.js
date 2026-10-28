@@ -41,6 +41,14 @@ const ui = {
   storeDrawer: byId("store-drawer"), storeClosed: byId("store-closed"),
   storeHomeError: byId("store-home-error"), storeHome: byId("store-home"), storeVerified: byId("store-verified"),
   collisionEpisodes: byId("collision-episodes"), collisionForce: byId("collision-force"),
+  manualSkill: byId("manual-skill"), startSkill: byId("start-skill"),
+  manualReadiness: byId("manual-skill-readiness"), manualParameters: byId("manual-skill-parameters"),
+  manualContract: byId("manual-skill-contract"), manualWatchdog: byId("manual-skill-watchdog"),
+  manualTargets: byId("manual-skill-targets"), manualPhases: byId("manual-skill-phases"),
+  manualPreconditions: byId("manual-skill-preconditions"), manualPostconditions: byId("manual-skill-postconditions"),
+  currentSkill: byId("current-skill"), skillInvocation: byId("skill-invocation"),
+  skillPostconditions: byId("skill-postconditions"),
+  storeHandClear: byId("store-hand-clear"), storePushContact: byId("store-push-contact"),
 };
 let socket = null;
 let state = null;
@@ -53,6 +61,8 @@ let pendingPlannerAction = null;
 let plannerDisplayKey = null;
 let planPreviewKey = null;
 let displayedPhaseOrder = "";
+let manualContractKey = null;
+let fatalRuntimeError = null;
 const plannerLabels = {
   unconfigured: "未找到 Codex CLI", idle: "待规划", planning: "正在请求 GPT",
   ready: "计划已校验 · 待执行", unsupported: "任务不受支持", failed: "失败",
@@ -65,8 +75,20 @@ const phaseLabels = {
   push_approach: "接近抽屉把手", push_drawer: "推动关柜", push_withdraw: "撤离把手",
   return_home: "机械臂归位", verify_store: "验证最终状态",
 };
-const skillLabels = { idle: "待开始", running: "执行中", succeeded: "任务成功", failed: "任务失败" };
+const skillLabels = { idle: "待开始", running: "执行中", succeeded: "执行成功", failed: "执行失败" };
 const taskLabels = { grasp: "抓取与保持", store_bowl: "黑碗收纳、关柜与归位" };
+const primitiveLabels = {
+  grasp_and_hold: "抓取与保持", place_and_release: "放置与释放",
+  withdraw_from_drawer: "从抽屉撤出", close_drawer: "关闭抽屉", return_home: "机械臂归位",
+};
+
+function primitiveLabel(name) {
+  return state?.available_skills?.find((skill) => skill.name === name)?.label || primitiveLabels[name] || name || "未报告";
+}
+
+function yesNo(value) {
+  return value === true ? "是" : value === false ? "否" : "—";
+}
 const parameterFields = [
   { key: "initial_opening_m", input: byId("initial-opening"), label: "初始开度", unit: "mm", baseline: 0.08 },
   { key: "descent_speed_m_s", input: byId("descent-speed"), label: "下降速度", unit: "mm/s", baseline: 0.10 },
@@ -311,6 +333,58 @@ function sendPlanner(command) {
   }
 }
 
+function renderManualSkills(ready) {
+  const skills = ready && Array.isArray(state.available_skills) ? state.available_skills : [];
+  const names = skills.map((skill) => skill.name);
+  const options = Array.from(ui.manualSkill.options);
+  if (JSON.stringify(names) !== JSON.stringify(options.map((option) => option.value))) {
+    const previous = ui.manualSkill.value;
+    ui.manualSkill.replaceChildren(...skills.map((skill) => {
+      const option = document.createElement("option");
+      option.value = skill.name;
+      return option;
+    }));
+    if (names.includes(previous)) ui.manualSkill.value = previous;
+  }
+  skills.forEach((skill, index) => {
+    const option = ui.manualSkill.options[index];
+    option.textContent = `${skill.label || primitiveLabel(skill.name)} · ${skill.available === true ? "物理条件就绪" : "不可用"}`;
+  });
+  ui.manualSkill.disabled = !ready || skills.length === 0;
+  const selected = skills.find((skill) => skill.name === ui.manualSkill.value);
+  const needsParameters = selected?.name === "grasp_and_hold";
+  const hasLimits = !!parameterLimits(state?.skill);
+  const locked = plannerLocksScene();
+  ui.startSkill.disabled = !ready || !selected || selected.available !== true || locked || (needsParameters && !hasLimits);
+  ui.startSkill.textContent = needsParameters ? "用下方参数运行技能" : "运行所选技能";
+  ui.manualReadiness.dataset.ready = String(!ui.startSkill.disabled);
+  ui.manualReadiness.textContent = !ready ? "未连接或状态不可用；不能确认技能当前是否可运行。"
+    : !selected ? "等待后端技能列表；不推断可用性。"
+    : locked ? "GPT 规划或待执行计划已锁定场景；先取消规划或放弃计划，不能直接启动技能。"
+    : selected.available !== true ? `不可运行：${selected.unavailable_reason || "后端未确认前置条件满足。"}`
+    : needsParameters && !hasLimits ? "物理条件就绪，但后端尚未报告抓取参数范围。"
+    : "后端已确认当前物理条件可用；启动时仍会重新检查。仅执行本技能，不自动选择下一项。";
+  ui.manualParameters.textContent = needsParameters
+    ? "此按钮使用下方三个输入框的当前抓取参数，不使用 GPT 参数。成功后持续物理夹持，不自动放置。"
+    : "此技能不发送抓取参数；下方输入框不会影响本次调用。完成后不会自动启动下一技能。";
+  ui.manualContract.hidden = !selected;
+  const contractKey = JSON.stringify(selected && [selected.name, selected.phases, selected.watchdog_s,
+    selected.target_objects, selected.preconditions, selected.postconditions]);
+  if (contractKey !== manualContractKey) {
+    manualContractKey = contractKey;
+    ui.manualWatchdog.textContent = selected ? `超时上限 ${number(selected.watchdog_s, 1)} 仿真秒` : "";
+    ui.manualTargets.textContent = selected ? `支持目标：${(selected.target_objects || []).join("、") || "后端未报告"}` : "";
+    ui.manualPhases.textContent = selected ? `固定阶段：${(selected.phases || []).map((phase) => phaseLabels[phase] || phase).join(" → ")}` : "";
+    for (const [element, conditions] of [[ui.manualPreconditions, selected?.preconditions], [ui.manualPostconditions, selected?.postconditions]]) {
+      element.replaceChildren(...(conditions || []).map((condition) => {
+        const item = document.createElement("li");
+        item.textContent = condition;
+        return item;
+      }));
+    }
+  }
+}
+
 
 function renderSkill(ready) {
   const skill = ready ? state.skill : lastSkill;
@@ -318,9 +392,13 @@ function renderSkill(ready) {
   ui.grasp.disabled = !ready || !known || skill.status !== "idle" || plannerLocksScene();
   ui.storeScript.disabled = ui.grasp.disabled || !state?.available_tasks?.some((task) => task.kind === "store_bowl");
   ui.taskOverlay.hidden = !ready || !known || skill.status === "idle";
-  ui.overlayTask.textContent = known ? taskLabels[skill.task_kind] || "物理任务" : "";
+  const standalone = known && skill.execution_mode === "skill";
+  const currentLabel = known ? primitiveLabel(skill.skill_name) : "等待状态";
+  ui.overlayTask.textContent = known
+    ? `${standalone ? "独立技能" : taskLabels[skill.task_kind] || "物理任务"} · ${currentLabel}` : "";
   ui.overlayPhase.textContent = known ? `${skillLabels[skill.status]} · ${phaseLabels[skill.phase] || skill.phase}` : "";
   updateParameterControls(ready, known ? skill : null);
+  renderManualSkills(ready);
   ui.skillPanel.dataset.status = !ready ? "stale" : known ? skill.status : "waiting";
   ui.skillResult.textContent = known
     ? `${skillLabels[skill.status]}${!ready ? " · 最后状态" : skill.status === "running" && state.paused ? " · 已暂停" : ""}`
@@ -329,31 +407,39 @@ function renderSkill(ready) {
     ? "未连接或状态不可用；已有数值仅为最后状态，无法确认当前执行结果。"
     : !known ? "等待后端技能状态；暂不能开始物理任务。"
     : plannerLocksScene() ? "GPT 规划或待执行计划已锁定场景；先取消规划、放弃计划或重置，才能运行手动对照。"
-    : skill.status === "idle" ? "手动按钮直接运行固定控制器，不调用 GPT。完整固定任务使用 baseline 抓取参数；自定义按钮仅抓取保持。"
-    : skill.status === "running" ? "任务执行中，可暂停；重新尝试前请先重置。"
-    : "本次任务已结束；请点击「重置」后重新尝试。";
+    : skill.status === "idle" ? "固定任务仅可从待开始状态启动；独立技能由上方后端物理条件决定，不调用 GPT。"
+    : skill.status === "running" ? "物理执行中，可暂停；不能插入其他任务或技能。"
+    : skill.status === "succeeded" ? "本次执行已成功；可按上方物理条件启动下一独立技能，无需重置。固定任务重跑仍需重置。"
+    : "物理执行失败；请查看失败原因并重置，不允许从失败状态继续调用。";
+  ui.currentSkill.textContent = currentLabel;
+  ui.skillInvocation.textContent = known
+    ? `${standalone ? "独立技能" : "固定任务"} · ${standalone ? primitiveLabel(skill.skill_name) : taskLabels[skill.task_kind] || "尚未启动"}${Number.isInteger(skill.invocation_id) ? ` · #${skill.invocation_id}` : ""}${!ready ? " · 最后状态" : ""}`
+    : "等待状态";
   ui.skillPhase.textContent = known ? (phaseLabels[skill.phase] || skill.phase || "未报告") : "等待状态";
   ui.skillMessage.textContent = known ? (skill.message || "后端未提供阶段说明。") : "等待后端技能数据，不推断进度或结果。";
   ui.skillFailure.textContent = known && skill.failure_reason ? `失败原因：${skill.failure_reason}` : "";
   ui.skillFailure.hidden = !ui.skillFailure.textContent;
   ui.skillElapsed.textContent = number(known ? skill.elapsed_s : undefined, 2);
   ui.skillLift.textContent = number(known && Number.isFinite(skill.lift_height_m) ? skill.lift_height_m * 100 : undefined, 1);
-  ui.skillHold.textContent = number(known ? skill.hold_elapsed_s : undefined, 2);
+  const showGraspTiming = known && (!standalone || skill.skill_name === "grasp_and_hold");
+  ui.skillHold.textContent = number(showGraspTiming ? skill.hold_elapsed_s : undefined, 2);
   ui.skillPhaseElapsed.textContent = number(known ? skill.phase_elapsed_s : undefined, 2);
-  ui.skillOverlap.textContent = number(known ? skill.descent_close_overlap_s : undefined, 3);
-  ui.closeStarted.textContent = number(known ? skill.close_started_s : undefined, 3);
-  ui.descentCompleted.textContent = number(known ? skill.descent_completed_s : undefined, 3);
+  ui.skillOverlap.textContent = number(showGraspTiming ? skill.descent_close_overlap_s : undefined, 3);
+  ui.closeStarted.textContent = number(showGraspTiming ? skill.close_started_s : undefined, 3);
+  ui.descentCompleted.textContent = number(showGraspTiming ? skill.descent_completed_s : undefined, 3);
   const parameters = known ? skill.parameters : null;
-  ui.appliedParameters.textContent = validParameters(parameters)
-    ? `${!ready ? "最后状态" : skill.status === "idle" ? "后端待用" : "实际应用"}：${parameterMode(parameters)}；${parameterSummary(parameters)}`
-    : "后端参数：未报告完整参数，不使用输入框数值代替。";
+  ui.appliedParameters.textContent = standalone && skill.skill_name !== "grasp_and_hold"
+    ? "本次独立技能不接收抓取参数；输入框和此前抓取参数不会被当作本次技能参数。"
+    : validParameters(parameters)
+      ? `${!ready ? "最后状态" : skill.status === "idle" ? "后端待用" : "实际应用"}：${parameterMode(parameters)}；${parameterSummary(parameters)}`
+      : "后端参数：未报告完整参数，不使用输入框数值代替。";
   const closingDuringDescent = ready && known && skill.status === "running"
     && skill.phase === "descend" && Number.isFinite(skill.close_started_s);
   ui.earlyClose.hidden = !closingDuringDescent;
   ui.earlyClose.textContent = closingDuringDescent
     ? `下降阶段已触发闭合 · 后端开始时间 ${number(skill.close_started_s, 3)} s${state.paused ? " · 已暂停" : ""}；实际运动重叠见下方测量。` : "";
   const order = known && Array.isArray(skill.phase_order) ? skill.phase_order : [];
-  const orderKey = JSON.stringify(order);
+  const orderKey = JSON.stringify([skill?.invocation_id, skill?.execution_mode, order]);
   if (orderKey !== displayedPhaseOrder) {
     displayedPhaseOrder = orderKey;
     ui.skillStages.replaceChildren(...order.map((phase) => {
@@ -364,15 +450,29 @@ function renderSkill(ready) {
     }));
   }
   const storing = known && skill.task_kind === "store_bowl";
-  ui.goalCriteria.textContent = !known ? "等待后端任务与完成判据。" : storing
-    ? "抓取保持只是中间步骤。最终须确认碗在抽屉内并受到支撑、夹爪已撤离、抽屉关闭、机械臂归位且状态稳定；由后端判定。"
+  ui.goalCriteria.textContent = !known ? "等待后端任务与完成判据。"
+    : standalone ? "独立技能只验证本次契约；下方布尔值来自当前物理状态，不代表其他技能或完整任务已完成。"
+    : storing ? "抓取保持只是中间步骤。最终须确认碗在抽屉内并受到支撑、夹爪已与碗分离且手部安全退出、抽屉关闭、机械臂归位且状态稳定；由后端判定。"
     : "抓取目标：实际抬升 ≥ 10 cm，双侧夹持并稳定保持 1 s；由后端判定。";
-  ui.storageStatus.hidden = !storing;
-  const storage = storing ? skill.storage : null;
-  const yesNo = (value) => value === true ? "是" : value === false ? "否" : "—";
+  const checks = known && skill.postconditions && typeof skill.postconditions === "object"
+    ? Object.entries(skill.postconditions) : [];
+  ui.skillPostconditions.replaceChildren(...(checks.length ? checks : [["后端尚未报告检查", null]]).map(([name, passed]) => {
+    const row = document.createElement("div");
+    const label = document.createElement("dt");
+    const value = document.createElement("dd");
+    label.textContent = name;
+    value.textContent = yesNo(passed);
+    value.dataset.passed = typeof passed === "boolean" ? String(passed) : "unknown";
+    row.append(label, value);
+    return row;
+  }));
+  const storage = known ? skill.storage : null;
+  ui.storageStatus.hidden = !storage;
   ui.storeContained.textContent = yesNo(storage?.bowl_inside_drawer);
   ui.storeSupported.textContent = yesNo(storage?.bowl_supported);
   ui.storeClear.textContent = yesNo(storage?.gripper_clear);
+  ui.storeHandClear.textContent = yesNo(storage?.hand_clear_of_drawer);
+  ui.storePushContact.textContent = yesNo(storage?.push_contact_seen);
   ui.storeDrawer.textContent = number(storage?.drawer_position_m * 1000, 2);
   ui.storeClosed.textContent = yesNo(storage?.drawer_closed);
   ui.storeHomeError.textContent = number(storage?.home_error_rad, 4);
@@ -539,7 +639,7 @@ function connect() {
   if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
   state = null;
   pendingPlannerAction = null;
-  ui.error.hidden = true;
+  ui.error.hidden = fatalRuntimeError === null;
   ui.reconnectPanel.hidden = true;
   ui.stale.hidden = !hasFrame;
   ui.stale.textContent = "正在重新连接 · 最后一帧";
@@ -562,15 +662,23 @@ function connect() {
       const message = JSON.parse(event.data);
       if (message.error !== undefined) {
         pendingPlannerAction = null;
+        if (message.fatal === true) {
+          fatalRuntimeError = String(message.error);
+          state = null;
+        }
         updateControls();
         showError(`仿真器报告错误：${String(message.error)}`);
-        setStatus("已连接 · 操作错误", "error");
+        setStatus(fatalRuntimeError ? "仿真线程停止 · 需重启服务" : "已连接 · 操作错误", "error");
         return;
       }
       if (!message.state || typeof message.image !== "string" || !message.image) {
         throw new Error("后端消息缺少状态或 JPEG 画面。");
       }
       renderState(message.state);
+      if (fatalRuntimeError !== null) {
+        fatalRuntimeError = null;
+        ui.error.hidden = true;
+      }
       ui.frame.src = `data:image/jpeg;base64,${message.image}`;
     } catch (error) {
       state = null;
@@ -583,19 +691,19 @@ function connect() {
     }
   });
   socket.addEventListener("error", () => {
-    showError("WebSocket 连接发生错误。请确认本地仿真服务正在运行，再点击重新连接。");
-    setStatus("连接错误", "error");
+    showError(fatalRuntimeError || "WebSocket 连接发生错误。请确认本地仿真服务正在运行，再点击重新连接。");
+    setStatus(fatalRuntimeError ? "仿真线程停止 · 需重启服务" : "连接错误", "error");
   });
   socket.addEventListener("close", (event) => {
     state = null;
     pendingPlannerAction = null;
     updateControls();
-    setStatus("已断开 · 更新停止", "disconnected");
-    ui.stale.textContent = "连接已中断 · 最后一帧";
+    setStatus(fatalRuntimeError ? "仿真线程停止 · 需重启服务" : "已断开 · 更新停止", fatalRuntimeError ? "error" : "disconnected");
+    ui.stale.textContent = fatalRuntimeError ? "仿真线程停止 · 最后一帧" : "连接已中断 · 最后一帧";
     ui.stale.hidden = !hasFrame;
-    ui.note.textContent = "连接已中断，下方数值为最后接收到的状态，不再实时更新。";
+    ui.note.textContent = fatalRuntimeError || "连接已中断，下方数值为最后接收到的状态，不再实时更新。";
     ui.reconnectPanel.hidden = false;
-    showError(`仿真连接已关闭（代码 ${event.code}）${event.reason ? `：${event.reason}` : "。"} 无法确认后端是否仍在运行。`);
+    showError(fatalRuntimeError || `仿真连接已关闭（代码 ${event.code}）${event.reason ? `：${event.reason}` : "。"} 无法确认后端是否仍在运行。`);
   });
 }
 
@@ -632,6 +740,22 @@ ui.graspCustom.addEventListener("click", () => {
     ui.parameterError.textContent = "";
     ui.parameterError.hidden = true;
     send({ action: "grasp", parameters });
+  } catch (error) {
+    ui.parameterError.textContent = error.message;
+    ui.parameterError.hidden = false;
+  }
+});
+ui.manualSkill.addEventListener("change", updateControls);
+ui.startSkill.addEventListener("click", () => {
+  if (ui.startSkill.disabled || plannerLocksScene()) return;
+  const selected = state?.available_skills?.find((skill) => skill.name === ui.manualSkill.value);
+  if (selected?.available !== true) return;
+  try {
+    const command = { action: "skill", skill: selected.name };
+    if (selected.name === "grasp_and_hold") command.parameters = readCustomParameters();
+    ui.parameterError.textContent = "";
+    ui.parameterError.hidden = true;
+    send(command);
   } catch (error) {
     ui.parameterError.textContent = error.message;
     ui.parameterError.hidden = false;

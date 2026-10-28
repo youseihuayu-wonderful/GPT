@@ -74,9 +74,27 @@
       </section>
       <section id="skill-panel" class="skill-panel" aria-labelledby="skill-title" data-status="waiting">
         <div class="section-heading"><h2 id="skill-title">物理执行与手动对照</h2><span id="skill-result" role="status">等待状态</span></div>
+        <div class="manual-skills" aria-labelledby="manual-skills-title">
+          <h3 id="manual-skills-title">独立本地技能 · 手动单次调用</h3>
+          <p class="skill-criteria">不调用 GPT，不自动串联技能。每次仅运行所选技能；成功后按实时物理条件选择下一项，无需重置场景。</p>
+          <div class="manual-skill-actions">
+            <label for="manual-skill">选择技能<select id="manual-skill" disabled aria-describedby="manual-skill-readiness manual-skill-parameters"><option value="">等待后端技能列表</option></select></label>
+            <button id="start-skill" class="primary" type="button" disabled>运行所选技能</button>
+          </div>
+          <p id="manual-skill-readiness" class="skill-hint" role="status">等待后端可用性检查。</p>
+          <p id="manual-skill-parameters" class="skill-criteria">仅抓取与保持接受下方三个抓取参数；其他技能不发送参数。</p>
+          <details id="manual-skill-contract" class="phase-details">
+            <summary>所选技能契约 <span id="manual-skill-watchdog"></span></summary>
+            <p id="manual-skill-targets" class="skill-criteria"></p>
+            <p id="manual-skill-phases" class="skill-criteria"></p>
+            <h4>开始前置条件</h4><ul id="manual-skill-preconditions" class="contract-list"></ul>
+            <h4>完成后置条件</h4><ul id="manual-skill-postconditions" class="contract-list"></ul>
+          </details>
+        </div>
+        <h3 class="fixed-task-title">原有固定任务 · 仅待开始状态可运行</h3>
         <div class="grasp-actions">
-          <button id="grasp" class="grasp-button" type="button" disabled aria-describedby="skill-hint">运行固定 baseline</button>
-          <button id="grasp-custom" class="primary grasp-button" type="button" disabled aria-describedby="skill-hint parameter-error">运行自定义参数</button>
+          <button id="grasp" class="grasp-button" type="button" disabled aria-describedby="skill-hint">固定抓取 · baseline</button>
+          <button id="grasp-custom" class="grasp-button" type="button" disabled aria-describedby="skill-hint parameter-error">固定抓取 · 下方参数</button>
           <button id="store-script" class="grasp-button store-button" type="button" disabled aria-describedby="skill-hint">运行完整固定任务 · 不调用 GPT</button>
         </div>
         <div class="parameter-inputs" aria-label="自定义抓取参数">
@@ -84,9 +102,11 @@
           <label for="descent-speed">下降速度 <span>mm/s</span><input id="descent-speed" type="number" value="100" step="any" required disabled aria-describedby="descent-speed-range"><small id="descent-speed-range">等待后端范围</small></label>
           <label for="close-trigger-height">提前闭合高度 <span>mm</span><input id="close-trigger-height" type="number" value="0" step="any" required disabled aria-describedby="close-trigger-height-range"><small id="close-trigger-height-range">等待后端范围</small></label>
         </div>
-        <p class="skill-criteria">固定 baseline：80 mm / 100 mm/s / 0 mm，确认下降到位后闭合。下降速度为轨迹设定值，并非恒定实测速度；闭合高度相对下降目标。修改参数不会自动运行或重置。</p>
+        <p class="skill-criteria">参数用于「独立抓取与保持」和「固定抓取 · 下方参数」。固定 baseline 与完整固定任务始终使用 80 mm / 100 mm/s / 0 mm。下降速度为轨迹设定值，并非恒定实测速度；闭合高度相对下降目标。修改参数不会自动运行或重置。</p>
         <p id="parameter-error" class="skill-failure" role="alert" hidden></p>
         <p id="skill-hint" class="skill-hint">等待后端技能状态。</p>
+        <p class="skill-phase">当前调用：<strong id="skill-invocation">等待状态</strong></p>
+        <p class="skill-phase">实际当前技能：<strong id="current-skill">等待状态</strong></p>
         <ol id="skill-stages" class="skill-stages" aria-label="后端物理执行阶段"></ol>
         <p class="skill-phase">当前阶段：<strong id="skill-phase">等待状态</strong></p>
         <p id="skill-message" class="skill-message">仅显示后端执行结果，不由页面推断成功。</p>
@@ -102,12 +122,16 @@
           <div><dt>闭合开始 / 下降完成 · 相对任务起点</dt><dd><output id="close-started">—</output> / <output id="descent-completed">—</output> <small>s</small></dd></div>
         </dl>
         <p id="goal-criteria" class="skill-criteria">等待后端任务与完成判据。</p>
+        <h3 class="postconditions-title">当前执行后置条件 · 实时物理检查</h3>
+        <dl id="skill-postconditions" class="metadata storage-metrics"><div><dt>等待后端检查</dt><dd>—</dd></div></dl>
         <div id="storage-status" hidden>
           <h3>收纳与归位 · 物理真值</h3>
           <dl class="metadata storage-metrics">
             <div><dt>碗完全位于抽屉内</dt><dd id="store-contained">—</dd></div>
             <div><dt>碗受到抽屉底面支撑</dt><dd id="store-supported">—</dd></div>
-            <div><dt>夹爪已松开并撤离</dt><dd id="store-clear">—</dd></div>
+            <div><dt>夹爪已与目标分离</dt><dd id="store-clear">—</dd></div>
+            <div><dt>手部已安全退出抽屉</dt><dd id="store-hand-clear">—</dd></div>
+            <div><dt>已测得推动把手的接触</dt><dd id="store-push-contact">—</dd></div>
             <div><dt>抽屉位移 · 关闭位置为 0</dt><dd><output id="store-drawer">—</output> <small>mm</small></dd></div>
             <div><dt>抽屉已关闭</dt><dd id="store-closed">—</dd></div>
             <div><dt>最大关节归位误差</dt><dd><output id="store-home-error">—</output> <small>rad</small></dd></div>

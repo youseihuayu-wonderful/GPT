@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import json
+import logging
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,6 +21,7 @@ from simulation import Simulation
 class Controls:
     paused: bool = False
     view: str = "overview"
+    runtime_error: str | None = None
 
 
 ROOT = Path(__file__).resolve().parent
@@ -29,11 +31,17 @@ CONTROLS = web.AppKey("controls", Controls)
 PLANNING = web.AppKey("planning", PlanningSession)
 SCENE_CASE = web.AppKey("scene_case", SceneCase)
 FRAME_PERIOD = 0.05
+LOGGER = logging.getLogger(__name__)
+WORKER_FAILURE_MESSAGE = "仿真工作线程已停止；请查看服务日志并重启本地服务后重新连接。"
 
 
 def public_state(app: web.Application) -> dict:
+    if app[CONTROLS].runtime_error is not None:
+        # Failed physics/rendering may leave simulation state unreadable.
+        return {"paused": True, "runtime_error": app[CONTROLS].runtime_error}
     state = app[SIMULATION].state()
     state["paused"] = app[CONTROLS].paused
+    state["runtime_error"] = None
     state["planner"] = app[PLANNING].state(state["skill"])
     return state
 
@@ -43,10 +51,12 @@ def packet(app: web.Application) -> dict:
 
 
 async def broadcast(app: web.Application) -> None:
-    if not app[CLIENTS]:
+    if app[CONTROLS].runtime_error is not None or not app[CLIENTS]:
         return
     message = packet(app)
     for client in tuple(app[CLIENTS]):
+        if app[CONTROLS].runtime_error is not None:
+            return
         try:
             await asyncio.wait_for(client.send_json(message), timeout=1)
         except (ConnectionError, asyncio.TimeoutError):
@@ -54,9 +64,33 @@ async def broadcast(app: web.Application) -> None:
             await client.close()
 
 
+async def close_failed_websocket(app: web.Application, ws: web.WebSocketResponse) -> None:
+    try:
+        await asyncio.wait_for(
+            ws.send_json({"error": app[CONTROLS].runtime_error, "fatal": True}), timeout=1,
+        )
+    except Exception:
+        LOGGER.warning("Could not notify client of fatal simulation failure", exc_info=True)
+    try:
+        await ws.close(code=1011, message=b"Simulation failed; restart server")
+    except Exception:
+        LOGGER.warning("Could not close failed simulation connection", exc_info=True)
+
+
+async def stop_failed_runtime(app: web.Application) -> None:
+    if app[CONTROLS].runtime_error is not None:
+        return
+    app[CONTROLS].runtime_error = WORKER_FAILURE_MESSAGE
+    app[CONTROLS].paused = True
+    LOGGER.exception("Physics execution stopped; restart the local server to recover")
+    for client in tuple(app[CLIENTS]):
+        await close_failed_websocket(app, client)
+        app[CLIENTS].discard(client)
+
+
 async def physics_loop(app: web.Application) -> None:
     try:
-        while True:
+        while app[CONTROLS].runtime_error is None:
             started = time.monotonic()
             if app[CLIENTS] and not app[CONTROLS].paused:
                 app[SIMULATION].step(FRAME_PERIOD)
@@ -64,13 +98,8 @@ async def physics_loop(app: web.Application) -> None:
             await asyncio.sleep(max(0, FRAME_PERIOD - (time.monotonic() - started)))
     except asyncio.CancelledError:
         raise
-    except Exception as exc:
-        app[CONTROLS].paused = True
-        for client in tuple(app[CLIENTS]):
-            with suppress(ConnectionError):
-                await client.send_json({"error": f"仿真停止：{exc}"})
-                await client.close(code=1011, message=b"Simulation failed")
-        raise
+    except Exception:
+        await stop_failed_runtime(app)
 
 
 async def lifecycle(app: web.Application):
@@ -108,10 +137,16 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
     ws = web.WebSocketResponse(heartbeat=20, max_msg_size=16384)
     await ws.prepare(request)
     app = request.app
+    if app[CONTROLS].runtime_error is not None:
+        await close_failed_websocket(app, ws)
+        return ws
     app[CLIENTS].add(ws)
     try:
         await ws.send_json(packet(app))
         async for msg in ws:
+            if app[CONTROLS].runtime_error is not None:
+                await close_failed_websocket(app, ws)
+                break
             if msg.type == WSMsgType.ERROR:
                 break
             if msg.type != WSMsgType.TEXT:
@@ -122,7 +157,7 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     raise ValueError("命令必须是 JSON 对象")
                 action = command.get("action")
                 planner = app[PLANNING]
-                if action in ("play", "step", "grasp", "store") and planner.locks_scene:
+                if action in ("play", "step", "grasp", "store", "skill") and planner.locks_scene:
                     raise ValueError("规划中的场景已锁定，请先取消计划或重置，再手动运行")
                 if action == "pause":
                     app[CONTROLS].paused = True
@@ -138,6 +173,21 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                         raise ValueError("抓取参数必须是 JSON 对象")
                     task_kind = "store_bowl" if action == "store" else "grasp"
                     app[SIMULATION].start_task(task_kind, GraspParameters(**parameters))
+                    planner.reset()
+                    app[CONTROLS].paused = False
+                elif action == "skill":
+                    skill_name = command.get("skill")
+                    if not isinstance(skill_name, str):
+                        raise ValueError("技能名称必须是字符串")
+                    parameters = command.get("parameters")
+                    if parameters is not None:
+                        if skill_name != "grasp_and_hold":
+                            raise ValueError("仅 grasp_and_hold 接受抓取参数；其他技能请省略 parameters")
+                        if not isinstance(parameters, dict):
+                            raise ValueError("抓取参数必须是 JSON 对象")
+                        parameters = GraspParameters(**parameters)
+                    app[SIMULATION].start_skill(skill_name, parameters)
+                    planner.reset()
                     app[CONTROLS].paused = False
                 elif action == "step":
                     if not app[CONTROLS].paused:
@@ -168,6 +218,9 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
             except (ValueError, TypeError) as exc:
                 await ws.send_json({"error": str(exc)})
                 continue
+            except RuntimeError:
+                await stop_failed_runtime(app)
+                break
             await broadcast(app)
     finally:
         app[CLIENTS].discard(ws)
@@ -175,7 +228,11 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
 
 
 async def state(request: web.Request) -> web.Response:
-    return web.json_response(public_state(request.app), headers={"Cache-Control": "no-store"})
+    return web.json_response(
+        public_state(request.app),
+        status=503 if request.app[CONTROLS].runtime_error is not None else 200,
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 def load_experiment_report() -> dict:

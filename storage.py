@@ -7,6 +7,8 @@ from task_specs import TASKS
 
 
 class BowlStorage:
+    PUSH_ORIENTATION = np.array([0.3535533906, -0.6123724357, -0.6123724357, -0.3535533906])
+
     def __init__(self, skill):
         self.skill = skill
         self.sim = skill.sim
@@ -17,11 +19,20 @@ class BowlStorage:
         self.drawer_dof = int(joint.dofadr[0])
         self.region = self.model.site("cabinet_bottom_region").id
         collidable = (self.model.geom_contype | self.model.geom_conaffinity) != 0
-        self.bowl_geoms = np.flatnonzero((self.model.geom_bodyid == skill.target_body) & collidable)
-        drawer_geoms = np.flatnonzero((self.model.geom_bodyid == self.drawer) & collidable)
+        self.bowl_body = self.model.body("bowl_object").id
+        self.bowl_dof = int(self.model.joint("bowl_free").dofadr[0])
+        self.bowl_geoms = np.flatnonzero((self.model.geom_bodyid == self.bowl_body) & collidable)
+        hand_bodies = [self.model.body("robot_hand").id, *skill.fingers]
+        self.hand_geoms = np.flatnonzero(np.isin(self.model.geom_bodyid, hand_bodies) & collidable)
+        self.object_bodies = frozenset(self.model.body(name).id for name in ("bowl_object", "bottle_object"))
+        self.drawer_geoms = np.flatnonzero((self.model.geom_bodyid == self.drawer) & collidable)
+        self.object_geoms = {
+            body: np.flatnonzero((self.model.geom_bodyid == body) & collidable)
+            for body in self.object_bodies
+        }
         # Identify individual original collision pieces, never the whole drawer.
-        self.floor = int(min(drawer_geoms, key=lambda g: self.model.geom_pos[g, 2]))
-        self.handle = int(min(drawer_geoms, key=lambda g: self.model.geom_pos[g, 1]))
+        self.floor = int(min(self.drawer_geoms, key=lambda g: self.model.geom_pos[g, 2]))
+        self.handle = int(min(self.drawer_geoms, key=lambda g: self.model.geom_pos[g, 1]))
         self.finger_geoms = frozenset(np.flatnonzero(np.isin(self.model.geom_bodyid, list(skill.fingers)) & collidable))
         self.released = False
         self.verification_hold_s = 0.0
@@ -35,9 +46,10 @@ class BowlStorage:
     def bounds(self, geoms):
         geoms = np.asarray(geoms, dtype=int)
         rotation = self.data.geom_xmat[geoms].reshape(-1, 3, 3)
-        extent = np.einsum("nij,nj->ni", np.abs(rotation), self.model.geom_size[geoms])
-        return (np.min(self.data.geom_xpos[geoms] - extent, axis=0),
-                np.max(self.data.geom_xpos[geoms] + extent, axis=0))
+        local = self.model.geom_aabb[geoms]
+        center = self.data.geom_xpos[geoms] + np.einsum("nij,nj->ni", rotation, local[:, :3])
+        extent = np.einsum("nij,nj->ni", np.abs(rotation), local[:, 3:])
+        return np.min(center - extent, axis=0), np.max(center + extent, axis=0)
 
     def region_bounds(self):
         rotation = self.data.site_xmat[self.region].reshape(3, 3)
@@ -45,7 +57,7 @@ class BowlStorage:
         center = self.data.site_xpos[self.region]
         return center - extent, center + extent
 
-    def validate(self, parameters):
+    def validate(self, parameters, held=False):
         if self.data.qpos[self.drawer_qpos] > -0.155:
             raise ValueError("Bottom drawer must initially be fully open")
         minimum = TASKS["store_bowl"].minimum_opening_m
@@ -58,7 +70,18 @@ class BowlStorage:
         floor_top = self.bounds([self.floor])[1][2]
         available = region_high - region_low
         available[2] = region_high[2] - floor_top
-        if np.any(high - low + 0.003 > available):
+        # A held bowl tilts; the original path reorients it before insertion.
+        # Fit its original collision dimensions, while keeping live containment
+        # and contact checks for actual placement.
+        size = high - low
+        if held:
+            rotation = self.data.xmat[self.bowl_body].reshape(3, 3)
+            centers = (self.data.geom_xpos[self.bowl_geoms] - self.data.xpos[self.bowl_body]) @ rotation
+            local_rotation = np.einsum(
+                "ij,njk->nik", rotation.T, self.data.geom_xmat[self.bowl_geoms].reshape(-1, 3, 3))
+            extent = np.einsum("nij,nj->ni", np.abs(local_rotation), self.model.geom_size[self.bowl_geoms])
+            size = np.max(centers + extent, axis=0) - np.min(centers - extent, axis=0)
+        if np.any(size + 0.003 > available):
             raise ValueError("Bowl collision geometry does not fit the original drawer")
 
     def planned_contact(self, a, b, phase):
@@ -87,6 +110,122 @@ class BowlStorage:
                 supported = True
         return supported, clear
 
+    def empty_hand(self):
+        for index, contact in enumerate(self.data.contact):
+            bodies = {int(self.model.geom_bodyid[contact.geom1]), int(self.model.geom_bodyid[contact.geom2])}
+            if bodies & self.skill.fingers and bodies & self.object_bodies and contact.efc_address >= 0:
+                mujoco.mj_contactForce(self.model, self.data, index, self.force)
+                if self.force[0] > 0.01:
+                    return False
+        return True
+
+    def hand_clear(self):
+        low, high = self.region_bounds()
+        # Include the full interior sweep from its live position to closed.
+        high = high.copy()
+        high[1] += max(0.0, -float(self.data.qpos[self.drawer_qpos]))
+        for geom in self.hand_geoms:
+            hand_low, hand_high = self.bounds([geom])
+            if np.all(hand_high >= low - 0.005) and np.all(hand_low <= high + 0.005):
+                return False
+        return True
+
+    def bowl_settled(self):
+        velocity = self.data.qvel[self.bowl_dof:self.bowl_dof + 6]
+        return bool(np.linalg.norm(velocity[:3]) < 0.01 and np.linalg.norm(velocity[3:]) < 0.1)
+
+    def support_preserved(self):
+        velocity = self.data.qvel[self.skill.target_dof:self.skill.target_dof + 6]
+        stable = np.linalg.norm(velocity[:3]) < 0.01 and np.linalg.norm(velocity[3:]) < 0.1
+        _, on_table = self.skill._contacts()
+        state = self.state()
+        return bool(stable and (on_table or (
+            self.skill.target.name == "bowl" and state["bowl_inside_drawer"]
+            and state["bowl_supported"] and self.bowl_settled())))
+
+    def precondition_error(self, name):
+        state = self.state()
+        if name == "place_and_release":
+            if not all(self.skill.grasp_postconditions().values()):
+                return "Placement requires a physically verified stable bowl grasp"
+            try:
+                self.validate(self.skill.parameters, held=True)
+            except ValueError as exc:
+                return str(exc)
+        elif name == "withdraw_from_drawer":
+            if not (state["bowl_inside_drawer"] and state["bowl_supported"]
+                    and self.support_and_clear()[1] and self.empty_hand() and self.bowl_settled()):
+                return "Withdrawal requires a contained, supported, settled and detached bowl"
+            if state["hand_clear_of_drawer"]:
+                return "Hand is already clear of the drawer"
+            tcp = self.data.site_xpos[self.skill.tcp]
+            low, high = self.region_bounds()
+            if not (low[0] <= tcp[0] <= high[0] and low[1] <= tcp[1] <= high[1]
+                    and tcp[2] <= high[2] + 0.15):
+                return "Hand is outside the supported placement-to-withdrawal handoff"
+        elif name in ("close_drawer", "return_home"):
+            if not self.empty_hand() or self.skill.gripper_closed:
+                return "This skill requires an empty released gripper"
+            if not state["hand_clear_of_drawer"]:
+                return "Withdraw the hand from the drawer before closing or returning home"
+            if self.data.site_xpos[self.skill.tcp, 2] < 1.03:
+                return "This workcell skill requires the verified elevated handoff (TCP >= 1.03 m)"
+            if not self.support_preserved():
+                return "Target must remain stably supported on the table or inside the drawer"
+            if name == "close_drawer":
+                if self.data.qpos[self.drawer_qpos] > -0.155:
+                    return "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
+                if not self.closing_corridor_clear():
+                    return "An object obstructs the drawer closing corridor"
+                if not self.push_corridor_clear():
+                    return "An object obstructs the fixed hand/palm pushing approach"
+        return None
+
+    def closing_corridor_clear(self):
+        state = self.state()
+        travel = max(0.0, -float(self.data.qpos[self.drawer_qpos]))
+        # Sweep each original piece, not a solid envelope that fills the gap
+        # beside the protruding handle and falsely intersects the table bowl.
+        for drawer_geom in self.drawer_geoms:
+            low, high = self.bounds([drawer_geom])
+            high[1] += travel
+            for body, geoms in self.object_geoms.items():
+                if body == self.bowl_body and state["bowl_inside_drawer"] and state["bowl_supported"]:
+                    continue
+                for geom in geoms:
+                    object_low, object_high = self.bounds([geom])
+                    if np.all(object_high >= low - 0.003) and np.all(object_low <= high + 0.003):
+                        return False
+        return True
+
+    def push_corridor_clear(self):
+        # Bound the lowered approach/push, using the actual hand mesh boxes
+        # transformed to the fixed pushing orientation plus tracking margin.
+        # High-level waypoints and runtime contacts still bound this workcell
+        # controller; this is not a general joint-space collision planner.
+        target_rotation = np.empty(9)
+        mujoco.mju_quat2Mat(target_rotation, self.PUSH_ORIENTATION)
+        delta = target_rotation.reshape(3, 3) @ self.data.site_xmat[self.skill.tcp].reshape(3, 3).T
+        contact_x = float(self.bounds([self.handle])[1][0] - 0.014)
+        tcp_low = np.array([contact_x, -0.08, self.data.geom_xpos[self.handle, 2]])
+        tcp_high = np.array([contact_x, 0.12, 1.05])
+        state = self.state()
+        for hand_geom in self.hand_geoms:
+            rotation = self.data.geom_xmat[hand_geom].reshape(3, 3)
+            box = self.model.geom_aabb[hand_geom]
+            center = self.data.geom_xpos[hand_geom] + rotation @ box[:3]
+            offset = delta @ (center - self.data.site_xpos[self.skill.tcp])
+            extent = np.abs(delta @ rotation) @ box[3:]
+            low, high = tcp_low + offset - extent - 0.01, tcp_high + offset + extent + 0.01
+            for body, geoms in self.object_geoms.items():
+                if body == self.bowl_body and state["bowl_inside_drawer"] and state["bowl_supported"]:
+                    continue
+                for geom in geoms:
+                    object_low, object_high = self.bounds([geom])
+                    if np.all(object_high >= low) and np.all(object_low <= high):
+                        return False
+        return True
+
     def state(self):
         low, high = self.bounds(self.bowl_geoms)
         region_low, region_high = self.region_bounds()
@@ -98,6 +237,8 @@ class BowlStorage:
             "bowl_inside_drawer": inside, "bowl_supported": supported,
             "gripper_clear": clear and self.released,
             "drawer_position_m": q,
+            "hand_clear_of_drawer": self.hand_clear(),
+            "hand_empty": self.empty_hand(),
             "drawer_closed": bool(abs(q) <= 0.003 and abs(self.data.qvel[self.drawer_dof]) < 0.005),
             "home_error_rad": home_error,
             "home_reached": bool(home_error <= 0.03 and np.max(np.abs(self.data.qvel[self.skill.arm_dof])) < 0.03),
@@ -133,6 +274,64 @@ class BowlStorage:
         # Raise before translating; the tilted held bowl cannot pass under them.
         self.skill.orientation_target = np.array([0.0, np.sqrt(0.5), np.sqrt(0.5), 0.0])
         self.move("transfer", [[tcp[0], tcp[1], 1.05]])
+
+    def begin_withdrawal(self):
+        tcp = self.data.site_xpos[self.skill.tcp].copy()
+        tcp[2] = 1.05
+        self.move("withdraw", [tcp])
+
+    def begin_closing(self):
+        skill = self.skill
+        skill.gripper_closed = False
+        skill.opening_target = 0.008
+        skill.orientation_target = self.PUSH_ORIENTATION
+        self.initial_drawer_position = float(self.data.qpos[self.drawer_qpos])
+        self.push_contact_seen = False
+        handle = self.data.geom_xpos[self.handle]
+        # Push near the measured right end: a center push sweeps the wide palm
+        # through the table bowl when closing independently of prior grasping.
+        contact_x = float(self.bounds([self.handle])[1][0] - 0.014)
+        self.move("push_approach", [[contact_x, -0.08, 1.05], [contact_x, -0.08, handle[2]]])
+
+    def begin_home(self):
+        skill = self.skill
+        skill.motion_start = self.data.qpos[self.sim.arm_qpos].copy()
+        skill.motion_target = self.sim.arm_home.copy()
+        skill.motion_duration = max(2.0, 1.875 * np.max(np.abs(skill.motion_target - skill.motion_start)) / 0.6)
+        skill._enter("return_home")
+
+    def postconditions(self, name):
+        state = self.state()
+        if name == "place_and_release":
+            return {
+                "bowl_inside_drawer": state["bowl_inside_drawer"],
+                "bowl_supported": state["bowl_supported"],
+                "gripper_detached": state["gripper_clear"] and self.empty_hand(),
+                "bowl_settled": self.bowl_settled(),
+            }
+        if name == "withdraw_from_drawer":
+            return {
+                **self.postconditions("place_and_release"),
+                "hand_clear_of_drawer": state["hand_clear_of_drawer"],
+                "elevated_handoff": bool(self.data.site_xpos[self.skill.tcp, 2] >= 1.03),
+            }
+        if name == "close_drawer":
+            return {
+                "drawer_closed": state["drawer_closed"],
+                "push_contact_seen": self.push_contact_seen,
+                "drawer_moved": state["drawer_travel_m"] >= 0.15,
+                "hand_clear_of_drawer": state["hand_clear_of_drawer"],
+                "hand_empty": state["hand_empty"],
+                "support_preserved": self.support_preserved(),
+            }
+        if name == "return_home":
+            return {
+                "home_reached": state["home_reached"],
+                "hand_clear_of_drawer": state["hand_clear_of_drawer"],
+                "hand_empty": state["hand_empty"],
+                "support_preserved": self.support_preserved(),
+            }
+        raise ValueError(f"Unknown storage skill: {name}")
 
     def final_valid(self):
         state = self.state()
@@ -188,20 +387,11 @@ class BowlStorage:
                 if not self.state()["bowl_inside_drawer"]:
                     skill.fail("Released bowl is not fully contained in drawer")
                     return
-                tcp = self.data.site_xpos[skill.tcp].copy()
-                tcp[2] = 1.05
-                self.move("withdraw", [tcp])
+                skill.complete_skill()
             elif elapsed > 4:
                 skill.fail("Bowl did not settle supported and detached")
         elif phase == "withdraw" and self.motion_done():
-            skill.gripper_closed = False
-            # Nearly closed, but not crushing the two fingers into each other.
-            skill.opening_target = 0.008
-            # Fingers point forward and 30 degrees down: the wrist stays above
-            # the table and in front of the cabinet throughout the push.
-            skill.orientation_target = np.array([0.3535533906, -0.6123724357, -0.6123724357, -0.3535533906])
-            handle = self.data.geom_xpos[self.handle]
-            self.move("push_approach", [[handle[0], -0.08, 1.05], [handle[0], -0.08, handle[2]]])
+            skill.complete_skill()
         elif phase == "push_approach" and self.motion_done():
             tcp = self.data.site_xpos[skill.tcp].copy()
             tcp[1] = 0.12
@@ -224,16 +414,13 @@ class BowlStorage:
             elif self.motion_done():
                 skill.fail("Finger push did not close the drawer")
         elif phase == "push_withdraw" and self.motion_done():
-            skill.motion_start = self.data.qpos[self.sim.arm_qpos].copy()
-            skill.motion_target = self.sim.arm_home.copy()
-            skill.motion_duration = max(2.0, 1.875 * np.max(np.abs(skill.motion_target - skill.motion_start)) / 0.6)
-            skill._enter("return_home")
+            skill.complete_skill()
         elif phase == "return_home":
             u = min(1.0, elapsed / skill.motion_duration)
             blend = u**3 * (10 - 15 * u + 6 * u**2)
             skill.arm_target = skill.motion_start + blend * (skill.motion_target - skill.motion_start)
             if elapsed >= skill.motion_duration and self.state()["home_reached"]:
-                skill._enter("verify_store")
+                skill.complete_skill()
             elif elapsed > skill.motion_duration + 2:
                 skill.fail("Arm did not reach home")
         elif phase in ("verify_store", "done"):
