@@ -1,0 +1,1135 @@
+{
+  "kind": "subscription_storage_demo",
+  "generated_at": "2026-10-28T18:49:09.378771+00:00",
+  "note": "Real official Codex ChatGPT-subscription request and live browser execution. Video uses native Chromium screencast frame timestamps at original wall-clock speed; it is not a planned trajectory animation.",
+  "preview": {
+    "planner": {
+      "status": "ready",
+      "configured": true,
+      "model": "gpt-5.6-terra",
+      "task": "抓起黑碗并稳定保持，然后放入已经打开的下层抽屉，撤出夹爪，关闭抽屉，最后机械臂归位。",
+      "plan_id": 101120505449641,
+      "plan": {
+        "decision": "plan",
+        "summary": "执行黑碗入已打开下层抽屉、关抽屉并归位。",
+        "reason": "目标为黑碗且抽屉已打开；参数采用固定场景黑碗抓取的单次成功校准值，不表示收纳成功保证。",
+        "task_kind": "store_bowl",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "准备夹爪并设定碗沿夹取。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗近侧碗沿。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "下降至碗沿夹取高度。"
+          },
+          {
+            "phase": "close",
+            "instruction": "闭合夹爪夹持碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗。"
+          },
+          {
+            "phase": "transfer",
+            "instruction": "转运至已打开的下层抽屉。"
+          },
+          {
+            "phase": "place",
+            "instruction": "将黑碗放入抽屉。"
+          },
+          {
+            "phase": "release",
+            "instruction": "释放黑碗。"
+          },
+          {
+            "phase": "withdraw",
+            "instruction": "撤出夹爪。"
+          },
+          {
+            "phase": "push_approach",
+            "instruction": "接近抽屉以执行推关。"
+          },
+          {
+            "phase": "push_drawer",
+            "instruction": "以机器人实际接触推关抽屉。"
+          },
+          {
+            "phase": "push_withdraw",
+            "instruction": "从抽屉撤离。"
+          },
+          {
+            "phase": "return_home",
+            "instruction": "机械臂返回初始姿态。"
+          },
+          {
+            "phase": "verify_store",
+            "instruction": "确认已放置、已脱离、抽屉已关且已归位。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.16,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "latency_s": 12.503202499996405,
+      "thread_id": "01a183d6-d848-7193-b24c-2b7dd60262bd",
+      "diagnostic_count": 2,
+      "error": null
+    },
+    "paused": true,
+    "skill_status": "idle",
+    "manual_store_locked": true,
+    "plan_steps": 15
+  },
+  "observations": {
+    "phases": [
+      {
+        "phase": "prepare",
+        "time_s": 0,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "gripper_clear": false,
+          "drawer_position_m": -0.16,
+          "drawer_closed": false,
+          "home_error_rad": 0,
+          "home_reached": true,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "approach",
+        "time_s": 0.3000000000000002,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "gripper_clear": false,
+          "drawer_position_m": -0.16,
+          "drawer_closed": false,
+          "home_error_rad": 2.587340204307509e-07,
+          "home_reached": true,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "descend",
+        "time_s": 6.249999999999534,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "gripper_clear": false,
+          "drawer_position_m": -0.16,
+          "drawer_closed": false,
+          "home_error_rad": 0.6076637684874762,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "close",
+        "time_s": 8.149999999999391,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "gripper_clear": false,
+          "drawer_position_m": -0.16,
+          "drawer_closed": false,
+          "home_error_rad": 0.9712628874617268,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "lift",
+        "time_s": 8.249999999999424,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "gripper_clear": false,
+          "drawer_position_m": -0.16,
+          "drawer_closed": false,
+          "home_error_rad": 0.9719510612965381,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "hold",
+        "time_s": 11.05000000000036,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "gripper_clear": false,
+          "drawer_position_m": -0.16,
+          "drawer_closed": false,
+          "home_error_rad": 0.6330958589043914,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "transfer",
+        "time_s": 12.050000000000693,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "gripper_clear": false,
+          "drawer_position_m": -0.16,
+          "drawer_closed": false,
+          "home_error_rad": 0.6325958066788824,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "place",
+        "time_s": 20.99999999999924,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "gripper_clear": false,
+          "drawer_position_m": -0.16,
+          "drawer_closed": false,
+          "home_error_rad": 1.4708819820388566,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "release",
+        "time_s": 25.499999999996746,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": true,
+          "gripper_clear": false,
+          "drawer_position_m": -0.16000121743777826,
+          "drawer_closed": false,
+          "home_error_rad": 1.4747040398253062,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": -1.217437778255892e-06,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "withdraw",
+        "time_s": 25.99999999999647,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "gripper_clear": true,
+          "drawer_position_m": -0.15994906611720552,
+          "drawer_closed": false,
+          "home_error_rad": 1.4747039918192226,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 5.093388279447941e-05,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "push_approach",
+        "time_s": 30.749999999993836,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "gripper_clear": true,
+          "drawer_position_m": -0.15994906619488983,
+          "drawer_closed": false,
+          "home_error_rad": 1.4709168025768173,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 5.093380511017598e-05,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "push_drawer",
+        "time_s": 39.350000000002126,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "gripper_clear": true,
+          "drawer_position_m": -0.15994906619488983,
+          "drawer_closed": false,
+          "home_error_rad": 2.422581330689048,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 5.093380511017598e-05,
+          "push_contact_seen": false
+        }
+      },
+      {
+        "phase": "push_withdraw",
+        "time_s": 53.00000000001881,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "gripper_clear": true,
+          "drawer_position_m": -0.000921182998297215,
+          "drawer_closed": true,
+          "home_error_rad": 2.407025697868904,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0.1590788170017028,
+          "push_contact_seen": true
+        }
+      },
+      {
+        "phase": "return_home",
+        "time_s": 59.80000000002712,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "gripper_clear": true,
+          "drawer_position_m": -0.0007919293525825507,
+          "drawer_closed": true,
+          "home_error_rad": 2.073636368961994,
+          "home_reached": false,
+          "verification_hold_s": 0,
+          "drawer_travel_m": 0.15920807064741746,
+          "push_contact_seen": true
+        }
+      },
+      {
+        "phase": "verify_store",
+        "time_s": 66.30000000002688,
+        "status": "running",
+        "storage": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "gripper_clear": true,
+          "drawer_position_m": -0.0007919293525825507,
+          "drawer_closed": true,
+          "home_error_rad": 0.00032217272943013686,
+          "home_reached": true,
+          "verification_hold_s": 0.020000000000000004,
+          "drawer_travel_m": 0.15920807064741746,
+          "push_contact_seen": true
+        }
+      },
+      {
+        "phase": "done",
+        "time_s": 67.30000000002455,
+        "status": "succeeded",
+        "storage": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "gripper_clear": true,
+          "drawer_position_m": -0.0007919293525825507,
+          "drawer_closed": true,
+          "home_error_rad": 1.3164654588670999e-08,
+          "home_reached": true,
+          "verification_hold_s": 1.0200000000000007,
+          "drawer_travel_m": 0.15920807064741746,
+          "push_contact_seen": true
+        }
+      }
+    ],
+    "drawer_motion": [
+      {
+        "time_s": 39.350000000002126,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 39.85000000000274,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 40.35000000000335,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 40.85000000000396,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 41.35000000000457,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 41.85000000000518,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 42.35000000000579,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 42.8500000000064,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 43.350000000007014,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 43.850000000007626,
+        "position_m": -0.15994906619488983,
+        "contact_seen": false
+      },
+      {
+        "time_s": 44.35000000000824,
+        "position_m": -0.15850884152227834,
+        "contact_seen": true
+      },
+      {
+        "time_s": 44.85000000000885,
+        "position_m": -0.14822237042781825,
+        "contact_seen": true
+      },
+      {
+        "time_s": 45.35000000000946,
+        "position_m": -0.13703669953796838,
+        "contact_seen": true
+      },
+      {
+        "time_s": 45.85000000001007,
+        "position_m": -0.12517791393892594,
+        "contact_seen": true
+      },
+      {
+        "time_s": 46.35000000001068,
+        "position_m": -0.11285686855731049,
+        "contact_seen": true
+      },
+      {
+        "time_s": 46.85000000001129,
+        "position_m": -0.10029959783842411,
+        "contact_seen": true
+      },
+      {
+        "time_s": 47.3500000000119,
+        "position_m": -0.08773858144270595,
+        "contact_seen": true
+      },
+      {
+        "time_s": 47.850000000012514,
+        "position_m": -0.07540507415368289,
+        "contact_seen": true
+      },
+      {
+        "time_s": 48.350000000013125,
+        "position_m": -0.06352235379762762,
+        "contact_seen": true
+      },
+      {
+        "time_s": 48.850000000013736,
+        "position_m": -0.05229675758572716,
+        "contact_seen": true
+      },
+      {
+        "time_s": 49.35000000001435,
+        "position_m": -0.04191304100356351,
+        "contact_seen": true
+      },
+      {
+        "time_s": 49.85000000001496,
+        "position_m": -0.03252861389089604,
+        "contact_seen": true
+      },
+      {
+        "time_s": 50.35000000001557,
+        "position_m": -0.02426707564290347,
+        "contact_seen": true
+      },
+      {
+        "time_s": 50.85000000001618,
+        "position_m": -0.017218309693745392,
+        "contact_seen": true
+      },
+      {
+        "time_s": 51.35000000001679,
+        "position_m": -0.011432377978959695,
+        "contact_seen": true
+      },
+      {
+        "time_s": 51.8500000000174,
+        "position_m": -0.006905512148124953,
+        "contact_seen": true
+      },
+      {
+        "time_s": 52.350000000018014,
+        "position_m": -0.00358778746810298,
+        "contact_seen": true
+      },
+      {
+        "time_s": 52.850000000018625,
+        "position_m": -0.0013809735931621216,
+        "contact_seen": true
+      }
+    ]
+  },
+  "terminal": {
+    "time_s": 67.30000000002455,
+    "timestep_s": 0.002,
+    "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+    "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+    "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+    "target_object": "bowl",
+    "grasp_target": {
+      "name": "bowl",
+      "label": "黑碗",
+      "grasp_offset_m": [
+        0,
+        -0.047,
+        0.042
+      ],
+      "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+    },
+    "scenario": {
+      "case_id": "bowl.nominal",
+      "target_object": "bowl",
+      "position_label": "nominal",
+      "seed": 0,
+      "offset_xy_m": [
+        0,
+        0
+      ],
+      "yaw_rad": 0
+    },
+    "available_tasks": [
+      {
+        "kind": "grasp",
+        "label": "抓取并保持",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "watchdog_s": 20,
+        "minimum_opening_m": 0.02
+      },
+      {
+        "kind": "store_bowl",
+        "label": "黑碗入抽屉、关抽屉并归位",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold",
+          "transfer",
+          "place",
+          "release",
+          "withdraw",
+          "push_approach",
+          "push_drawer",
+          "push_withdraw",
+          "return_home",
+          "verify_store"
+        ],
+        "watchdog_s": 90,
+        "minimum_opening_m": 0.06
+      }
+    ],
+    "collisions": {
+      "episodes": 0,
+      "duration_s": 0,
+      "peak_force_n": 0,
+      "pairs": [],
+      "force_threshold_n": 0.1
+    },
+    "objects": [
+      {
+        "name": "bowl_object",
+        "position_m": [
+          0.6672727503477697,
+          0.23703403607240434,
+          0.7342399728036262
+        ],
+        "quaternion_wxyz": [
+          0.7215504113153567,
+          -5.416160927992594e-08,
+          -1.1388980470039128e-08,
+          0.6923619024257742
+        ]
+      },
+      {
+        "name": "bottle_object",
+        "position_m": [
+          0.34999999010567173,
+          -0.23999992038169793,
+          0.7188650631497034
+        ],
+        "quaternion_wxyz": [
+          0.9999999996576066,
+          2.596863464501025e-05,
+          3.2277559920963067e-06,
+          4.345896633040957e-11
+        ]
+      },
+      {
+        "name": "cabinet_cabinet_bottom",
+        "position_m": [
+          0.65,
+          0.23920807064741745,
+          0.715
+        ],
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "joint_positions_rad": [
+      -2.122451015643178e-09,
+      -0.499999995882718,
+      1.277740001647871e-09,
+      -2.199999996234918,
+      6.013557974647837e-09,
+      1.7999999993841649,
+      0.7853981502353454
+    ],
+    "gripper_opening_m": 0.008000000000019445,
+    "contacts": 24,
+    "warnings": [],
+    "skill": {
+      "name": "store_bowl",
+      "target_label": "黑碗",
+      "status": "succeeded",
+      "phase": "done",
+      "task_kind": "store_bowl",
+      "phase_order": [
+        "prepare",
+        "approach",
+        "descend",
+        "close",
+        "lift",
+        "hold",
+        "transfer",
+        "place",
+        "release",
+        "withdraw",
+        "push_approach",
+        "push_drawer",
+        "push_withdraw",
+        "return_home",
+        "verify_store"
+      ],
+      "storage": {
+        "bowl_inside_drawer": true,
+        "bowl_supported": true,
+        "gripper_clear": true,
+        "drawer_position_m": -0.0007919293525825507,
+        "drawer_closed": true,
+        "home_error_rad": 1.3164654588670999e-08,
+        "home_reached": true,
+        "verification_hold_s": 1.0200000000000007,
+        "drawer_travel_m": 0.15920807064741746,
+        "push_contact_seen": true
+      },
+      "message": "黑碗已入屉、抽屉已通过接触推关、机械臂已归位；持续验证中",
+      "elapsed_s": 67.2780000000246,
+      "phase_elapsed_s": 0,
+      "lift_height_m": 0.015916992869124957,
+      "hold_elapsed_s": 1.0000000000000007,
+      "target_lift_m": 0.1,
+      "required_hold_s": 1,
+      "phase_times_s": {
+        "prepare": 0.25400000000000017,
+        "approach": 5.9759999999995355,
+        "descend": 1.8759999999998405,
+        "close": 0.1000000000000334,
+        "lift": 2.806000000000937,
+        "hold": 1.000000000000334,
+        "transfer": 8.951999999998579,
+        "place": 4.505999999997503,
+        "release": 0.48999999999972843,
+        "withdraw": 4.759999999997362,
+        "push_approach": 8.584000000008217,
+        "push_drawer": 13.668000000016704,
+        "push_withdraw": 6.82400000000834,
+        "return_home": 6.481999999999822,
+        "verify_store": 0.9999999999976694
+      },
+      "failure_reason": null,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.16,
+        "close_trigger_height_m": 0.004
+      },
+      "parameter_limits": {
+        "initial_opening_m": {
+          "min": 0.02,
+          "max": 0.08
+        },
+        "descent_speed_m_s": {
+          "min": 0.04,
+          "max": 0.2
+        },
+        "close_trigger_height_m": {
+          "min": 0,
+          "max": 0.02
+        }
+      },
+      "close_started_s": 7.959999999999345,
+      "descent_completed_s": 8.105999999999376,
+      "descent_close_overlap_s": 0.1420000000000001
+    },
+    "paused": false,
+    "planner": {
+      "status": "succeeded",
+      "configured": true,
+      "model": "gpt-5.6-terra",
+      "task": "抓起黑碗并稳定保持，然后放入已经打开的下层抽屉，撤出夹爪，关闭抽屉，最后机械臂归位。",
+      "plan_id": 101120505449641,
+      "plan": {
+        "decision": "plan",
+        "summary": "执行黑碗入已打开下层抽屉、关抽屉并归位。",
+        "reason": "目标为黑碗且抽屉已打开；参数采用固定场景黑碗抓取的单次成功校准值，不表示收纳成功保证。",
+        "task_kind": "store_bowl",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "准备夹爪并设定碗沿夹取。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗近侧碗沿。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "下降至碗沿夹取高度。"
+          },
+          {
+            "phase": "close",
+            "instruction": "闭合夹爪夹持碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗。"
+          },
+          {
+            "phase": "transfer",
+            "instruction": "转运至已打开的下层抽屉。"
+          },
+          {
+            "phase": "place",
+            "instruction": "将黑碗放入抽屉。"
+          },
+          {
+            "phase": "release",
+            "instruction": "释放黑碗。"
+          },
+          {
+            "phase": "withdraw",
+            "instruction": "撤出夹爪。"
+          },
+          {
+            "phase": "push_approach",
+            "instruction": "接近抽屉以执行推关。"
+          },
+          {
+            "phase": "push_drawer",
+            "instruction": "以机器人实际接触推关抽屉。"
+          },
+          {
+            "phase": "push_withdraw",
+            "instruction": "从抽屉撤离。"
+          },
+          {
+            "phase": "return_home",
+            "instruction": "机械臂返回初始姿态。"
+          },
+          {
+            "phase": "verify_store",
+            "instruction": "确认已放置、已脱离、抽屉已关且已归位。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.16,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "latency_s": 12.503202499996405,
+      "thread_id": "01a183d6-d848-7193-b24c-2b7dd60262bd",
+      "diagnostic_count": 2,
+      "error": null
+    }
+  },
+  "after_extra_hold": {
+    "time_s": 72.35000000001278,
+    "timestep_s": 0.002,
+    "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+    "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+    "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+    "target_object": "bowl",
+    "grasp_target": {
+      "name": "bowl",
+      "label": "黑碗",
+      "grasp_offset_m": [
+        0,
+        -0.047,
+        0.042
+      ],
+      "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+    },
+    "scenario": {
+      "case_id": "bowl.nominal",
+      "target_object": "bowl",
+      "position_label": "nominal",
+      "seed": 0,
+      "offset_xy_m": [
+        0,
+        0
+      ],
+      "yaw_rad": 0
+    },
+    "available_tasks": [
+      {
+        "kind": "grasp",
+        "label": "抓取并保持",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "watchdog_s": 20,
+        "minimum_opening_m": 0.02
+      },
+      {
+        "kind": "store_bowl",
+        "label": "黑碗入抽屉、关抽屉并归位",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold",
+          "transfer",
+          "place",
+          "release",
+          "withdraw",
+          "push_approach",
+          "push_drawer",
+          "push_withdraw",
+          "return_home",
+          "verify_store"
+        ],
+        "watchdog_s": 90,
+        "minimum_opening_m": 0.06
+      }
+    ],
+    "collisions": {
+      "episodes": 0,
+      "duration_s": 0,
+      "peak_force_n": 0,
+      "pairs": [],
+      "force_threshold_n": 0.1
+    },
+    "objects": [
+      {
+        "name": "bowl_object",
+        "position_m": [
+          0.6672727503477697,
+          0.23703403607240434,
+          0.7342399728036262
+        ],
+        "quaternion_wxyz": [
+          0.7215504113153567,
+          -5.4161609289578446e-08,
+          -1.1388980482757527e-08,
+          0.6923619024257742
+        ]
+      },
+      {
+        "name": "bottle_object",
+        "position_m": [
+          0.34999999010567173,
+          -0.23999992038169793,
+          0.7188650631497034
+        ],
+        "quaternion_wxyz": [
+          0.9999999996576066,
+          2.5968634645011568e-05,
+          3.2277559920960623e-06,
+          4.345896735393288e-11
+        ]
+      },
+      {
+        "name": "cabinet_cabinet_bottom",
+        "position_m": [
+          0.65,
+          0.23920807064741745,
+          0.715
+        ],
+        "quaternion_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "joint_positions_rad": [
+      -4.4605212480055155e-21,
+      -0.4999999999999988,
+      -7.472164002650281e-21,
+      -2.19999999999999,
+      -8.324789353420116e-21,
+      1.7999999999999945,
+      0.7853981633999975
+    ],
+    "gripper_opening_m": 0.008,
+    "contacts": 24,
+    "warnings": [],
+    "skill": {
+      "name": "store_bowl",
+      "target_label": "黑碗",
+      "status": "succeeded",
+      "phase": "done",
+      "task_kind": "store_bowl",
+      "phase_order": [
+        "prepare",
+        "approach",
+        "descend",
+        "close",
+        "lift",
+        "hold",
+        "transfer",
+        "place",
+        "release",
+        "withdraw",
+        "push_approach",
+        "push_drawer",
+        "push_withdraw",
+        "return_home",
+        "verify_store"
+      ],
+      "storage": {
+        "bowl_inside_drawer": true,
+        "bowl_supported": true,
+        "gripper_clear": true,
+        "drawer_position_m": -0.0007919293525825507,
+        "drawer_closed": true,
+        "home_error_rad": 1.021405182655144e-14,
+        "home_reached": true,
+        "verification_hold_s": 6.0699999999995535,
+        "drawer_travel_m": 0.15920807064741746,
+        "push_contact_seen": true
+      },
+      "message": "黑碗已入屉、抽屉已通过接触推关、机械臂已归位；持续验证中",
+      "elapsed_s": 67.2780000000246,
+      "phase_elapsed_s": 0,
+      "lift_height_m": 0.015916992869124957,
+      "hold_elapsed_s": 1.0000000000000007,
+      "target_lift_m": 0.1,
+      "required_hold_s": 1,
+      "phase_times_s": {
+        "prepare": 0.25400000000000017,
+        "approach": 5.9759999999995355,
+        "descend": 1.8759999999998405,
+        "close": 0.1000000000000334,
+        "lift": 2.806000000000937,
+        "hold": 1.000000000000334,
+        "transfer": 8.951999999998579,
+        "place": 4.505999999997503,
+        "release": 0.48999999999972843,
+        "withdraw": 4.759999999997362,
+        "push_approach": 8.584000000008217,
+        "push_drawer": 13.668000000016704,
+        "push_withdraw": 6.82400000000834,
+        "return_home": 6.481999999999822,
+        "verify_store": 0.9999999999976694
+      },
+      "failure_reason": null,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.16,
+        "close_trigger_height_m": 0.004
+      },
+      "parameter_limits": {
+        "initial_opening_m": {
+          "min": 0.02,
+          "max": 0.08
+        },
+        "descent_speed_m_s": {
+          "min": 0.04,
+          "max": 0.2
+        },
+        "close_trigger_height_m": {
+          "min": 0,
+          "max": 0.02
+        }
+      },
+      "close_started_s": 7.959999999999345,
+      "descent_completed_s": 8.105999999999376,
+      "descent_close_overlap_s": 0.1420000000000001
+    },
+    "paused": true,
+    "planner": {
+      "status": "succeeded",
+      "configured": true,
+      "model": "gpt-5.6-terra",
+      "task": "抓起黑碗并稳定保持，然后放入已经打开的下层抽屉，撤出夹爪，关闭抽屉，最后机械臂归位。",
+      "plan_id": 101120505449641,
+      "plan": {
+        "decision": "plan",
+        "summary": "执行黑碗入已打开下层抽屉、关抽屉并归位。",
+        "reason": "目标为黑碗且抽屉已打开；参数采用固定场景黑碗抓取的单次成功校准值，不表示收纳成功保证。",
+        "task_kind": "store_bowl",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "准备夹爪并设定碗沿夹取。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗近侧碗沿。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "下降至碗沿夹取高度。"
+          },
+          {
+            "phase": "close",
+            "instruction": "闭合夹爪夹持碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗。"
+          },
+          {
+            "phase": "transfer",
+            "instruction": "转运至已打开的下层抽屉。"
+          },
+          {
+            "phase": "place",
+            "instruction": "将黑碗放入抽屉。"
+          },
+          {
+            "phase": "release",
+            "instruction": "释放黑碗。"
+          },
+          {
+            "phase": "withdraw",
+            "instruction": "撤出夹爪。"
+          },
+          {
+            "phase": "push_approach",
+            "instruction": "接近抽屉以执行推关。"
+          },
+          {
+            "phase": "push_drawer",
+            "instruction": "以机器人实际接触推关抽屉。"
+          },
+          {
+            "phase": "push_withdraw",
+            "instruction": "从抽屉撤离。"
+          },
+          {
+            "phase": "return_home",
+            "instruction": "机械臂返回初始姿态。"
+          },
+          {
+            "phase": "verify_store",
+            "instruction": "确认已放置、已脱离、抽屉已关且已归位。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.16,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "latency_s": 12.503202499996405,
+      "thread_id": "01a183d6-d848-7193-b24c-2b7dd60262bd",
+      "diagnostic_count": 2,
+      "error": null
+    }
+  },
+  "extra_hold_sim_s": 5.049999999988231,
+  "recording": {
+    "source": "Chromium Page.startScreencast",
+    "captured_frames": 1701,
+    "capture_span_s": 88.72879910469055,
+    "execute_video_offset_s": 14.56127462501172
+  }
+}

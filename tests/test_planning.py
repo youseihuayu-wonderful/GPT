@@ -1,6 +1,7 @@
 """Session safety tests; controlled API replies are not live GPT evidence."""
 
 import asyncio
+from dataclasses import replace
 from pathlib import Path
 import unittest
 from unittest.mock import AsyncMock, patch
@@ -8,17 +9,21 @@ from unittest.mock import AsyncMock, patch
 from planner import PlannerConfig, PlannerError, PlanResult, validate_plan
 from planning import PlanningSession
 from simulation import Simulation
+from task_specs import TASKS
 
 
-def planned_result(label: str = "current") -> PlanResult:
+def planned_result(
+    label: str = "current", task_kind: str = "grasp", target: str = "bowl",
+) -> PlanResult:
     plan = validate_plan({
         "decision": "plan",
-        "summary": f"Test-only {label} grasp",
+        "task_kind": task_kind,
+        "summary": f"Test-only {label} {task_kind}",
         "reason": "Deterministic session fixture, not GPT output.",
-        "target_object": "bowl",
+        "target_object": target,
         "steps": [
             {"phase": phase, "instruction": phase}
-            for phase in ("prepare", "approach", "descend", "close", "lift", "hold")
+            for phase in TASKS[task_kind].phases
         ],
         "parameters": {
             "initial_opening_m": 0.08,
@@ -88,6 +93,38 @@ class PlanningSessionTests(unittest.IsolatedAsyncioTestCase):
             self.session.cancel()
         with self.assertRaises(ValueError):
             self.session.start("重新抓碗", {})
+
+    async def test_storage_dispatch_preserves_task_kind_without_claiming_success(self) -> None:
+        self.result = planned_result(task_kind="store_bowl")
+        plan_id = await self.ready()
+        self.session.execute(plan_id)
+        skill = self.sim.skill.state()
+        self.assertEqual(skill["task_kind"], "store_bowl")
+        self.assertEqual(tuple(skill["phase_order"]), TASKS["store_bowl"].phases)
+        self.assertEqual(skill["status"], "running")
+        self.assertEqual(self.state()["status"], "executing")
+        self.assertEqual(self.state()["plan"]["task_kind"], "store_bowl")
+        self.assertIsNotNone(skill["storage"])
+
+    async def test_wrong_target_plan_is_rejected_before_actuation(self) -> None:
+        self.result = planned_result(target="bottle")
+        plan_id = await self.ready()
+        before = self.sim.data.qpos.copy()
+        with self.assertRaisesRegex(ValueError, "目标"):
+            self.session.execute(plan_id)
+        self.assertEqual(self.sim.skill.status, "idle")
+        self.assertEqual(self.sim.data.qpos.tolist(), before.tolist())
+
+    async def test_execution_revalidates_kind_and_steps_without_defaulting_to_grasp(self) -> None:
+        for kind in (None, "store_bowl", "unknown"):
+            with self.subTest(kind=kind):
+                self.session.reset()
+                valid = planned_result()
+                self.result = replace(valid, plan=replace(valid.plan, task_kind=kind))
+                plan_id = await self.ready()
+                with self.assertRaises(PlannerError):
+                    self.session.execute(plan_id)
+                self.assertEqual(self.sim.skill.status, "idle")
 
     async def test_cancel_ready_plan_invalidates_execution(self) -> None:
         plan_id = await self.ready()
@@ -166,12 +203,12 @@ class PlanningSessionTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_unsupported_task_never_becomes_executable(self) -> None:
         unsupported = validate_plan({
-            "decision": "unsupported", "summary": "放入抽屉不受支持",
-            "reason": "不能只执行所请求任务的抓碗子集。", "target_object": None,
-            "steps": [], "parameters": None,
+            "decision": "unsupported", "summary": "打开关闭的抽屉不受支持",
+            "reason": "不能只执行所请求任务的抓碗子集。", "task_kind": None,
+            "target_object": None, "steps": [], "parameters": None,
         })
         self.result = PlanResult(unsupported, "test-only", "fixture-unsupported", 0.01)
-        self.session.start("抓碗放入抽屉", {})
+        self.session.start("打开已关闭的抽屉再收纳黑碗", {})
         await asyncio.wait_for(self.finished.wait(), 1)
         with self.assertRaises(ValueError):
             self.session.execute(self.state()["plan_id"])

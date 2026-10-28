@@ -1,4 +1,4 @@
-"""Feedback-checked bowl grasp with bounded motion parameters and real contacts."""
+"""Feedback-checked target grasp with bounded motion parameters and real contacts."""
 
 from dataclasses import asdict, dataclass, field, fields
 import math
@@ -7,12 +7,14 @@ from numbers import Real
 import mujoco
 import numpy as np
 
+from task_specs import TASKS
+
 
 @dataclass(frozen=True)
 class GraspParameters:
     """SI-unit settings; inclusive bounds live in each field's metadata."""
 
-    initial_opening_m: float = field(default=0.08, metadata={"min": 0.02, "max": 0.08})
+    initial_opening_m: float = field(default=0.08, metadata={"min": TASKS["grasp"].minimum_opening_m, "max": 0.08})
     descent_speed_m_s: float = field(default=0.10, metadata={"min": 0.04, "max": 0.20})
     close_trigger_height_m: float = field(default=0.0, metadata={"min": 0.0, "max": 0.02})
 
@@ -36,16 +38,24 @@ class GraspParameters:
 class GraspSkill:
     TARGET_LIFT = 0.10
     REQUIRED_HOLD = 1.0
-    WATCHDOG = 20.0
     MESSAGES = {
         "idle": "等待开始；由本地物理控制器执行抓取",
-        "prepare": "设置夹爪初始开度，确认黑碗已在桌面稳定",
-        "approach": "移动到黑碗上方",
+        "prepare": "设置夹爪初始开度，确认{target}已在桌面稳定",
+        "approach": "移动到{target}上方",
         "descend": "下降到抓取位置；按实际高度触发闭合",
         "close": "闭合夹爪，确认双侧真实接触",
         "lift": "保持夹紧并向上抬起",
         "hold": "检查离桌高度、双侧接触和持续保持",
-        "done": "黑碗已抬起并稳定保持；重置后可再次执行",
+        "transfer": "保持夹持，转腕并运送到全开抽屉上方",
+        "place": "按碗的真实碰撞边界下降，确认抽屉底板支撑",
+        "release": "张开夹爪，确认碗已稳定、完整入屉且脱离手指",
+        "withdraw": "垂直撤出夹爪，避开碗和抽屉壁",
+        "push_approach": "收拢夹爪并从抽屉把手前方接近",
+        "push_drawer": "通过手指与把手的真实接触缓慢推关抽屉",
+        "push_withdraw": "后撤离开把手，再抬升至安全高度",
+        "return_home": "伺服机械臂返回初始关节位姿",
+        "verify_store": "持续检查碗支撑、脱离夹爪、抽屉关闭与机械臂归位",
+        "done": "{target}已抬起并稳定保持；重置后可再次执行",
         "failed": "抓取失败；重置后可再次执行",
     }
 
@@ -54,13 +64,14 @@ class GraspSkill:
         self.model = sim.model
         self.data = sim.data
         self.tcp = self.model.site("robot_grasp_center").id
-        self.bowl = self.model.body("bowl_object").id
+        self.target = sim.target
+        self.target_body = self.model.body(f"{self.target.name}_object").id
         self.fingers = {
             self.model.body("robot_left_finger").id,
             self.model.body("robot_right_finger").id,
         }
         self.table = self.model.body("table").id
-        self.bowl_dof = self.model.joint("bowl_free").dofadr[0]
+        self.target_dof = self.model.joint(f"{self.target.name}_free").dofadr[0]
         self.arm_dof = np.array([
             self.model.joint(f"robot_joint{i}").dofadr[0] for i in range(1, 8)
         ])
@@ -101,13 +112,29 @@ class GraspSkill:
         self.close_started_s = None
         self.descent_completed_s = None
         self.descent_close_overlap_s = 0.0
+        self.task_kind = "grasp"
+        self.storage = None
+        self.opening_target = self.parameters.initial_opening_m
+        self.orientation_target = np.array([0.0, 1.0, 0.0, 0.0])
 
-    def start(self, parameters: GraspParameters | None = None) -> None:
+    def start(self, task_kind: str, parameters: GraspParameters | None = None) -> None:
         if self.status != "idle":
             raise ValueError("请先重置场景，再开始新的抓取")
         if parameters is not None and not isinstance(parameters, GraspParameters):
             raise ValueError("parameters must be GraspParameters or None")
+        if not isinstance(task_kind, str) or task_kind not in TASKS:
+            raise ValueError("Unsupported task kind")
+        if self.target.name not in TASKS[task_kind].target_objects:
+            raise ValueError("Task does not support the selected target")
+        storage = None
+        if task_kind == "store_bowl":
+            from storage import BowlStorage
+            storage = BowlStorage(self)
+            storage.validate(parameters or GraspParameters())
         self.parameters = parameters if parameters is not None else GraspParameters()
+        self.task_kind = task_kind
+        self.storage = storage
+        self.opening_target = self.parameters.initial_opening_m
         self.status = "running"
         self.started_at = float(self.data.time)
         self.arm_target = self.data.qpos[self.sim.arm_qpos].copy()
@@ -145,7 +172,7 @@ class GraspSkill:
         length = float(self.data.qpos[self.sim.finger_qpos].mean())
         velocity = float(self.data.qvel[self.finger_dof].mean())
         force = (-4.0 if self.gripper_closed
-                 else 100.0 * (self.parameters.initial_opening_m / 2.0 - length))
+                 else 100.0 * (self.opening_target / 2.0 - length))
         self.data.ctrl[self.sim.gripper_actuator] = np.clip(force - 10.0 * velocity, -100, 100)
 
     def _contacts(self) -> tuple[bool, bool]:
@@ -154,9 +181,9 @@ class GraspSkill:
         for index, contact in enumerate(self.data.contact):
             a = int(self.model.geom_bodyid[contact.geom1])
             b = int(self.model.geom_bodyid[contact.geom2])
-            if self.bowl not in (a, b):
+            if self.target_body not in (a, b):
                 continue
-            other = b if a == self.bowl else a
+            other = b if a == self.target_body else a
             if other == self.table:
                 table_support = True
             if other in self.fingers and contact.efc_address >= 0:
@@ -167,7 +194,7 @@ class GraspSkill:
 
     def _inverse_kinematics(self, position: np.ndarray) -> np.ndarray:
         self.work.qpos[:] = self.data.qpos
-        target_quat = np.array([0.0, 1.0, 0.0, 0.0])
+        target_quat = self.orientation_target
         quat = np.empty(4)
         inverse = np.empty(4)
         delta = np.empty(4)
@@ -246,26 +273,30 @@ class GraspSkill:
         dt = float(self.model.opt.timestep)
         self._record_overlap(dt)
         elapsed = float(self.data.time) - self.phase_started_at
-        if self.status == "running" and self.data.time - self.started_at >= self.WATCHDOG:
+        if self.status == "running" and self.data.time - self.started_at >= TASKS[self.task_kind].watchdog_s:
             self.fail("抓取执行超时")
             return
+        if self.storage is not None and self.phase not in TASKS["grasp"].phases:
+            self.storage.update(dt, elapsed)
+            return
         bilateral, table_support = self._contacts()
-        bowl_pos = self.data.xpos[self.bowl]
+        target_pos = self.data.xpos[self.target_body]
         if self.phase == "prepare":
-            velocity = self.data.qvel[self.bowl_dof:self.bowl_dof + 6]
+            velocity = self.data.qvel[self.target_dof:self.target_dof + 6]
             ready = (table_support and np.linalg.norm(velocity[:3]) < 0.01
                      and np.linalg.norm(velocity[3:]) < 0.1
                      and abs(float(self.data.qpos[self.sim.finger_qpos].sum())
                              - self.parameters.initial_opening_m) < 0.002)
             self.stable_elapsed = self.stable_elapsed + dt if ready else 0.0
             if self.stable_elapsed >= 0.06:
-                self.reference_z = float(bowl_pos[2])
-                # The 107 mm bowl is wider than the 80 mm gripper: pinch its
-                # near rim, with one finger inside and the other outside.
-                self.grasp_position = bowl_pos.copy() + [0.0, -0.047, 0.042]
+                self.reference_z = float(target_pos[2])
+                # Profiles are body-local: transform the rim/neck offset using
+                # the measured settled orientation, not just the reset yaw.
+                rotation = self.data.xmat[self.target_body].reshape(3, 3)
+                self.grasp_position = target_pos + rotation @ self.target.grasp_offset_m
                 self._move("approach", self.grasp_position + [0.0, 0.0, 0.16])
             elif elapsed > 2.0:
-                self.fail("黑碗未在桌面稳定，或夹爪未达到初始开度")
+                self.fail(f"{self.target.label}未在桌面稳定，或夹爪未达到初始开度")
         elif self.phase in ("approach", "descend", "lift"):
             phase = self.phase
             arrived = self._motion_done(elapsed)
@@ -286,7 +317,7 @@ class GraspSkill:
                     self._enter("close")
                     self._start_closing()
                 else:
-                    self.hold_relative = self.data.xpos[self.bowl] - self.data.site_xpos[self.tcp]
+                    self.hold_relative = self.data.xpos[self.target_body] - self.data.site_xpos[self.tcp]
                     self._enter("hold")
             if phase == "lift" and self.status == "running":
                 self.lost_contact_elapsed = 0.0 if bilateral else self.lost_contact_elapsed + dt
@@ -300,29 +331,40 @@ class GraspSkill:
             elif elapsed > 2.0:
                 self.fail("夹爪未建立稳定的双侧接触")
         elif self.phase in ("hold", "done"):
-            relative = bowl_pos - self.data.site_xpos[self.tcp]
+            relative = target_pos - self.data.site_xpos[self.tcp]
             stable = np.linalg.norm(relative - self.hold_relative) < 0.01
-            lifted = float(bowl_pos[2]) - self.reference_z >= self.TARGET_LIFT
+            lifted = float(target_pos[2]) - self.reference_z >= self.TARGET_LIFT
             if not (bilateral and not table_support and lifted and stable):
                 self.hold_elapsed = 0.0
-                self.fail("黑碗掉落、滑移或未达到要求的离桌高度")
+                self.fail(f"{self.target.label}掉落、滑移或未达到要求的离桌高度")
                 return
             if self.phase == "done":
                 return
             self.hold_elapsed += dt
             if self.hold_elapsed + 1e-9 >= self.REQUIRED_HOLD:
+                if self.storage is not None:
+                    self.storage.begin()
+                    return
                 self._enter("done")
                 self.status = "succeeded"
                 self.finished_at = float(self.data.time)
 
     def state(self) -> dict:
         end = float(self.data.time) if self.finished_at is None else self.finished_at
+        message = self.MESSAGES[self.phase].format(target=self.target.label)
+        if self.storage is not None and self.phase == "done":
+            message = "黑碗已入屉、抽屉已通过接触推关、机械臂已归位；持续验证中"
         return {
-            "name": "grasp_bowl", "status": self.status, "phase": self.phase,
-            "message": self.failure_reason or self.MESSAGES[self.phase],
+            "name": f"grasp_{self.target.name}" if self.storage is None else "store_bowl",
+            "target_label": self.target.label,
+            "status": self.status, "phase": self.phase,
+            "task_kind": self.task_kind,
+            "phase_order": list(TASKS[self.task_kind].phases),
+            "storage": self.storage.state() if self.storage is not None else None,
+            "message": self.failure_reason or message,
             "elapsed_s": end - self.started_at if self.status != "idle" else 0.0,
             "phase_elapsed_s": end - self.phase_started_at if self.status == "running" else 0.0,
-            "lift_height_m": (float(self.data.xpos[self.bowl, 2]) - self.reference_z
+            "lift_height_m": (float(self.data.xpos[self.target_body, 2]) - self.reference_z
                               if self.reference_z is not None else 0.0),
             "hold_elapsed_s": self.hold_elapsed,
             "target_lift_m": self.TARGET_LIFT, "required_hold_s": self.REQUIRED_HOLD,

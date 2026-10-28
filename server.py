@@ -12,6 +12,7 @@ from aiohttp import WSMsgType, web
 
 from grasp import GraspParameters
 from planning import PlanningSession
+from scenarios import DEFAULT_CASE, TARGETS, SceneCase
 from simulation import Simulation
 
 
@@ -26,6 +27,7 @@ SIMULATION = web.AppKey("simulation", Simulation)
 CLIENTS = web.AppKey("clients", set)
 CONTROLS = web.AppKey("controls", Controls)
 PLANNING = web.AppKey("planning", PlanningSession)
+SCENE_CASE = web.AppKey("scene_case", SceneCase)
 FRAME_PERIOD = 0.05
 
 
@@ -72,7 +74,7 @@ async def physics_loop(app: web.Application) -> None:
 
 
 async def lifecycle(app: web.Application):
-    app[SIMULATION] = Simulation()
+    app[SIMULATION] = Simulation(app[SCENE_CASE])
     app[PLANNING] = PlanningSession(ROOT, app[SIMULATION])
     task = asyncio.create_task(physics_loop(app), name="mujoco-physics")
     try:
@@ -120,7 +122,7 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     raise ValueError("命令必须是 JSON 对象")
                 action = command.get("action")
                 planner = app[PLANNING]
-                if action in ("play", "step", "grasp") and planner.locks_scene:
+                if action in ("play", "step", "grasp", "store") and planner.locks_scene:
                     raise ValueError("规划中的场景已锁定，请先取消计划或重置，再手动运行")
                 if action == "pause":
                     app[CONTROLS].paused = True
@@ -130,11 +132,12 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     planner.reset()
                     app[SIMULATION].reset()
                     app[CONTROLS].paused = True
-                elif action == "grasp":
+                elif action in ("grasp", "store"):
                     parameters = command.get("parameters", {})
                     if not isinstance(parameters, dict):
                         raise ValueError("抓取参数必须是 JSON 对象")
-                    app[SIMULATION].start_grasp(GraspParameters(**parameters))
+                    task_kind = "store_bowl" if action == "store" else "grasp"
+                    app[SIMULATION].start_task(task_kind, GraspParameters(**parameters))
                     app[CONTROLS].paused = False
                 elif action == "step":
                     if not app[CONTROLS].paused:
@@ -196,10 +199,11 @@ async def asset(request: web.Request) -> web.FileResponse:
     return web.FileResponse(ROOT / "web" / name, headers={"Cache-Control": "no-cache"})
 
 
-def create_app() -> web.Application:
+def create_app(case: SceneCase = DEFAULT_CASE) -> web.Application:
     app = web.Application(middlewares=[local_only])
     app[CLIENTS] = set()
     app[CONTROLS] = Controls()
+    app[SCENE_CASE] = case
     app.cleanup_ctx.append(lifecycle)
     app.router.add_get("/ws", websocket)
     app.router.add_get("/api/state", state)
@@ -212,8 +216,10 @@ def create_app() -> web.Application:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--target", choices=tuple(TARGETS), default="bowl")
     args = parser.parse_args()
-    web.run_app(create_app(), host="127.0.0.1", port=args.port, access_log=None)
+    case = SceneCase(f"{args.target}.nominal", args.target, "nominal", 0, (0.0, 0.0), 0.0)
+    web.run_app(create_app(case), host="127.0.0.1", port=args.port, access_log=None)
 
 
 if __name__ == "__main__":

@@ -35,6 +35,9 @@ h1 span { font-weight: 450; color: #b9c6d5; }
 .empty-frame p { font-size: 14px; margin: 10px 0; }
 .empty-frame small { font-size: 11px; }
 .stale-frame { position: absolute; bottom: 12px; left: 12px; right: 12px; width: fit-content; max-width: calc(100% - 24px); padding: 6px 10px; border-radius: 5px; color: #ffe0c6; background: #22190de8; font-size: 11px; }
+.task-overlay { position: absolute; top: 12px; left: 12px; max-width: calc(100% - 24px); padding: 8px 11px; border: 1px solid #416459; border-radius: 6px; background: #101a23ed; font-size: 12px; pointer-events: none; }
+.task-overlay strong, .task-overlay span { display: block; }
+.task-overlay strong { color: var(--accent); margin-bottom: 4px; }
 .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 12px; }
 button, select, input, textarea { font: inherit; font-size: 12px; border: 1px solid #3b4a5e; background: #202c3b; color: #e4eaf1; border-radius: 6px; min-height: 36px; padding: 7px 11px; }
 button { cursor: pointer; }
@@ -69,7 +72,7 @@ button span { font-size: 10px; margin-left: 2px; }
 .planner-submitted h3, .plan-preview h3 { font-size: 12px; font-weight: 600; margin: 0 0 8px; }
 .planner-submitted p, #plan-summary { font-size: 12px; line-height: 1.7; margin: 8px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .plan-preview { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
-.plan-steps { padding-left: 24px; margin: 10px 0; }
+.plan-steps { position: relative; max-height: 320px; overflow-y: auto; overscroll-behavior: contain; padding-left: 24px; margin: 10px 0; }
 .plan-steps li { padding: 7px 8px; margin-block: 4px; border-left: 3px solid #364454; font-size: 11px; line-height: 1.7; color: #b8c8d9; overflow-wrap: anywhere; }
 .plan-steps strong { display: block; font-size: 12px; font-weight: 550; }
 .plan-steps span { white-space: pre-wrap; }
@@ -82,6 +85,7 @@ button span { font-size: 10px; margin-left: 2px; }
 .skill-panel[data-status="stale"] .skill-metrics, .skill-panel[data-status="stale"] .skill-stages { opacity: .55; }
 .grasp-button { width: 100%; min-height: 42px; font-size: 14px; }
 .grasp-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.store-button { grid-column: 1 / -1; }
 .parameter-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
 .parameter-inputs label { min-width: 0; font-size: 12px; line-height: 1.6; }
 .parameter-inputs label > span, .parameter-inputs small { color: var(--muted); font-size: 10px; }
@@ -91,6 +95,11 @@ button span { font-size: 10px; margin-left: 2px; }
 .applied-parameters, .early-close { font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; padding: 8px 10px; border-radius: 6px; background: #202c3b; }
 .early-close { color: var(--accent); border: 1px solid #4b9b86; }
 .skill-panel[data-status="stale"] .applied-parameters { opacity: .55; }
+#storage-status { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 8px; }
+#storage-status h3 { font-size: 12px; font-weight: 600; }
+.storage-metrics > div { padding: 8px 10px; }
+.storage-metrics dd { font-size: 13px; }
+.skill-panel[data-status="stale"] .storage-metrics { opacity: .55; }
 .experiments { margin-top: 18px; min-width: 0; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #151d28; }
 .experiments .section-heading { align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
 .experiment-note { color: var(--muted); font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; margin: 8px 0; }
@@ -107,7 +116,7 @@ button span { font-size: 10px; margin-left: 2px; }
 .experiment-table tr[data-status="succeeded"] td:nth-child(2) { color: var(--accent); }
 .experiment-table button { white-space: nowrap; }
 .skill-hint, .skill-message, .skill-criteria { font-size: 11px; color: var(--muted); line-height: 1.6; margin: 8px 0; overflow-wrap: anywhere; }
-.skill-stages { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); list-style: none; padding: 0; margin: 12px 0; gap: 4px; }
+.skill-stages { display: grid; grid-template-columns: repeat(auto-fit, minmax(65px, 1fr)); list-style: none; padding: 0; margin: 12px 0; gap: 7px 4px; }
 .skill-stages li { border-top: 3px solid #364454; padding-top: 6px; font-size: 10px; color: var(--muted); text-align: center; }
 .skill-stages li.completed { border-color: #4b9b86; color: #a6cbbf; }
 .skill-stages li.active { border-color: var(--accent); color: var(--accent); font-weight: 650; }

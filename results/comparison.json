@@ -1,0 +1,3002 @@
+{
+  "kind": "paired_grasp_comparison",
+  "status": "completed",
+  "generated_at": "2026-10-28T18:56:11.318639+00:00",
+  "protocol": {
+    "methods": [
+      "fixed",
+      "rule",
+      "gpt"
+    ],
+    "objects": [
+      "bowl",
+      "bottle"
+    ],
+    "positions": [
+      "nominal",
+      "right",
+      "forward"
+    ],
+    "seeds": [
+      101,
+      202,
+      303
+    ],
+    "planned_runs": 54,
+    "settle_s": 0.5,
+    "validation_hold_s": 5.0,
+    "collision_force_threshold_n": 0.1,
+    "note": "Fresh simulation and identical settled qpos/qvel/ctrl fingerprint per paired case. Fixed: 80/100/0; frozen handcrafted rules: bowl 80/200/4 from phase-3 calibration, bottle 40/120/0 conservative neck policy (mm, mm/s, mm), not learned from evaluation. GPT gets only current scene and existing parameter_sweep.json; one request per row, no retries, history feedback, stored-plan substitutes or fallbacks. Success requires an additional 5 s physical hold. Planning failures remain in the task-success denominator. Execution simulation time excludes validation; execution wall time excludes planning and validation; end-to-end wall includes setup, settle, planning, execution, validation and close. Failed GPT request latency is observed request wall time; no request means null. An aborted report includes only completed rows, never treats an internal error as method performance."
+  },
+  "runs": [
+    {
+      "case": {
+        "case_id": "bowl.nominal.101",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 101,
+        "offset_xy_m": [
+          -0.00112634956014822,
+          -0.0020012656613358926
+        ],
+        "yaw_rad": -0.009438378515318487
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 7.6669966802001e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 13.100000000001211,
+      "execution_wall_s": 0.9929174999706447,
+      "validation_sim_s": 4.999999999999359,
+      "end_to_end_wall_s": 1.945527707983274,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "389daffad6a6a7d1109158e1807a8d2f1fee329b150e35cfb9df721849e7602d"
+    },
+    {
+      "case": {
+        "case_id": "bowl.nominal.101",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 101,
+        "offset_xy_m": [
+          -0.00112634956014822,
+          -0.0020012656613358926
+        ],
+        "yaw_rad": -0.009438378515318487
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 7.079797796905041e-07,
+      "gpt_latency_s": null,
+      "execution_sim_s": 11.500000000000677,
+      "execution_wall_s": 0.8747232499881648,
+      "validation_sim_s": 5.00000000000078,
+      "end_to_end_wall_s": 1.2851665419875644,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "389daffad6a6a7d1109158e1807a8d2f1fee329b150e35cfb9df721849e7602d"
+    },
+    {
+      "case": {
+        "case_id": "bowl.nominal.101",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 101,
+        "offset_xy_m": [
+          -0.00112634956014822,
+          -0.0020012656613358926
+        ],
+        "yaw_rad": -0.009438378515318487
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "执行黑碗碗沿抓取、抬起并稳定保持。",
+        "reason": "目标为黑碗；该固定场景中所选参数组合已有单次成功与5秒物理验证记录。",
+        "task_kind": "grasp",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "以0.080 m初始开度准备碗沿抓取。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "对准近侧碗沿抓取位。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以0.200 m/s下降。"
+          },
+          {
+            "phase": "close",
+            "instruction": "距触发高度0.004 m时开始闭合，使一指在碗内、一指在碗外夹住碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183de-bc6f-7280-a0ea-03b5f4818b32",
+      "planning_wall_s": 5.017731542000547,
+      "gpt_latency_s": 5.0174148750375025,
+      "execution_sim_s": 11.500000000000677,
+      "execution_wall_s": 0.8872615000000224,
+      "validation_sim_s": 5.00000000000078,
+      "end_to_end_wall_s": 6.3021772089996375,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "389daffad6a6a7d1109158e1807a8d2f1fee329b150e35cfb9df721849e7602d"
+    },
+    {
+      "case": {
+        "case_id": "bowl.nominal.202",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 202,
+        "offset_xy_m": [
+          -0.002881360035725643,
+          0.0008133786361372362
+        ],
+        "yaw_rad": -0.05055363693838373
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 8.792034350335598e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 13.060000000001198,
+      "execution_wall_s": 1.054852666973602,
+      "validation_sim_s": 4.999999999999394,
+      "end_to_end_wall_s": 1.4582269579987042,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "f341b40019ce719348eed22a8d0b22d42e5a43dbd2961a81ec2ba9b3502e2b84"
+    },
+    {
+      "case": {
+        "case_id": "bowl.nominal.202",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 202,
+        "offset_xy_m": [
+          -0.002881360035725643,
+          0.0008133786361372362
+        ],
+        "yaw_rad": -0.05055363693838373
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 1.108401920646429e-05,
+      "gpt_latency_s": null,
+      "execution_sim_s": 11.460000000000663,
+      "execution_wall_s": 0.8924079580465332,
+      "validation_sim_s": 5.000000000000815,
+      "end_to_end_wall_s": 1.3015902090119198,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "f341b40019ce719348eed22a8d0b22d42e5a43dbd2961a81ec2ba9b3502e2b84"
+    },
+    {
+      "case": {
+        "case_id": "bowl.nominal.202",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 202,
+        "offset_xy_m": [
+          -0.002881360035725643,
+          0.0008133786361372362
+        ],
+        "yaw_rad": -0.05055363693838373
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "按黑碗近侧碗沿抓取并抬升稳定保持。",
+        "reason": "固定场景中该参数组合曾单次成功并完成后续保持验证；本计划仍须由仿真执行判定。",
+        "task_kind": "grasp",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "以0.080 m开度准备夹爪，采用近侧碗沿内外夹持。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗指定碗沿抓取目标。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以0.200 m/s下降至抓取高度。"
+          },
+          {
+            "phase": "close",
+            "instruction": "距触发高度0.004 m时开始闭合，夹住碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持，等待接触、抬升与保持判定。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183de-def1-7f01-ba86-efe9edc6a59d",
+      "planning_wall_s": 9.366254249995109,
+      "gpt_latency_s": 9.365937000024132,
+      "execution_sim_s": 11.460000000000663,
+      "execution_wall_s": 0.9197945420164615,
+      "validation_sim_s": 5.000000000000815,
+      "end_to_end_wall_s": 10.768927083001472,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "f341b40019ce719348eed22a8d0b22d42e5a43dbd2961a81ec2ba9b3502e2b84"
+    },
+    {
+      "case": {
+        "case_id": "bowl.nominal.303",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 303,
+        "offset_xy_m": [
+          7.536573568021811e-05,
+          -0.0012418801024655743
+        ],
+        "yaw_rad": 0.0356277959235486
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 8.25000461190939e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 13.100000000001211,
+      "execution_wall_s": 1.0592125420225784,
+      "validation_sim_s": 4.999999999999359,
+      "end_to_end_wall_s": 1.509399000031408,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "54c9e7b7547de11e1db02f517b8483370ecff932c82a03a37da3ebf43e6651a3"
+    },
+    {
+      "case": {
+        "case_id": "bowl.nominal.303",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 303,
+        "offset_xy_m": [
+          7.536573568021811e-05,
+          -0.0012418801024655743
+        ],
+        "yaw_rad": 0.0356277959235486
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 7.500057108700275e-07,
+      "gpt_latency_s": null,
+      "execution_sim_s": 11.520000000000683,
+      "execution_wall_s": 0.9403304159641266,
+      "validation_sim_s": 5.000000000000762,
+      "end_to_end_wall_s": 1.4069550419808365,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "54c9e7b7547de11e1db02f517b8483370ecff932c82a03a37da3ebf43e6651a3"
+    },
+    {
+      "case": {
+        "case_id": "bowl.nominal.303",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 303,
+        "offset_xy_m": [
+          7.536573568021811e-05,
+          -0.0012418801024655743
+        ],
+        "yaw_rad": 0.0356277959235486
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "执行黑碗碗沿抓取、抬起并稳定保持。",
+        "reason": "目标为黑碗且仅请求抓取保持；选用固定场景中已成功验证的快速重叠参数。",
+        "task_kind": "grasp",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "按碗沿抓取策略准备夹爪。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗近侧碗沿。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以设定速度下降，接近触发高度时允许与闭合重叠。"
+          },
+          {
+            "phase": "close",
+            "instruction": "闭合夹爪，使一指位于碗内、另一指位于碗外以夹住碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗，等待控制器接触、抬升与保持判定。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183df-14be-74a1-ac6b-d03d8a474810",
+      "planning_wall_s": 7.251168542017695,
+      "gpt_latency_s": 7.250827208976261,
+      "execution_sim_s": 11.520000000000683,
+      "execution_wall_s": 0.9021446669939905,
+      "validation_sim_s": 5.000000000000762,
+      "end_to_end_wall_s": 8.596405667020008,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "54c9e7b7547de11e1db02f517b8483370ecff932c82a03a37da3ebf43e6651a3"
+    },
+    {
+      "case": {
+        "case_id": "bowl.right.101",
+        "target_object": "bowl",
+        "position_label": "right",
+        "seed": 101,
+        "offset_xy_m": [
+          0.03736647322304369,
+          -0.0016102114929003207
+        ],
+        "yaw_rad": 0.03715777058384277
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 8.750008419156075e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 13.320000000001285,
+      "execution_wall_s": 1.0629641249543056,
+      "validation_sim_s": 4.999999999999163,
+      "end_to_end_wall_s": 1.5809978329925798,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "9d09a5cbd8b1c99b13344958531dee4b1565d4131e90ea1a13dfd0c741430509"
+    },
+    {
+      "case": {
+        "case_id": "bowl.right.101",
+        "target_object": "bowl",
+        "position_label": "right",
+        "seed": 101,
+        "offset_xy_m": [
+          0.03736647322304369,
+          -0.0016102114929003207
+        ],
+        "yaw_rad": 0.03715777058384277
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 5.041016265749931e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 11.72000000000075,
+      "execution_wall_s": 0.9436538749723695,
+      "validation_sim_s": 5.000000000000584,
+      "end_to_end_wall_s": 1.370453582960181,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "9d09a5cbd8b1c99b13344958531dee4b1565d4131e90ea1a13dfd0c741430509"
+    },
+    {
+      "case": {
+        "case_id": "bowl.right.101",
+        "target_object": "bowl",
+        "position_label": "right",
+        "seed": 101,
+        "offset_xy_m": [
+          0.03736647322304369,
+          -0.0016102114929003207
+        ],
+        "yaw_rad": 0.03715777058384277
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "固定场景中该参数组合曾单次成功并完成5秒物理验证；采用碗沿夹取。",
+        "reason": "目标为黑碗，用户仅要求抓起并稳定保持，属于支持的 grasp 任务。",
+        "task_kind": "grasp",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "准备夹爪至设定开度。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗近侧碗沿。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "下降至碗沿夹取位置。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在触发高度开始闭合，令一指位于碗内、另一指位于碗外。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183df-41da-7572-a913-6d0d83691377",
+      "planning_wall_s": 5.042966583976522,
+      "gpt_latency_s": 5.0426577909966,
+      "execution_sim_s": 11.72000000000075,
+      "execution_wall_s": 0.9160532079986297,
+      "validation_sim_s": 5.000000000000584,
+      "end_to_end_wall_s": 6.420743249997031,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "9d09a5cbd8b1c99b13344958531dee4b1565d4131e90ea1a13dfd0c741430509"
+    },
+    {
+      "case": {
+        "case_id": "bowl.right.202",
+        "target_object": "bowl",
+        "position_label": "right",
+        "seed": 202,
+        "offset_xy_m": [
+          0.03722482968577575,
+          0.0023343602528171636
+        ],
+        "yaw_rad": -0.04338234404179352
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 9.583018254488707e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 13.260000000001265,
+      "execution_wall_s": 1.1106950000394136,
+      "validation_sim_s": 4.999999999999217,
+      "end_to_end_wall_s": 1.5259344590012915,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "2743ab4faeae07fc0bfbf00357720f89221b9a817776aa4991616688a3897af3"
+    },
+    {
+      "case": {
+        "case_id": "bowl.right.202",
+        "target_object": "bowl",
+        "position_label": "right",
+        "seed": 202,
+        "offset_xy_m": [
+          0.03722482968577575,
+          0.0023343602528171636
+        ],
+        "yaw_rad": -0.04338234404179352
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 5.00003807246685e-07,
+      "gpt_latency_s": null,
+      "execution_sim_s": 11.680000000000737,
+      "execution_wall_s": 0.9986348749953322,
+      "validation_sim_s": 5.00000000000062,
+      "end_to_end_wall_s": 1.3993156669894233,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "2743ab4faeae07fc0bfbf00357720f89221b9a817776aa4991616688a3897af3"
+    },
+    {
+      "case": {
+        "case_id": "bowl.right.202",
+        "target_object": "bowl",
+        "position_label": "right",
+        "seed": 202,
+        "offset_xy_m": [
+          0.03722482968577575,
+          0.0023343602528171636
+        ],
+        "yaw_rad": -0.04338234404179352
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "执行黑碗碗沿夹取、抬升并稳定保持。",
+        "reason": "固定场景校准中该参数组合单次成功并完成保持验证；实际成功仍由控制器判定。",
+        "task_kind": "grasp",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "张开夹爪并准备近侧碗沿夹取。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗的指定碗沿抓取位。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以设定速度下降；接近触发高度时允许与闭合重叠。"
+          },
+          {
+            "phase": "close",
+            "instruction": "闭合夹爪，使一指在碗内、另一指在碗外夹住碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持，等待控制器完成保持判定。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183df-6644-7e01-8153-a693ce1d929f",
+      "planning_wall_s": 9.20113062497694,
+      "gpt_latency_s": 9.200805125001352,
+      "execution_sim_s": 11.680000000000737,
+      "execution_wall_s": 1.0009871670044959,
+      "validation_sim_s": 5.00000000000062,
+      "end_to_end_wall_s": 10.610153415997047,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "2743ab4faeae07fc0bfbf00357720f89221b9a817776aa4991616688a3897af3"
+    },
+    {
+      "case": {
+        "case_id": "bowl.right.303",
+        "target_object": "bowl",
+        "position_label": "right",
+        "seed": 303,
+        "offset_xy_m": [
+          0.03852396107144401,
+          -0.0006297803631250551
+        ],
+        "yaw_rad": -0.0031326398352401266
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 1.029198756441474e-05,
+      "gpt_latency_s": null,
+      "execution_sim_s": 13.300000000001278,
+      "execution_wall_s": 1.0246010829578154,
+      "validation_sim_s": 4.999999999999181,
+      "end_to_end_wall_s": 1.4340519590186886,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "7b032a1eb4a1cd9c3c993c7d0c341e45198c411a121cf0fe23d7ed95bb5469b5"
+    },
+    {
+      "case": {
+        "case_id": "bowl.right.303",
+        "target_object": "bowl",
+        "position_label": "right",
+        "seed": 303,
+        "offset_xy_m": [
+          0.03852396107144401,
+          -0.0006297803631250551
+        ],
+        "yaw_rad": -0.0031326398352401266
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 9.167008101940155e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 11.72000000000075,
+      "execution_wall_s": 0.9186422920320183,
+      "validation_sim_s": 5.000000000000584,
+      "end_to_end_wall_s": 1.3218850839766674,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "7b032a1eb4a1cd9c3c993c7d0c341e45198c411a121cf0fe23d7ed95bb5469b5"
+    },
+    {
+      "case": {
+        "case_id": "bowl.right.303",
+        "target_object": "bowl",
+        "position_label": "right",
+        "seed": 303,
+        "offset_xy_m": [
+          0.03852396107144401,
+          -0.0006297803631250551
+        ],
+        "yaw_rad": -0.0031326398352401266
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "固定场景中该黑碗的相同参数组合曾完成抓取并经后续保持验证；采用碗沿夹取。",
+        "reason": "目标为 bowl，所请求的抓起并稳定保持属于支持的 grasp；0.080 m 开度满足最小 0.020 m 要求。",
+        "task_kind": "grasp",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "按碗沿夹取策略准备夹爪。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗近侧碗沿。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以设定速度下探至夹取高度。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在触发高度开始闭合，使一指位于碗内、另一指位于碗外。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗，等待控制器判定。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183df-9a71-7390-9d2b-00744bc319cc",
+      "planning_wall_s": 10.6861921249656,
+      "gpt_latency_s": 10.685887500003446,
+      "execution_sim_s": 11.72000000000075,
+      "execution_wall_s": 0.9042136250063777,
+      "validation_sim_s": 5.000000000000584,
+      "end_to_end_wall_s": 11.987432249996345,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "7b032a1eb4a1cd9c3c993c7d0c341e45198c411a121cf0fe23d7ed95bb5469b5"
+    },
+    {
+      "case": {
+        "case_id": "bowl.forward.101",
+        "target_object": "bowl",
+        "position_label": "forward",
+        "seed": 101,
+        "offset_xy_m": [
+          -0.0008815143867679479,
+          0.04171576054523386
+        ],
+        "yaw_rad": 0.024570937214003746
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 8.624978363513947e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.820000000001118,
+      "execution_wall_s": 0.976937250001356,
+      "validation_sim_s": 4.999999999999607,
+      "end_to_end_wall_s": 1.3843771669780836,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "a1246b10437b4afa11a2a0ccaefc3ae0b297157b77d9933b2d4468acb39cff67"
+    },
+    {
+      "case": {
+        "case_id": "bowl.forward.101",
+        "target_object": "bowl",
+        "position_label": "forward",
+        "seed": 101,
+        "offset_xy_m": [
+          -0.0008815143867679479,
+          0.04171576054523386
+        ],
+        "yaw_rad": 0.024570937214003746
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 5.62501372769475e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 11.220000000000583,
+      "execution_wall_s": 0.8626912080217153,
+      "validation_sim_s": 5.0000000000010285,
+      "end_to_end_wall_s": 1.267422583012376,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "a1246b10437b4afa11a2a0ccaefc3ae0b297157b77d9933b2d4468acb39cff67"
+    },
+    {
+      "case": {
+        "case_id": "bowl.forward.101",
+        "target_object": "bowl",
+        "position_label": "forward",
+        "seed": 101,
+        "offset_xy_m": [
+          -0.0008815143867679479,
+          0.04171576054523386
+        ],
+        "yaw_rad": 0.024570937214003746
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "按已验证的快速重叠闭合配置抓取黑碗碗沿并稳定保持。",
+        "reason": "固定场景中该配置单次运行成功且完成了5秒物理验证；不代表跨场景保证。",
+        "task_kind": "grasp",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "以0.080 m开度准备夹爪。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗近侧碗沿。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以0.200 m/s下降；距触发高度时允许闭合重叠。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在0.004 m触发高度开始闭合，夹持碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183df-d3aa-7e13-9b62-4aafd5ef8543",
+      "planning_wall_s": 4.635323958005756,
+      "gpt_latency_s": 4.634989209007472,
+      "execution_sim_s": 11.220000000000583,
+      "execution_wall_s": 0.8725495419930667,
+      "validation_sim_s": 5.0000000000010285,
+      "end_to_end_wall_s": 5.898328874958679,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "a1246b10437b4afa11a2a0ccaefc3ae0b297157b77d9933b2d4468acb39cff67"
+    },
+    {
+      "case": {
+        "case_id": "bowl.forward.202",
+        "target_object": "bowl",
+        "position_label": "forward",
+        "seed": 202,
+        "offset_xy_m": [
+          0.002772863664261044,
+          0.038201748044645996
+        ],
+        "yaw_rad": -0.022381085657732884
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 7.333001121878624e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.840000000001124,
+      "execution_wall_s": 0.9699973329552449,
+      "validation_sim_s": 4.99999999999959,
+      "end_to_end_wall_s": 1.3760095000034198,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "83c24f08cd99841ba4491833b86771e286ca10aa35d3865889df37995cb22ea7"
+    },
+    {
+      "case": {
+        "case_id": "bowl.forward.202",
+        "target_object": "bowl",
+        "position_label": "forward",
+        "seed": 202,
+        "offset_xy_m": [
+          0.002772863664261044,
+          0.038201748044645996
+        ],
+        "yaw_rad": -0.022381085657732884
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 9.124982170760632e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 11.260000000000597,
+      "execution_wall_s": 0.8671792080276646,
+      "validation_sim_s": 5.000000000000993,
+      "end_to_end_wall_s": 1.25376170797972,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "83c24f08cd99841ba4491833b86771e286ca10aa35d3865889df37995cb22ea7"
+    },
+    {
+      "case": {
+        "case_id": "bowl.forward.202",
+        "target_object": "bowl",
+        "position_label": "forward",
+        "seed": 202,
+        "offset_xy_m": [
+          0.002772863664261044,
+          0.038201748044645996
+        ],
+        "yaw_rad": -0.022381085657732884
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "执行黑碗抓取并稳定保持。",
+        "reason": "固定场景中该参数组合曾单次成功并完成5秒物理验证；碗宽超过夹爪开度，控制器将夹取碗沿。",
+        "task_kind": "grasp",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "按设定开度准备夹爪。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗近侧碗沿抓取位。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以设定速度下降。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在触发高度开始闭合，夹持碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183df-f4de-7602-9a1b-dd59522a8142",
+      "planning_wall_s": 4.835078332980629,
+      "gpt_latency_s": 4.834781207959168,
+      "execution_sim_s": 11.260000000000597,
+      "execution_wall_s": 0.9440883339848369,
+      "validation_sim_s": 5.000000000000993,
+      "end_to_end_wall_s": 6.195212916994933,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "83c24f08cd99841ba4491833b86771e286ca10aa35d3865889df37995cb22ea7"
+    },
+    {
+      "case": {
+        "case_id": "bowl.forward.303",
+        "target_object": "bowl",
+        "position_label": "forward",
+        "seed": 303,
+        "offset_xy_m": [
+          -0.0008405074531311002,
+          0.03917006995696494
+        ],
+        "yaw_rad": 0.05644482987838595
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 9.124982170760632e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.840000000001124,
+      "execution_wall_s": 1.0101142919738777,
+      "validation_sim_s": 4.99999999999959,
+      "end_to_end_wall_s": 1.421725417021662,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "76bc2433db999c982f30c5a7b8e3f8cff0a753e9a1d9ec19ee5320cbb2b6160a"
+    },
+    {
+      "case": {
+        "case_id": "bowl.forward.303",
+        "target_object": "bowl",
+        "position_label": "forward",
+        "seed": 303,
+        "offset_xy_m": [
+          -0.0008405074531311002,
+          0.03917006995696494
+        ],
+        "yaw_rad": 0.05644482987838595
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 7.958966307342052e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 11.24000000000059,
+      "execution_wall_s": 0.8609267499996349,
+      "validation_sim_s": 5.000000000001011,
+      "end_to_end_wall_s": 1.2563022919930518,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "76bc2433db999c982f30c5a7b8e3f8cff0a753e9a1d9ec19ee5320cbb2b6160a"
+    },
+    {
+      "case": {
+        "case_id": "bowl.forward.303",
+        "target_object": "bowl",
+        "position_label": "forward",
+        "seed": 303,
+        "offset_xy_m": [
+          -0.0008405074531311002,
+          0.03917006995696494
+        ],
+        "yaw_rad": 0.05644482987838595
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "执行黑碗碗沿抓取并抬起稳定保持。",
+        "reason": "当前目标为 bowl，任务与抓取能力匹配；选用固定场景中一次成功且完成后保持验证的快速重叠参数。",
+        "task_kind": "grasp",
+        "target_object": "bowl",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "按黑碗碗沿抓取策略准备夹爪开度。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "接近黑碗的近侧碗沿。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以设定速度下降至碗沿抓取位置。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在触发高度开始闭合，使一指在碗内、一指在碗外夹住碗沿。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "抬起黑碗。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持黑碗，等待控制器完成保持判定。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e0-17c7-7442-8164-b077753867b5",
+      "planning_wall_s": 9.374930459016468,
+      "gpt_latency_s": 9.374582124990411,
+      "execution_sim_s": 11.24000000000059,
+      "execution_wall_s": 0.8662736659753136,
+      "validation_sim_s": 5.000000000001011,
+      "end_to_end_wall_s": 10.63846625003498,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "76bc2433db999c982f30c5a7b8e3f8cff0a753e9a1d9ec19ee5320cbb2b6160a"
+    },
+    {
+      "case": {
+        "case_id": "bottle.nominal.101",
+        "target_object": "bottle",
+        "position_label": "nominal",
+        "seed": 101,
+        "offset_xy_m": [
+          -0.0009970843344916627,
+          0.0025408232446032285
+        ],
+        "yaw_rad": -0.028675375479503745
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 8.917006198316813e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.820000000001118,
+      "execution_wall_s": 1.4640014580218121,
+      "validation_sim_s": 4.999999999999607,
+      "end_to_end_wall_s": 2.462126917031128,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "05eb47f05b010bcc8cc1bbf73707967e277c6529893e7a8ba9e092140c574e98"
+    },
+    {
+      "case": {
+        "case_id": "bottle.nominal.101",
+        "target_object": "bottle",
+        "position_label": "nominal",
+        "seed": 101,
+        "offset_xy_m": [
+          -0.0009970843344916627,
+          0.0025408232446032285
+        ],
+        "yaw_rad": -0.028675375479503745
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.04,
+        "descent_speed_m_s": 0.12,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 7.209018804132938e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.580000000001037,
+      "execution_wall_s": 1.4039842920028605,
+      "validation_sim_s": 4.999999999999821,
+      "end_to_end_wall_s": 2.2545860839891247,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "05eb47f05b010bcc8cc1bbf73707967e277c6529893e7a8ba9e092140c574e98"
+    },
+    {
+      "case": {
+        "case_id": "bottle.nominal.101",
+        "target_object": "bottle",
+        "position_label": "nominal",
+        "seed": 101,
+        "offset_xy_m": [
+          -0.0009970843344916627,
+          0.0025408232446032285
+        ],
+        "yaw_rad": -0.028675375479503745
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.05,
+        "descent_speed_m_s": 0.16,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "酒瓶为当前目标，执行夹住瓶颈、抬升并稳定保持。",
+        "reason": "固定场景中的对应参数组合均曾单次成功；选用较快下降与小幅提前闭合配置。",
+        "task_kind": "grasp",
+        "target_object": "bottle",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "控制器将夹爪设为初始开度并准备抓取。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "控制器从上方对准酒瓶瓶颈。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "控制器以设定速度下移接近瓶颈。"
+          },
+          {
+            "phase": "close",
+            "instruction": "距触发高度时闭合夹爪夹住瓶颈。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "控制器竖直抬升酒瓶。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "控制器稳定保持酒瓶。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.05,
+          "descent_speed_m_s": 0.16,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e0-53c9-7880-be67-bb94a88cc720",
+      "planning_wall_s": 7.424204082984943,
+      "gpt_latency_s": 7.423904750030488,
+      "execution_sim_s": 11.860000000000797,
+      "execution_wall_s": 1.440140250022523,
+      "validation_sim_s": 5.00000000000046,
+      "end_to_end_wall_s": 9.802424958033953,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "05eb47f05b010bcc8cc1bbf73707967e277c6529893e7a8ba9e092140c574e98"
+    },
+    {
+      "case": {
+        "case_id": "bottle.nominal.202",
+        "target_object": "bottle",
+        "position_label": "nominal",
+        "seed": 202,
+        "offset_xy_m": [
+          0.0028001811127627216,
+          0.0013395335614169012
+        ],
+        "yaw_rad": -0.04026242071347924
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 9.542040061205626e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.820000000001118,
+      "execution_wall_s": 1.4648744580335915,
+      "validation_sim_s": 4.999999999999607,
+      "end_to_end_wall_s": 2.3903752499609254,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "e55e1fef70d9f5f34a11e24581b7293c50c29889b8bc5e5fb21d420be3757e5c"
+    },
+    {
+      "case": {
+        "case_id": "bottle.nominal.202",
+        "target_object": "bottle",
+        "position_label": "nominal",
+        "seed": 202,
+        "offset_xy_m": [
+          0.0028001811127627216,
+          0.0013395335614169012
+        ],
+        "yaw_rad": -0.04026242071347924
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.04,
+        "descent_speed_m_s": 0.12,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 9.167008101940155e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.580000000001037,
+      "execution_wall_s": 1.4512039169785567,
+      "validation_sim_s": 4.999999999999821,
+      "end_to_end_wall_s": 2.3589903339743614,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "e55e1fef70d9f5f34a11e24581b7293c50c29889b8bc5e5fb21d420be3757e5c"
+    },
+    {
+      "case": {
+        "case_id": "bottle.nominal.202",
+        "target_object": "bottle",
+        "position_label": "nominal",
+        "seed": 202,
+        "offset_xy_m": [
+          0.0028001811127627216,
+          0.0013395335614169012
+        ],
+        "yaw_rad": -0.04026242071347924
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "执行酒瓶瓶颈抓取并抬升稳定保持。",
+        "reason": "当前目标为 bottle，支持 grasp；参数均在该任务边界内。",
+        "task_kind": "grasp",
+        "target_object": "bottle",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "按设定初始开度准备夹爪。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "从上方对准酒瓶瓶颈接近。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以设定速度竖直下降。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在触发高度闭合夹住瓶颈。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "竖直抬升酒瓶。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持酒瓶。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.1,
+          "close_trigger_height_m": 0.0
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e0-8ca3-7c63-b753-7bd7fde6c223",
+      "planning_wall_s": 8.196132750017568,
+      "gpt_latency_s": 8.195806875010021,
+      "execution_sim_s": 12.820000000001118,
+      "execution_wall_s": 1.503175666963216,
+      "validation_sim_s": 4.999999999999607,
+      "end_to_end_wall_s": 10.617788874951657,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "e55e1fef70d9f5f34a11e24581b7293c50c29889b8bc5e5fb21d420be3757e5c"
+    },
+    {
+      "case": {
+        "case_id": "bottle.nominal.303",
+        "target_object": "bottle",
+        "position_label": "nominal",
+        "seed": 303,
+        "offset_xy_m": [
+          -0.00019641340401478245,
+          0.0009926597665541057
+        ],
+        "yaw_rad": 0.041036198969131424
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 9.500014130026102e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.840000000001124,
+      "execution_wall_s": 1.4098769589909352,
+      "validation_sim_s": 4.99999999999959,
+      "end_to_end_wall_s": 2.215588791994378,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "c6233a4ca43f6b99474d69282cffd7a559123f145494bbee9a9879e397a77f8c"
+    },
+    {
+      "case": {
+        "case_id": "bottle.nominal.303",
+        "target_object": "bottle",
+        "position_label": "nominal",
+        "seed": 303,
+        "offset_xy_m": [
+          -0.00019641340401478245,
+          0.0009926597665541057
+        ],
+        "yaw_rad": 0.041036198969131424
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.04,
+        "descent_speed_m_s": 0.12,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 5.375011824071407e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.600000000001044,
+      "execution_wall_s": 1.4408552079694346,
+      "validation_sim_s": 4.999999999999803,
+      "end_to_end_wall_s": 2.3649457920109853,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "c6233a4ca43f6b99474d69282cffd7a559123f145494bbee9a9879e397a77f8c"
+    },
+    {
+      "case": {
+        "case_id": "bottle.nominal.303",
+        "target_object": "bottle",
+        "position_label": "nominal",
+        "seed": 303,
+        "offset_xy_m": [
+          -0.00019641340401478245,
+          0.0009926597665541057
+        ],
+        "yaw_rad": 0.041036198969131424
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "酒瓶抓取并稳定保持。",
+        "reason": "选定目标为 bottle，支持夹住瓶颈后抬升并保持；参数采用该固定场景中一次已成功验证的组合。",
+        "task_kind": "grasp",
+        "target_object": "bottle",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "控制器准备夹爪并设置初始开度。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "控制器从上方对准酒瓶瓶颈。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "控制器以设定速度下移接近瓶颈。"
+          },
+          {
+            "phase": "close",
+            "instruction": "控制器在触发高度开始闭合夹爪夹住瓶颈。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "控制器竖直抬升酒瓶。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "控制器稳定保持酒瓶。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e0-c7fe-7da0-9e40-b4209ad2e20a",
+      "planning_wall_s": 7.588072334008757,
+      "gpt_latency_s": 7.587771124963183,
+      "execution_sim_s": 11.24000000000059,
+      "execution_wall_s": 1.3151545409928076,
+      "validation_sim_s": 5.000000000001011,
+      "end_to_end_wall_s": 9.898472792003304,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "c6233a4ca43f6b99474d69282cffd7a559123f145494bbee9a9879e397a77f8c"
+    },
+    {
+      "case": {
+        "case_id": "bottle.right.101",
+        "target_object": "bottle",
+        "position_label": "right",
+        "seed": 101,
+        "offset_xy_m": [
+          0.039270724370058366,
+          -0.002129754824913225
+        ],
+        "yaw_rad": 0.003811652444107111
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 8.292030543088913e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.760000000001098,
+      "execution_wall_s": 1.4639793339883909,
+      "validation_sim_s": 4.999999999999661,
+      "end_to_end_wall_s": 2.3825011660228483,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "ef02a0ecab803b290ecee89caec46f04f6dc940d7fe7d64eb03ca45d01c6530c"
+    },
+    {
+      "case": {
+        "case_id": "bottle.right.101",
+        "target_object": "bottle",
+        "position_label": "right",
+        "seed": 101,
+        "offset_xy_m": [
+          0.039270724370058366,
+          -0.002129754824913225
+        ],
+        "yaw_rad": 0.003811652444107111
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.04,
+        "descent_speed_m_s": 0.12,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 6.125017534941435e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.520000000001017,
+      "execution_wall_s": 1.3742732919636182,
+      "validation_sim_s": 4.999999999999874,
+      "end_to_end_wall_s": 2.13722370803589,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "ef02a0ecab803b290ecee89caec46f04f6dc940d7fe7d64eb03ca45d01c6530c"
+    },
+    {
+      "case": {
+        "case_id": "bottle.right.101",
+        "target_object": "bottle",
+        "position_label": "right",
+        "seed": 101,
+        "offset_xy_m": [
+          0.039270724370058366,
+          -0.002129754824913225
+        ],
+        "yaw_rad": 0.003811652444107111
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "酒瓶为当前选定目标；采用已在该固定场景单次验证的快速重叠参数执行瓶颈抓取与保持。",
+        "reason": "该任务仅要求抓取并稳定保持，且参数均在瓶子抓取边界内。",
+        "task_kind": "grasp",
+        "target_object": "bottle",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "按设定初始开度准备夹爪。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "从上方接近直立酒瓶的瓶颈。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以设定速度下移至瓶颈抓取位置。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在触发高度开始闭合，夹住瓶颈。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "竖直抬升已夹持的酒瓶。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持，等待控制器判定。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e1-003c-7170-b2bf-44036a60a570",
+      "planning_wall_s": 7.771236833999865,
+      "gpt_latency_s": 7.77095570898382,
+      "execution_sim_s": 11.160000000000563,
+      "execution_wall_s": 1.2268919999478385,
+      "validation_sim_s": 5.000000000001082,
+      "end_to_end_wall_s": 9.768962125002872,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "ef02a0ecab803b290ecee89caec46f04f6dc940d7fe7d64eb03ca45d01c6530c"
+    },
+    {
+      "case": {
+        "case_id": "bottle.right.202",
+        "target_object": "bottle",
+        "position_label": "right",
+        "seed": 202,
+        "offset_xy_m": [
+          0.039905003168737276,
+          0.0004979488592675055
+        ],
+        "yaw_rad": 0.002609837504841464
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 9.20804450288415e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.720000000001084,
+      "execution_wall_s": 1.4639722909778357,
+      "validation_sim_s": 4.999999999999696,
+      "end_to_end_wall_s": 2.3895074169849977,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "c529542a4a17e0295ccb1ad52c1516d4232c3223dc2116dcf66ccdaff7460865"
+    },
+    {
+      "case": {
+        "case_id": "bottle.right.202",
+        "target_object": "bottle",
+        "position_label": "right",
+        "seed": 202,
+        "offset_xy_m": [
+          0.039905003168737276,
+          0.0004979488592675055
+        ],
+        "yaw_rad": 0.002609837504841464
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.04,
+        "descent_speed_m_s": 0.12,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 6.208021659404039e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.480000000001004,
+      "execution_wall_s": 1.3812987910350785,
+      "validation_sim_s": 4.999999999999909,
+      "end_to_end_wall_s": 2.15557004197035,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "c529542a4a17e0295ccb1ad52c1516d4232c3223dc2116dcf66ccdaff7460865"
+    },
+    {
+      "case": {
+        "case_id": "bottle.right.202",
+        "target_object": "bottle",
+        "position_label": "right",
+        "seed": 202,
+        "offset_xy_m": [
+          0.039905003168737276,
+          0.0004979488592675055
+        ],
+        "yaw_rad": 0.002609837504841464
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.16,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "酒瓶抓取受支持；采用已在固定场景单次成功验证的快速下降重叠参数。",
+        "reason": "目标为 bottle，任务仅要求夹住瓶颈、抬升并稳定保持，符合 grasp 能力边界。",
+        "task_kind": "grasp",
+        "target_object": "bottle",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "按设定开度准备夹爪。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "从上方对准酒瓶瓶颈。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "竖直下降接近瓶颈。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在触发高度开始闭合，夹住瓶颈。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "竖直抬升酒瓶。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持酒瓶。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.16,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e1-385c-7491-b8b4-4a3c1fe8c26a",
+      "planning_wall_s": 7.846169625001494,
+      "gpt_latency_s": 7.845814000000246,
+      "execution_sim_s": 11.460000000000663,
+      "execution_wall_s": 1.2452740829903632,
+      "validation_sim_s": 5.000000000000815,
+      "end_to_end_wall_s": 9.863564583996776,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "c529542a4a17e0295ccb1ad52c1516d4232c3223dc2116dcf66ccdaff7460865"
+    },
+    {
+      "case": {
+        "case_id": "bottle.right.303",
+        "target_object": "bottle",
+        "position_label": "right",
+        "seed": 303,
+        "offset_xy_m": [
+          0.040220169546258795,
+          0.0010510904279934377
+        ],
+        "yaw_rad": 0.047690349505167456
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 1.0167015716433525e-05,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.720000000001084,
+      "execution_wall_s": 1.4921805830090307,
+      "validation_sim_s": 4.999999999999696,
+      "end_to_end_wall_s": 2.406914457969833,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "45d9b578ae50e5023aa3f746bce6dd4388ba7412b3fcf9085c37e6c0e410699a"
+    },
+    {
+      "case": {
+        "case_id": "bottle.right.303",
+        "target_object": "bottle",
+        "position_label": "right",
+        "seed": 303,
+        "offset_xy_m": [
+          0.040220169546258795,
+          0.0010510904279934377
+        ],
+        "yaw_rad": 0.047690349505167456
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.04,
+        "descent_speed_m_s": 0.12,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 7.0420210249722e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.480000000001004,
+      "execution_wall_s": 1.4671836660127155,
+      "validation_sim_s": 4.999999999999909,
+      "end_to_end_wall_s": 2.367686124984175,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "45d9b578ae50e5023aa3f746bce6dd4388ba7412b3fcf9085c37e6c0e410699a"
+    },
+    {
+      "case": {
+        "case_id": "bottle.right.303",
+        "target_object": "bottle",
+        "position_label": "right",
+        "seed": 303,
+        "offset_xy_m": [
+          0.040220169546258795,
+          0.0010510904279934377
+        ],
+        "yaw_rad": 0.047690349505167456
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.05,
+        "descent_speed_m_s": 0.16,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "执行酒瓶瓶颈抓取、抬升并稳定保持。",
+        "reason": "目标为 bottle，且仅请求支持的 grasp；选用固定场景中成功验证过的参数组合。",
+        "task_kind": "grasp",
+        "target_object": "bottle",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "控制器将夹爪张开至设定开度并完成抓取准备。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "控制器从上方对准直立酒瓶的瓶颈。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "控制器以设定速度下移接近瓶颈。"
+          },
+          {
+            "phase": "close",
+            "instruction": "控制器在触发高度开始闭合夹爪以夹住瓶颈。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "控制器竖直抬升已夹住的酒瓶。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "控制器保持酒瓶稳定。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.05,
+          "descent_speed_m_s": 0.16,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e1-7166-7403-b05f-f3abb284c9a9",
+      "planning_wall_s": 8.010296082997229,
+      "gpt_latency_s": 8.010000958049204,
+      "execution_sim_s": 11.740000000000757,
+      "execution_wall_s": 1.3106272910372354,
+      "validation_sim_s": 5.000000000000567,
+      "end_to_end_wall_s": 10.288085041975137,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "45d9b578ae50e5023aa3f746bce6dd4388ba7412b3fcf9085c37e6c0e410699a"
+    },
+    {
+      "case": {
+        "case_id": "bottle.forward.101",
+        "target_object": "bottle",
+        "position_label": "forward",
+        "seed": 101,
+        "offset_xy_m": [
+          7.07161917005727e-05,
+          0.041090007693545295
+        ],
+        "yaw_rad": 0.0161652079846306
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 1.0082963854074478e-05,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.280000000000937,
+      "execution_wall_s": 1.4616381659870967,
+      "validation_sim_s": 5.000000000000087,
+      "end_to_end_wall_s": 2.3700299999909475,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "f95ff5ad4772b46bfd991d8b57bc3a2b47dca1f15da0b2857e09a8a1e4c391cc"
+    },
+    {
+      "case": {
+        "case_id": "bottle.forward.101",
+        "target_object": "bottle",
+        "position_label": "forward",
+        "seed": 101,
+        "offset_xy_m": [
+          7.07161917005727e-05,
+          0.041090007693545295
+        ],
+        "yaw_rad": 0.0161652079846306
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.04,
+        "descent_speed_m_s": 0.12,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 6.416987162083387e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.040000000000857,
+      "execution_wall_s": 1.360627917048987,
+      "validation_sim_s": 5.0000000000003,
+      "end_to_end_wall_s": 2.218637750018388,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "f95ff5ad4772b46bfd991d8b57bc3a2b47dca1f15da0b2857e09a8a1e4c391cc"
+    },
+    {
+      "case": {
+        "case_id": "bottle.forward.101",
+        "target_object": "bottle",
+        "position_label": "forward",
+        "seed": 101,
+        "offset_xy_m": [
+          7.07161917005727e-05,
+          0.041090007693545295
+        ],
+        "yaw_rad": 0.0161652079846306
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "执行酒瓶瓶颈抓取、抬升并稳定保持。",
+        "reason": "当前目标为 bottle，且该抓取任务受支持；选用该固定场景中已成功验证的快速重叠参数组合。",
+        "task_kind": "grasp",
+        "target_object": "bottle",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "按设定开度准备夹爪。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "从上方对准酒瓶瓶颈。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "竖直下降接近瓶颈。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在触发高度开始闭合，夹住瓶颈。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "竖直抬升酒瓶。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持酒瓶。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e1-abbd-7382-b707-c887714b1675",
+      "planning_wall_s": 4.547503374982625,
+      "gpt_latency_s": 4.547195957973599,
+      "execution_sim_s": 10.680000000000403,
+      "execution_wall_s": 1.24741820798954,
+      "validation_sim_s": 5.000000000001508,
+      "end_to_end_wall_s": 6.696816957963165,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "f95ff5ad4772b46bfd991d8b57bc3a2b47dca1f15da0b2857e09a8a1e4c391cc"
+    },
+    {
+      "case": {
+        "case_id": "bottle.forward.202",
+        "target_object": "bottle",
+        "position_label": "forward",
+        "seed": 202,
+        "offset_xy_m": [
+          -0.0029249390657567066,
+          0.04195855740917324
+        ],
+        "yaw_rad": 0.03911487719040756
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 8.959032129496336e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.280000000000937,
+      "execution_wall_s": 1.4729690420208499,
+      "validation_sim_s": 5.000000000000087,
+      "end_to_end_wall_s": 2.3992673339671455,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "d6c30b32af8cd71bef0f18d5941bbf1e1500888e7c2fe8df5adea28d5198fd4f"
+    },
+    {
+      "case": {
+        "case_id": "bottle.forward.202",
+        "target_object": "bottle",
+        "position_label": "forward",
+        "seed": 202,
+        "offset_xy_m": [
+          -0.0029249390657567066,
+          0.04195855740917324
+        ],
+        "yaw_rad": 0.03911487719040756
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.04,
+        "descent_speed_m_s": 0.12,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 9.999959729611874e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.040000000000857,
+      "execution_wall_s": 1.4519975409493782,
+      "validation_sim_s": 5.0000000000003,
+      "end_to_end_wall_s": 2.507106833974831,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "d6c30b32af8cd71bef0f18d5941bbf1e1500888e7c2fe8df5adea28d5198fd4f"
+    },
+    {
+      "case": {
+        "case_id": "bottle.forward.202",
+        "target_object": "bottle",
+        "position_label": "forward",
+        "seed": 202,
+        "offset_xy_m": [
+          -0.0029249390657567066,
+          0.04195855740917324
+        ],
+        "yaw_rad": 0.03911487719040756
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.2,
+        "close_trigger_height_m": 0.004
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "执行酒瓶瓶颈抓取、抬升并稳定保持。",
+        "reason": "当前目标为 bottle，且请求仅包含支持的抓取保持动作；选用该固定场景中已成功验证的参数组合。",
+        "task_kind": "grasp",
+        "target_object": "bottle",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "按设定初始开度准备夹爪。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "从上方对准酒瓶瓶颈。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以设定速度下降至抓取高度。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在触发高度开始闭合，夹住瓶颈。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "竖直抬升酒瓶。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持酒瓶。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.2,
+          "close_trigger_height_m": 0.004
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e1-d911-7dd0-8fff-771c27784cec",
+      "planning_wall_s": 7.33955320797395,
+      "gpt_latency_s": 7.339244834030978,
+      "execution_sim_s": 10.680000000000403,
+      "execution_wall_s": 1.2298107080277987,
+      "validation_sim_s": 5.000000000001508,
+      "end_to_end_wall_s": 9.464469374972396,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "d6c30b32af8cd71bef0f18d5941bbf1e1500888e7c2fe8df5adea28d5198fd4f"
+    },
+    {
+      "case": {
+        "case_id": "bottle.forward.303",
+        "target_object": "bottle",
+        "position_label": "forward",
+        "seed": 303,
+        "offset_xy_m": [
+          -0.0029500857570236207,
+          0.040049081084978386
+        ],
+        "yaw_rad": -0.03931614279347272
+      },
+      "method": "fixed",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 1.0791001841425896e-05,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.300000000000944,
+      "execution_wall_s": 1.4641847080201842,
+      "validation_sim_s": 5.000000000000069,
+      "end_to_end_wall_s": 2.3751453339937143,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "317934456db7e0d19c4a15325fc44dd0b79b456e79dce093c97e2d7d4a009615"
+    },
+    {
+      "case": {
+        "case_id": "bottle.forward.303",
+        "target_object": "bottle",
+        "position_label": "forward",
+        "seed": 303,
+        "offset_xy_m": [
+          -0.0029500857570236207,
+          0.040049081084978386
+        ],
+        "yaw_rad": -0.03931614279347272
+      },
+      "method": "rule",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.04,
+        "descent_speed_m_s": 0.12,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": null,
+      "model": null,
+      "thread_id": null,
+      "planning_wall_s": 8.874980267137289e-06,
+      "gpt_latency_s": null,
+      "execution_sim_s": 12.060000000000864,
+      "execution_wall_s": 1.4610282499925233,
+      "validation_sim_s": 5.000000000000282,
+      "end_to_end_wall_s": 2.514384209003765,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "317934456db7e0d19c4a15325fc44dd0b79b456e79dce093c97e2d7d4a009615"
+    },
+    {
+      "case": {
+        "case_id": "bottle.forward.303",
+        "target_object": "bottle",
+        "position_label": "forward",
+        "seed": 303,
+        "offset_xy_m": [
+          -0.0029500857570236207,
+          0.040049081084978386
+        ],
+        "yaw_rad": -0.03931614279347272
+      },
+      "method": "gpt",
+      "status": "succeeded",
+      "success": true,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "plan": {
+        "decision": "plan",
+        "summary": "抓取酒瓶瓶颈并抬升稳定保持。",
+        "reason": "当前目标为 bottle，所请求抓取与支持能力匹配；参数均在该任务边界内。",
+        "task_kind": "grasp",
+        "target_object": "bottle",
+        "steps": [
+          {
+            "phase": "prepare",
+            "instruction": "控制器准备夹爪与抓取状态。"
+          },
+          {
+            "phase": "approach",
+            "instruction": "从上方接近直立酒瓶瓶颈。"
+          },
+          {
+            "phase": "descend",
+            "instruction": "以设定速度下降至夹取位置。"
+          },
+          {
+            "phase": "close",
+            "instruction": "在瓶颈处闭合双指夹爪。"
+          },
+          {
+            "phase": "lift",
+            "instruction": "竖直抬升酒瓶。"
+          },
+          {
+            "phase": "hold",
+            "instruction": "稳定保持酒瓶。"
+          }
+        ],
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.1,
+          "close_trigger_height_m": 0.0
+        }
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a183e2-1131-71c1-b6ee-aa4cfb79f6ee",
+      "planning_wall_s": 11.977034832991194,
+      "gpt_latency_s": 11.97667000000365,
+      "execution_sim_s": 12.300000000000944,
+      "execution_wall_s": 1.4743920830078423,
+      "validation_sim_s": 5.000000000000069,
+      "end_to_end_wall_s": 14.351304041978437,
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "failure_reason": null,
+      "warnings": [],
+      "initial_state_fingerprint": "317934456db7e0d19c4a15325fc44dd0b79b456e79dce093c97e2d7d4a009615"
+    }
+  ],
+  "summary": [
+    {
+      "method": "fixed",
+      "attempts": 18,
+      "successes": 18,
+      "success_rate": 1.0,
+      "executed_runs": 18,
+      "planning_failures": 0,
+      "collision_runs": 0,
+      "total_collision_episodes": 0,
+      "mean_success_execution_sim_s": 12.843333333334458,
+      "mean_execution_wall_s": 1.245553821716587,
+      "mean_planning_wall_s": 9.10423113964498e-06,
+      "mean_end_to_end_wall_s": 1.9459837038302794,
+      "mean_gpt_latency_s": null
+    },
+    {
+      "method": "rule",
+      "attempts": 18,
+      "successes": 18,
+      "success_rate": 1.0,
+      "executed_runs": 18,
+      "planning_failures": 0,
+      "collision_runs": 0,
+      "total_collision_episodes": 0,
+      "mean_success_execution_sim_s": 11.927777777778598,
+      "mean_execution_wall_s": 1.1639801503333729,
+      "mean_planning_wall_s": 6.4653900658918755e-06,
+      "mean_end_to_end_wall_s": 1.8189990882140894,
+      "mean_gpt_latency_s": null
+    },
+    {
+      "method": "gpt",
+      "attempts": 18,
+      "successes": 18,
+      "success_rate": 1.0,
+      "executed_runs": 18,
+      "planning_failures": 0,
+      "collision_runs": 0,
+      "total_collision_episodes": 0,
+      "mean_success_execution_sim_s": 11.514444444445125,
+      "mean_execution_wall_s": 1.122569504552909,
+      "mean_planning_wall_s": 7.561721085716272,
+      "mean_end_to_end_wall_s": 9.34276309265988,
+      "mean_gpt_latency_s": 7.561402569502308
+    }
+  ],
+  "by_target": {
+    "bowl": [
+      {
+        "method": "fixed",
+        "attempts": 9,
+        "successes": 9,
+        "success_rate": 1.0,
+        "executed_runs": 9,
+        "planning_failures": 0,
+        "collision_runs": 0,
+        "total_collision_episodes": 0,
+        "mean_success_execution_sim_s": 13.071111111112312,
+        "mean_execution_wall_s": 1.0291435324276488,
+        "mean_planning_wall_s": 8.713001281850868e-06,
+        "mean_end_to_end_wall_s": 1.5151388890032347,
+        "mean_gpt_latency_s": null
+      },
+      {
+        "method": "rule",
+        "attempts": 9,
+        "successes": 9,
+        "success_rate": 1.0,
+        "executed_runs": 9,
+        "planning_failures": 0,
+        "collision_runs": 0,
+        "total_collision_episodes": 0,
+        "mean_success_execution_sim_s": 11.48000000000067,
+        "mean_execution_wall_s": 0.9065766480052844,
+        "mean_planning_wall_s": 5.550999453084336e-06,
+        "mean_end_to_end_wall_s": 1.3180947455435268,
+        "mean_gpt_latency_s": null
+      },
+      {
+        "method": "gpt",
+        "attempts": 9,
+        "successes": 9,
+        "success_rate": 1.0,
+        "executed_runs": 9,
+        "planning_failures": 0,
+        "collision_runs": 0,
+        "total_collision_episodes": 0,
+        "mean_success_execution_sim_s": 11.48000000000067,
+        "mean_execution_wall_s": 0.9125962501081327,
+        "mean_planning_wall_s": 7.267864046437252,
+        "mean_end_to_end_wall_s": 8.601982990777792,
+        "mean_gpt_latency_s": 7.267542449110705
+      }
+    ],
+    "bottle": [
+      {
+        "method": "fixed",
+        "attempts": 9,
+        "successes": 9,
+        "success_rate": 1.0,
+        "executed_runs": 9,
+        "planning_failures": 0,
+        "collision_runs": 0,
+        "total_collision_episodes": 0,
+        "mean_success_execution_sim_s": 12.615555555556604,
+        "mean_execution_wall_s": 1.4619641110055253,
+        "mean_planning_wall_s": 9.495460997439093e-06,
+        "mean_end_to_end_wall_s": 2.3768285186573244,
+        "mean_gpt_latency_s": null
+      },
+      {
+        "method": "rule",
+        "attempts": 9,
+        "successes": 9,
+        "success_rate": 1.0,
+        "executed_runs": 9,
+        "planning_failures": 0,
+        "collision_runs": 0,
+        "total_collision_episodes": 0,
+        "mean_success_execution_sim_s": 12.375555555556524,
+        "mean_execution_wall_s": 1.4213836526614614,
+        "mean_planning_wall_s": 7.379780678699414e-06,
+        "mean_end_to_end_wall_s": 2.3199034308846525,
+        "mean_gpt_latency_s": null
+      },
+      {
+        "method": "gpt",
+        "attempts": 9,
+        "successes": 9,
+        "success_rate": 1.0,
+        "executed_runs": 9,
+        "planning_failures": 0,
+        "collision_runs": 0,
+        "total_collision_episodes": 0,
+        "mean_success_execution_sim_s": 11.548888888889582,
+        "mean_execution_wall_s": 1.332542758997685,
+        "mean_planning_wall_s": 7.855578124995292,
+        "mean_end_to_end_wall_s": 10.083543194541967,
+        "mean_gpt_latency_s": 7.85526268989391
+      }
+    ]
+  }
+}

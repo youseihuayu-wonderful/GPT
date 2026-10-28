@@ -26,6 +26,7 @@ import unittest
 
 from grasp import GraspParameters
 from simulation import Simulation
+from scenarios import DEFAULT_CASE, SceneCase
 
 
 class GraspParameterTests(unittest.TestCase):
@@ -48,10 +49,13 @@ class GraspParameterTests(unittest.TestCase):
 
 class GraspBehaviorTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.sim = Simulation()
+        self._use_scene(DEFAULT_CASE)
+
+    def _use_scene(self, case: SceneCase) -> None:
+        self.sim = Simulation(case)
         self.addCleanup(self.sim.close)
-        self.bowl_body = self.sim.model.body("bowl_object").id
-        self.bowl_qpos = int(self.sim.model.joint("bowl_free").qposadr[0])
+        self.target_body = self.sim.model.body(f"{case.target_object}_object").id
+        self.target_qpos = int(self.sim.model.joint(f"{case.target_object}_free").qposadr[0])
         self.finger_bodies = {
             self.sim.model.body("robot_left_finger").id,
             self.sim.model.body("robot_right_finger").id,
@@ -64,15 +68,15 @@ class GraspBehaviorTests(unittest.TestCase):
                 continue
             body1 = int(self.sim.model.geom_bodyid[contact.geom1])
             body2 = int(self.sim.model.geom_bodyid[contact.geom2])
-            if body1 == self.bowl_body and body2 in self.finger_bodies:
+            if body1 == self.target_body and body2 in self.finger_bodies:
                 touching_fingers.add(body2)
-            elif body2 == self.bowl_body and body1 in self.finger_bodies:
+            elif body2 == self.target_body and body1 in self.finger_bodies:
                 touching_fingers.add(body1)
         return {
             "time_s": float(self.sim.data.time),
             "skill": deepcopy(self.sim.state()["skill"]),
-            "bowl_position": tuple(self.sim.data.body("bowl_object").xpos),
-            "bowl_free_z": float(self.sim.data.qpos[self.bowl_qpos + 2]),
+            "target_position": tuple(self.sim.data.xpos[self.target_body]),
+            "target_free_z": float(self.sim.data.qpos[self.target_qpos + 2]),
             "touching_fingers": touching_fingers,
             "tcp_position": tuple(self.sim.data.site("robot_grasp_center").xpos),
             "gripper_opening_m": float(self.sim.data.qpos[self.sim.finger_qpos].sum()),
@@ -100,7 +104,7 @@ class GraspBehaviorTests(unittest.TestCase):
 
     def _assert_idle(self) -> None:
         skill = self.sim.state()["skill"]
-        self.assertEqual(skill["name"], "grasp_bowl")
+        self.assertEqual(skill["name"], f"grasp_{self.sim.case.target_object}")
         self.assertEqual(skill["status"], "idle")
         self.assertEqual(skill["phase"], "idle")
         self.assertEqual(skill["elapsed_s"], 0.0)
@@ -120,8 +124,8 @@ class GraspBehaviorTests(unittest.TestCase):
 
     def _has_physical_hold(self, sample: dict, baseline: dict) -> bool:
         return (
-            sample["bowl_free_z"] - baseline["bowl_free_z"] >= 0.10
-            and sample["bowl_position"][2] - baseline["bowl_position"][2] >= 0.10
+            sample["target_free_z"] - baseline["target_free_z"] >= 0.10
+            and sample["target_position"][2] - baseline["target_position"][2] >= 0.10
             and sample["touching_fingers"] == self.finger_bodies
         )
 
@@ -142,9 +146,9 @@ class GraspBehaviorTests(unittest.TestCase):
         )
         self.assertIsNotNone(baseline, "Grasp never left preparation")
         self.assertEqual(baseline["skill"]["phase"], "approach")
-        self.assertGreaterEqual(terminal["bowl_free_z"] - baseline["bowl_free_z"], 0.10)
+        self.assertGreaterEqual(terminal["target_free_z"] - baseline["target_free_z"], 0.10)
         self.assertGreaterEqual(
-            terminal["bowl_position"][2] - baseline["bowl_position"][2], 0.10
+            terminal["target_position"][2] - baseline["target_position"][2], 0.10
         )
         self.assertEqual(terminal["touching_fingers"], self.finger_bodies)
 
@@ -154,7 +158,7 @@ class GraspBehaviorTests(unittest.TestCase):
         for sample in reversed(samples):
             if not self._has_physical_hold(sample, baseline):
                 break
-            if math.dist(sample["bowl_position"], terminal["bowl_position"]) > 0.01:
+            if math.dist(sample["target_position"], terminal["target_position"]) > 0.01:
                 break
             held_since = sample["time_s"]
         self.assertGreaterEqual(terminal["time_s"] - held_since, 1.0 - 0.02 - 1e-9)
@@ -167,19 +171,19 @@ class GraspBehaviorTests(unittest.TestCase):
             self.assertEqual(sample["skill"]["status"], "succeeded")
             self.assertEqual(sample["skill"]["phase"], "done")
             self.assertGreaterEqual(sample["skill"]["hold_elapsed_s"], 1.0)
-            self.assertGreaterEqual(sample["bowl_free_z"] - baseline["bowl_free_z"], 0.10)
+            self.assertGreaterEqual(sample["target_free_z"] - baseline["target_free_z"], 0.10)
             self.assertGreaterEqual(
-                sample["bowl_position"][2] - baseline["bowl_position"][2], 0.10
+                sample["target_position"][2] - baseline["target_position"][2], 0.10
             )
             self.assertEqual(sample["touching_fingers"], self.finger_bodies)
             self.assertLessEqual(
-                math.dist(sample["bowl_position"], terminal["bowl_position"]), 0.01
+                math.dist(sample["target_position"], terminal["target_position"]), 0.01
             )
         self.assertAlmostEqual(self.sim.data.time - terminal["time_s"], 60.0, places=8)
 
     def test_fixed_scene_grasp_lifts_bowl_ten_centimeters_and_holds_one_second(self) -> None:
         self._assert_idle()
-        self.sim.start_grasp()
+        self.sim.start_task("grasp")
         samples = self._run_to_terminal()
         terminal = samples[-1]["skill"]
         self.assertIsNotNone(terminal["close_started_s"])
@@ -187,12 +191,23 @@ class GraspBehaviorTests(unittest.TestCase):
         self.assertTrue(all(sample["skill"]["descent_close_overlap_s"] == 0.0 for sample in samples))
         self._assert_successful_grasp(samples)
 
+    def test_nominal_bottle_baseline_and_rule_retain_real_lift_and_contacts(self) -> None:
+        self.sim.close()
+        self._use_scene(SceneCase("bottle.nominal", "bottle", "nominal", 0, (0.0, 0.0), 0.0))
+        for parameters in (GraspParameters(), GraspParameters(0.04, 0.12, 0.0)):
+            with self.subTest(parameters=parameters):
+                self.sim.reset()
+                self.sim.step(1.0)
+                self.sim.start_task("grasp", parameters)
+                self._assert_successful_grasp(self._run_to_terminal())
+                self.assertEqual(self.sim.state()["collisions"]["episodes"], 0)
+
     def test_reset_during_hold_restores_initial_physics_and_allows_complete_restart(self) -> None:
         initial_qpos = self.sim.data.qpos.tolist()
         initial_qvel = self.sim.data.qvel.tolist()
         initial_ctrl = self.sim.data.ctrl.tolist()
         self.assertEqual(self.sim.data.time, 0.0)
-        self.sim.start_grasp()
+        self.sim.start_task("grasp")
 
         # Reset with a nonzero hold timer, not just during an untouched prepare
         # phase, so stale success progress and the displaced bowl must be cleared.
@@ -215,7 +230,7 @@ class GraspBehaviorTests(unittest.TestCase):
         self.assertEqual(self.sim.data.qvel.tolist(), initial_qvel)
         self.assertEqual(self.sim.data.ctrl.tolist(), initial_ctrl)
 
-        self.sim.start_grasp()
+        self.sim.start_task("grasp")
         restarted = self.sim.state()["skill"]
         self.assertEqual(restarted["status"], "running")
         self.assertEqual(restarted["phase"], "prepare")
@@ -225,7 +240,7 @@ class GraspBehaviorTests(unittest.TestCase):
         self._assert_successful_grasp(self._run_to_terminal())
 
     def test_duplicate_start_while_running_is_rejected_without_restarting_physics(self) -> None:
-        self.sim.start_grasp()
+        self.sim.start_task("grasp")
         for _ in range(10):
             self._step()
         before = deepcopy(self.sim.state()["skill"])
@@ -243,7 +258,7 @@ class GraspBehaviorTests(unittest.TestCase):
         before_progress = {field: before[field] for field in progress_fields}
 
         with self.assertRaises(ValueError):
-            self.sim.start_grasp(GraspParameters(initial_opening_m=0.06))
+            self.sim.start_task("grasp", GraspParameters(initial_opening_m=0.06))
 
         after = self.sim.state()["skill"]
         self.assertEqual({field: after[field] for field in progress_fields}, before_progress)
@@ -259,7 +274,7 @@ class GraspBehaviorTests(unittest.TestCase):
         # setUp constructed a NEW Simulation: this real actuator fault cannot
         # leak into the successful-grasp or reset cases.
         self.sim.model.actuator_forcerange[self.sim.gripper_actuator] = [0, 0]
-        self.sim.start_grasp()
+        self.sim.start_task("grasp")
         samples = self._run_to_terminal()
         self.assertEqual(samples[-1]["skill"]["status"], "failed")
         self.assertEqual(samples[-1]["skill"]["phase"], "failed")
@@ -275,7 +290,7 @@ class GraspBehaviorTests(unittest.TestCase):
             self.assertEqual(sample["skill"]["descent_close_overlap_s"], 0.0)
 
     def test_losing_grip_after_success_invalidates_the_reported_success(self) -> None:
-        self.sim.start_grasp()
+        self.sim.start_task("grasp")
         terminal = self._run_to_terminal()[-1]
         self.assertEqual(terminal["skill"]["status"], "succeeded")
         self.sim.model.actuator_forcerange[self.sim.gripper_actuator] = [0, 0]
@@ -292,7 +307,7 @@ class GraspBehaviorTests(unittest.TestCase):
     def test_custom_opening_reaches_requested_physical_gap_before_approach(self) -> None:
         parameters = GraspParameters(initial_opening_m=0.06)
         initial_gap = self.sim.state()["gripper_opening_m"]
-        self.sim.start_grasp(parameters)
+        self.sim.start_task("grasp", parameters)
         self.assertEqual(self.sim.state()["skill"]["parameters"], parameters.to_dict())
         self.assertEqual(self.sim.state()["gripper_opening_m"], initial_gap)
         for _ in range(101):
@@ -316,13 +331,13 @@ class GraspBehaviorTests(unittest.TestCase):
         self.assertAlmostEqual(self.sim.state()["gripper_opening_m"], initial_gap)
 
     def test_faster_descent_and_early_trigger_produce_actual_overlapping_motion(self) -> None:
-        self.sim.start_grasp()
+        self.sim.start_task("grasp")
         baseline = self._run_to_terminal()[-1]["skill"]
         self.sim.reset()
         parameters = GraspParameters(
             initial_opening_m=0.05, descent_speed_m_s=0.16, close_trigger_height_m=0.004,
         )
-        self.sim.start_grasp(parameters)
+        self.sim.start_task("grasp", parameters)
         samples = self._run_to_terminal()
         terminal = samples[-1]["skill"]
         self.assertEqual(terminal["status"], "succeeded")
@@ -368,7 +383,7 @@ class GraspBehaviorTests(unittest.TestCase):
         for parameters in ({}, {"initial_opening_m": 0.06}, True, 0.06, "default"):
             with self.subTest(parameters=parameters):
                 with self.assertRaises(ValueError):
-                    self.sim.start_grasp(parameters)
+                    self.sim.start_task("grasp", parameters)
                 self.assertEqual(self.sim.state(), before)
                 self.assertEqual(self.sim.data.qpos.tolist(), initial_qpos)
                 self.assertEqual(self.sim.data.qvel.tolist(), initial_qvel)

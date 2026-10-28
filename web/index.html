@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>第四阶段 · GPT 规划与真实物理抓取</title>
+  <title>GPT 完整任务 · 抓取、收纳、关柜、归位</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
   <main class="viewer">
     <header class="page-header">
-      <div class="eyebrow">第四阶段 <span>GPT + LIVE PHYSICS</span></div>
-      <h1>第四阶段 <span>· GPT 规划与真实物理抓取</span></h1>
-      <p class="scope">自然语言任务 <span aria-hidden="true">/</span> 受限规划 · 显式执行 · MuJoCo 真值验证</p>
+      <div class="eyebrow">完整任务 <span>GPT + LIVE PHYSICS</span></div>
+      <h1>GPT 规划 <span>· 抓取、收纳、关柜、归位</span></h1>
+      <p class="scope">显式计划 <span aria-hidden="true">/</span> 真实接触执行 · 放置与关柜验证 · 机械臂归位</p>
     </header>
 
     <section class="scene-panel" aria-label="实时物理仿真">
@@ -25,6 +25,7 @@
         <img id="frame" alt="MuJoCo 实时渲染的机械臂与工作台场景" hidden>
         <div id="empty-frame" class="empty-frame"><span class="empty-mark" aria-hidden="true">＋</span><p>等待仿真器首帧</p><small>仅显示后端物理仿真渲染画面</small></div>
         <span id="stale-frame" class="stale-frame" hidden>连接已中断 · 最后一帧</span>
+        <div id="task-overlay" class="task-overlay" hidden><strong id="overlay-task"></strong><span id="overlay-phase"></span></div>
       </div>
       <div class="controls" aria-label="仿真控制">
         <button id="toggle" class="primary" type="button" disabled>开始运行</button>
@@ -45,9 +46,9 @@
     <aside class="right-pane" aria-label="抓取任务与仿真状态">
       <section id="planner-panel" class="planner-panel" aria-labelledby="planner-title" data-status="waiting">
         <div class="section-heading"><h2 id="planner-title">GPT 订阅规划</h2><span id="planner-status" role="status">等待状态</span></div>
-        <p id="planner-scope" class="planner-note">仅支持黑碗抓取与稳定保持。GPT 可在后端范围内选择三个抓取参数、说明固定六阶段，不可重排控制器、生成动作代码、开抽屉或操作瓶子。下降与闭合可按触发高度重叠。</p>
+        <p id="planner-scope" class="planner-note">按后端选定目标规划：黑碗可抓取保持，或放入已打开的下层抽屉、关柜并归位；酒瓶仅支持抓取保持。GPT 选择任务与三个有界抓取参数，不能编写动作代码、重排阶段或打开已关闭的抽屉。</p>
         <label class="task-label" for="planner-task">任务描述 <span>最多 1000 字符</span></label>
-        <textarea id="planner-task" rows="3" maxlength="1000" required disabled aria-describedby="planner-scope planner-hint">抓起黑碗并稳定保持，在抓取成功的前提下尽量减少耗时。</textarea>
+        <textarea id="planner-task" rows="3" maxlength="1000" required disabled aria-describedby="planner-scope planner-hint">抓起黑碗并稳定保持，然后放入已经打开的下层抽屉，撤出夹爪，关闭抽屉，最后机械臂归位。</textarea>
         <div class="planner-actions">
           <button id="plan-generate" class="primary" type="button" disabled>生成 GPT 计划</button>
           <button id="plan-execute" type="button" disabled>执行已校验计划</button>
@@ -68,14 +69,15 @@
           <p id="plan-reason" class="planner-note"></p>
           <p id="plan-parameters" class="applied-parameters" hidden></p>
           <ol id="plan-steps" class="plan-steps" aria-label="GPT 固定阶段计划"></ol>
-          <p class="planner-note">规划文本不是成功证据。实际阶段、执行时间（仿真秒）与抓取成败以下方后端物理状态为准。</p>
+          <p class="planner-note">规划文本不是成功证据。完整收纳任务必须完成放置、关柜与归位；仅抓起黑碗不算完成。</p>
         </div>
       </section>
       <section id="skill-panel" class="skill-panel" aria-labelledby="skill-title" data-status="waiting">
-        <div class="section-heading"><h2 id="skill-title">黑碗抓取 · 物理执行与手动对照</h2><span id="skill-result" role="status">等待状态</span></div>
+        <div class="section-heading"><h2 id="skill-title">物理执行与手动对照</h2><span id="skill-result" role="status">等待状态</span></div>
         <div class="grasp-actions">
           <button id="grasp" class="grasp-button" type="button" disabled aria-describedby="skill-hint">运行固定 baseline</button>
           <button id="grasp-custom" class="primary grasp-button" type="button" disabled aria-describedby="skill-hint parameter-error">运行自定义参数</button>
+          <button id="store-script" class="grasp-button store-button" type="button" disabled aria-describedby="skill-hint">运行完整固定任务 · 不调用 GPT</button>
         </div>
         <div class="parameter-inputs" aria-label="自定义抓取参数">
           <label for="initial-opening">初始开度 <span>mm</span><input id="initial-opening" type="number" value="80" step="any" required disabled aria-describedby="initial-opening-range"><small id="initial-opening-range">等待后端范围</small></label>
@@ -85,9 +87,7 @@
         <p class="skill-criteria">固定 baseline：80 mm / 100 mm/s / 0 mm，确认下降到位后闭合。下降速度为轨迹设定值，并非恒定实测速度；闭合高度相对下降目标。修改参数不会自动运行或重置。</p>
         <p id="parameter-error" class="skill-failure" role="alert" hidden></p>
         <p id="skill-hint" class="skill-hint">等待后端技能状态。</p>
-        <ol id="skill-stages" class="skill-stages" aria-label="抓取执行阶段">
-          <li data-phase="prepare">准备</li><li data-phase="approach">接近</li><li data-phase="descend">下降</li><li data-phase="close">闭合</li><li data-phase="lift">抬升</li><li data-phase="hold">保持</li>
-        </ol>
+        <ol id="skill-stages" class="skill-stages" aria-label="后端物理执行阶段"></ol>
         <p class="skill-phase">当前阶段：<strong id="skill-phase">等待状态</strong></p>
         <p id="skill-message" class="skill-message">仅显示后端执行结果，不由页面推断成功。</p>
         <p id="early-close" class="early-close" role="status" hidden></p>
@@ -95,13 +95,26 @@
         <p id="skill-failure" class="skill-failure" role="alert" hidden></p>
         <dl class="metadata skill-metrics">
           <div><dt>执行时间 · 仿真秒</dt><dd><output id="skill-elapsed">—</output> <small>s</small></dd></div>
-          <div><dt>实际抬升 · 相对稳定碗位</dt><dd><output id="skill-lift">—</output> <small>cm</small></dd></div>
-          <div><dt>稳定保持时间</dt><dd><output id="skill-hold">—</output> <small>s</small></dd></div>
+          <div><dt>当前高度 · 相对初始稳定位置</dt><dd><output id="skill-lift">—</output> <small>cm</small></dd></div>
+          <div><dt>抓取阶段稳定保持</dt><dd><output id="skill-hold">—</output> <small>s</small></dd></div>
           <div><dt>当前阶段时间</dt><dd><output id="skill-phase-elapsed">—</output> <small>s</small></dd></div>
           <div><dt>实际下降 / 闭合重叠</dt><dd><output id="skill-overlap">—</output> <small>s</small></dd></div>
           <div><dt>闭合开始 / 下降完成 · 相对任务起点</dt><dd><output id="close-started">—</output> / <output id="descent-completed">—</output> <small>s</small></dd></div>
         </dl>
-        <p class="skill-criteria">目标：实际抬升 ≥ 10 cm，夹爪接触并稳定保持 1 s；由后端判定。</p>
+        <p id="goal-criteria" class="skill-criteria">等待后端任务与完成判据。</p>
+        <div id="storage-status" hidden>
+          <h3>收纳与归位 · 物理真值</h3>
+          <dl class="metadata storage-metrics">
+            <div><dt>碗完全位于抽屉内</dt><dd id="store-contained">—</dd></div>
+            <div><dt>碗受到抽屉底面支撑</dt><dd id="store-supported">—</dd></div>
+            <div><dt>夹爪已松开并撤离</dt><dd id="store-clear">—</dd></div>
+            <div><dt>抽屉位移 · 关闭位置为 0</dt><dd><output id="store-drawer">—</output> <small>mm</small></dd></div>
+            <div><dt>抽屉已关闭</dt><dd id="store-closed">—</dd></div>
+            <div><dt>最大关节归位误差</dt><dd><output id="store-home-error">—</output> <small>rad</small></dd></div>
+            <div><dt>机械臂已归位</dt><dd id="store-home">—</dd></div>
+            <div><dt>最终状态验证保持</dt><dd><output id="store-verified">—</output> <small>s</small></dd></div>
+          </dl>
+        </div>
         <details class="phase-details"><summary>各阶段耗时 <span>仿真秒</span></summary><dl id="phase-times" class="phase-times"><dt>等待后端状态</dt></dl></details>
       </section>
       <section class="experiments" aria-labelledby="experiments-title">
@@ -127,6 +140,7 @@
         <div><dt>机械臂</dt><dd id="robot-name">—</dd></div>
         <div><dt>夹爪开度</dt><dd><output id="gripper">—</output> <small>mm</small></dd></div>
         <div><dt>接触数 / 物理步长</dt><dd><output id="contacts">—</output> / <output id="timestep">—</output> <small>ms</small></dd></div>
+        <div><dt>意外接触事件 / 峰值法向力</dt><dd><output id="collision-episodes">—</output> / <output id="collision-force">—</output> <small>N</small></dd></div>
       </dl>
       <p id="telemetry-note" class="telemetry-note">等待后端状态；无估计值。</p>
       <div id="objects" class="objects" aria-label="物体位置与姿态"></div>
@@ -135,7 +149,7 @@
       <p class="source">场景来源 <span id="source">—</span></p>
     </section>
     </aside>
-    <footer>GPT 经官方 OpenAI API 生成受限计划，后端严格校验后仍须手动执行；未配置或请求失败时不会生成替代计划。实时画面、数值与抓取结果来自 MuJoCo 物理仿真，不是视频回放或模型判断；固定 baseline、自定义参数与已存储实验保留，尚未接入视觉识别。</footer>
+    <footer>GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅生成受限计划；后端校验后仍须明确执行。实时画面与任务成败来自 MuJoCo，不是视频回放或模型自报成功。碗与抽屉保持原尺寸，抽屉初态使用原滑轨的完整开度；放置、关闭和归位均由真实物理状态验证。</footer>
   </main>
 </body>
 </html>

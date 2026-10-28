@@ -34,6 +34,13 @@ const ui = {
   planPreviewTitle: byId("plan-preview-title"), planSummary: byId("plan-summary"),
   planReason: byId("plan-reason"), planParameters: byId("plan-parameters"),
   planSteps: byId("plan-steps"),
+  storeScript: byId("store-script"), goalCriteria: byId("goal-criteria"),
+  taskOverlay: byId("task-overlay"), overlayTask: byId("overlay-task"), overlayPhase: byId("overlay-phase"),
+  storageStatus: byId("storage-status"), storeContained: byId("store-contained"),
+  storeSupported: byId("store-supported"), storeClear: byId("store-clear"),
+  storeDrawer: byId("store-drawer"), storeClosed: byId("store-closed"),
+  storeHomeError: byId("store-home-error"), storeHome: byId("store-home"), storeVerified: byId("store-verified"),
+  collisionEpisodes: byId("collision-episodes"), collisionForce: byId("collision-force"),
 };
 let socket = null;
 let state = null;
@@ -45,16 +52,21 @@ let lastPlanner = null;
 let pendingPlannerAction = null;
 let plannerDisplayKey = null;
 let planPreviewKey = null;
+let displayedPhaseOrder = "";
 const plannerLabels = {
   unconfigured: "未找到 Codex CLI", idle: "待规划", planning: "正在请求 GPT",
   ready: "计划已校验 · 待执行", unsupported: "任务不受支持", failed: "失败",
-  executing: "物理执行中", succeeded: "物理抓取成功", cancelled: "规划已取消",
+  executing: "物理执行中", succeeded: "物理任务成功", cancelled: "规划已取消",
 };
 const phaseLabels = {
   idle: "待开始", prepare: "准备", approach: "接近", descend: "下降",
   close: "闭合夹爪", lift: "抬升", hold: "稳定保持", done: "完成", failed: "失败",
+  transfer: "移至抽屉上方", place: "放入抽屉", release: "松爪与放稳", withdraw: "撤出夹爪",
+  push_approach: "接近抽屉把手", push_drawer: "推动关柜", push_withdraw: "撤离把手",
+  return_home: "机械臂归位", verify_store: "验证最终状态",
 };
-const skillLabels = { idle: "待开始", running: "执行中", succeeded: "抓取成功", failed: "抓取失败" };
+const skillLabels = { idle: "待开始", running: "执行中", succeeded: "任务成功", failed: "任务失败" };
+const taskLabels = { grasp: "抓取与保持", store_bowl: "黑碗收纳、关柜与归位" };
 const parameterFields = [
   { key: "initial_opening_m", input: byId("initial-opening"), label: "初始开度", unit: "mm", baseline: 0.08 },
   { key: "descent_speed_m_s", input: byId("descent-speed"), label: "下降速度", unit: "mm/s", baseline: 0.10 },
@@ -235,7 +247,7 @@ function renderPlanner(ready) {
     : planner.status === "ready" ? "请检查下方本次任务和真实计划，再明确点击执行；放弃计划后才能使用手动控制。"
     : planner.status === "unsupported" ? "GPT 判定任务超出固定控制器能力；没有可执行动作。请修改任务后重新生成。"
     : planner.status === "executing" ? "已交由真实物理控制器执行；可暂停或重置，不能用「取消规划」中止物理执行。"
-    : !idle ? "物理任务不在待开始状态；请先重置，再生成新计划。抓取结果以下方物理真值为准。"
+    : !idle ? "物理任务不在待开始状态；请先重置，再生成新计划。任务结果以下方物理真值为准。"
     : planner.status === "failed" ? "本次规划未获得可执行结果；请查看错误并按需重新生成，不会自动重试。"
     : "使用当前 ChatGPT 订阅登录，不需要 API 密钥。生成前会检查 Codex 登录；生成只请求规划，不会执行。";
   ui.plannerSetup.hidden = !known || planner.configured;
@@ -279,8 +291,16 @@ function renderPlanner(ready) {
   for (const item of ui.planSteps.children) {
     const active = executing && state?.skill?.phase === item.dataset.phase;
     item.classList.toggle("active", active);
-    if (active) item.setAttribute("aria-current", "step");
-    else item.removeAttribute("aria-current");
+    if (active) {
+      if (item.getAttribute("aria-current") !== "step") {
+        const top = item.offsetTop;
+        const bottom = top + item.offsetHeight;
+        if (top < ui.planSteps.scrollTop || bottom > ui.planSteps.scrollTop + ui.planSteps.clientHeight) {
+          ui.planSteps.scrollTop = Math.max(0, top - ui.planSteps.clientHeight / 3);
+        }
+      }
+      item.setAttribute("aria-current", "step");
+    } else item.removeAttribute("aria-current");
   }
 }
 
@@ -296,6 +316,10 @@ function renderSkill(ready) {
   const skill = ready ? state.skill : lastSkill;
   const known = skill && Object.hasOwn(skillLabels, skill.status);
   ui.grasp.disabled = !ready || !known || skill.status !== "idle" || plannerLocksScene();
+  ui.storeScript.disabled = ui.grasp.disabled || !state?.available_tasks?.some((task) => task.kind === "store_bowl");
+  ui.taskOverlay.hidden = !ready || !known || skill.status === "idle";
+  ui.overlayTask.textContent = known ? taskLabels[skill.task_kind] || "物理任务" : "";
+  ui.overlayPhase.textContent = known ? `${skillLabels[skill.status]} · ${phaseLabels[skill.phase] || skill.phase}` : "";
   updateParameterControls(ready, known ? skill : null);
   ui.skillPanel.dataset.status = !ready ? "stale" : known ? skill.status : "waiting";
   ui.skillResult.textContent = known
@@ -303,9 +327,9 @@ function renderSkill(ready) {
     : "等待状态";
   ui.skillHint.textContent = !ready
     ? "未连接或状态不可用；已有数值仅为最后状态，无法确认当前执行结果。"
-    : !known ? "等待后端技能状态；暂不能开始抓取。"
+    : !known ? "等待后端技能状态；暂不能开始物理任务。"
     : plannerLocksScene() ? "GPT 规划或待执行计划已锁定场景；先取消规划、放弃计划或重置，才能运行手动对照。"
-    : skill.status === "idle" ? "选择固定 baseline 或自定义参数运行；将自动恢复物理仿真。"
+    : skill.status === "idle" ? "手动按钮直接运行固定控制器，不调用 GPT。完整固定任务使用 baseline 抓取参数；自定义按钮仅抓取保持。"
     : skill.status === "running" ? "任务执行中，可暂停；重新尝试前请先重置。"
     : "本次任务已结束；请点击「重置」后重新尝试。";
   ui.skillPhase.textContent = known ? (phaseLabels[skill.phase] || skill.phase || "未报告") : "等待状态";
@@ -328,6 +352,32 @@ function renderSkill(ready) {
   ui.earlyClose.hidden = !closingDuringDescent;
   ui.earlyClose.textContent = closingDuringDescent
     ? `下降阶段已触发闭合 · 后端开始时间 ${number(skill.close_started_s, 3)} s${state.paused ? " · 已暂停" : ""}；实际运动重叠见下方测量。` : "";
+  const order = known && Array.isArray(skill.phase_order) ? skill.phase_order : [];
+  const orderKey = JSON.stringify(order);
+  if (orderKey !== displayedPhaseOrder) {
+    displayedPhaseOrder = orderKey;
+    ui.skillStages.replaceChildren(...order.map((phase) => {
+      const stage = document.createElement("li");
+      stage.dataset.phase = phase;
+      stage.textContent = phaseLabels[phase] || phase;
+      return stage;
+    }));
+  }
+  const storing = known && skill.task_kind === "store_bowl";
+  ui.goalCriteria.textContent = !known ? "等待后端任务与完成判据。" : storing
+    ? "抓取保持只是中间步骤。最终须确认碗在抽屉内并受到支撑、夹爪已撤离、抽屉关闭、机械臂归位且状态稳定；由后端判定。"
+    : "抓取目标：实际抬升 ≥ 10 cm，双侧夹持并稳定保持 1 s；由后端判定。";
+  ui.storageStatus.hidden = !storing;
+  const storage = storing ? skill.storage : null;
+  const yesNo = (value) => value === true ? "是" : value === false ? "否" : "—";
+  ui.storeContained.textContent = yesNo(storage?.bowl_inside_drawer);
+  ui.storeSupported.textContent = yesNo(storage?.bowl_supported);
+  ui.storeClear.textContent = yesNo(storage?.gripper_clear);
+  ui.storeDrawer.textContent = number(storage?.drawer_position_m * 1000, 2);
+  ui.storeClosed.textContent = yesNo(storage?.drawer_closed);
+  ui.storeHomeError.textContent = number(storage?.home_error_rad, 4);
+  ui.storeHome.textContent = yesNo(storage?.home_reached);
+  ui.storeVerified.textContent = number(storage?.verification_hold_s, 2);
   const stages = Array.from(ui.skillStages.children);
   const current = known ? stages.findIndex((stage) => stage.dataset.phase === skill.phase) : -1;
   stages.forEach((stage, index) => {
@@ -459,6 +509,8 @@ function renderState(next) {
   ui.gripper.textContent = number(state.gripper_opening_m * 1000, 2);
   ui.contacts.textContent = Number.isFinite(state.contacts) ? String(state.contacts) : "—";
   ui.timestep.textContent = number(state.timestep_s * 1000, 2);
+  ui.collisionEpisodes.textContent = Number.isInteger(state.collisions?.episodes) ? String(state.collisions.episodes) : "—";
+  ui.collisionForce.textContent = number(state.collisions?.peak_force_n, 2);
   ui.note.textContent = state.objects.length ? "世界坐标 XYZ（m）；姿态四元数按 w、x、y、z 排列。" : "后端当前未报告物体。";
   updateObjects(state.objects);
   updateJoints(state.joint_positions_rad);
@@ -569,6 +621,9 @@ ui.step.addEventListener("click", () => {
 ui.reset.addEventListener("click", () => send({ action: "reset" }));
 ui.grasp.addEventListener("click", () => {
   if (!ui.grasp.disabled && state?.skill?.status === "idle") send({ action: "grasp" });
+});
+ui.storeScript.addEventListener("click", () => {
+  if (!ui.storeScript.disabled && state?.skill?.status === "idle") send({ action: "store" });
 });
 ui.graspCustom.addEventListener("click", () => {
   if (ui.graspCustom.disabled || state?.skill?.status !== "idle") return;

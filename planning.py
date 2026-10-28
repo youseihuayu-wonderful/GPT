@@ -8,7 +8,7 @@ import secrets
 import time
 import traceback
 
-from planner import DEFAULT_MODEL, PlannerConfig, PlannerError, PlanResult, request_plan
+from planner import DEFAULT_MODEL, PlannerConfig, PlannerError, PlanResult, request_plan, validate_plan
 from simulation import Simulation
 
 
@@ -118,10 +118,12 @@ class PlanningSession:
             raise ValueError("没有等待执行的已校验计划")
         if self._simulation.skill.status != "idle":
             raise ValueError("场景已开始其他任务，请先重置并重新规划")
-        parameters = self._result.plan.parameters
-        if parameters is None:
-            raise ValueError("该计划不包含可执行的抓取动作")
-        self._simulation.start_grasp(parameters)
+        plan = validate_plan(self._result.plan.to_dict())
+        if plan.decision != "plan" or plan.parameters is None:
+            raise ValueError("该计划不包含可执行任务")
+        if plan.target_object != self._simulation.state()["target_object"]:
+            raise ValueError("计划目标与当前选定物体不符，请重置并重新规划")
+        self._simulation.start_task(plan.task_kind, plan.parameters)
         self._status = "executing"
 
     def cancel(self) -> None:

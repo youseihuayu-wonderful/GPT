@@ -11,6 +11,7 @@ import mujoco
 
 from grasp import GraspParameters
 from simulation import Simulation
+from task_specs import TASKS
 
 
 VALIDATION_HOLD_S = 5.0
@@ -38,8 +39,8 @@ CASES = (
 def run_case(name: str, parameters: GraspParameters) -> dict:
     sim = Simulation()
     try:
-        sim.start_grasp(parameters)
-        deadline = float(sim.data.time) + sim.skill.WATCHDOG + SAMPLE_PERIOD_S
+        sim.start_task("grasp", parameters)
+        deadline = float(sim.data.time) + TASKS["grasp"].watchdog_s + SAMPLE_PERIOD_S
         while sim.skill.status == "running":
             if sim.data.time > deadline:
                 raise RuntimeError(f"{name}: controller did not terminate within its watchdog")
@@ -87,10 +88,12 @@ def main() -> None:
         )
     report = {
         "kind": "fixed_scene_parameter_sweep",
+        "task_kind": "grasp",
+        "target_object": "bowl",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "mujoco_version": mujoco.__version__,
         "validation_hold_s": VALIDATION_HOLD_S,
-        "note": "同一固定初始场景，各配置仅执行一次；成功后继续物理验证 5 秒。不代表统计成功率或跨场景性能。",
+        "note": "仅黑碗抓取：同一固定初始场景，各配置仅执行一次；成功后继续物理验证 5 秒。不代表瓶子、收纳、统计成功率或跨场景性能。",
         "runs": runs,
     }
     serialized = json.dumps(report, indent=2, ensure_ascii=False, allow_nan=False) + "\n"

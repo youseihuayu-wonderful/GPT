@@ -11,13 +11,22 @@ import numpy as np
 from PIL import Image
 
 from grasp import GraspParameters, GraspSkill
+from collisions import CollisionTracker
+from scenarios import DEFAULT_CASE, TARGETS, SceneCase
+from task_specs import TASKS
 
 ROOT = Path(__file__).resolve().parent
 ARM_HOME = np.array([0.0, -0.5, 0.0, -2.2, 0.0, 1.8, 0.7853981634])
 
 
 class Simulation:
-    def __init__(self) -> None:
+    def __init__(self, case: SceneCase = DEFAULT_CASE) -> None:
+        if not isinstance(case, SceneCase):
+            raise ValueError("case must be a SceneCase")
+        # Validate before compiling or mutating any physics state.
+        case.__post_init__()
+        self.case = case
+        self.target = TARGETS[case.target_object]
         scene = mujoco.MjSpec.from_file(str(ROOT / "scene.xml"))
         robot = mujoco.MjSpec.from_file(str(ROOT / "vendor" / "panda" / "panda.xml"))
         for key in list(robot.keys):
@@ -67,6 +76,7 @@ class Simulation:
             self.model.joint(f"robot_finger_joint{i}").qposadr[0] for i in (1, 2)
         ])
         self.gripper_actuator = self.model.actuator("robot_actuator8").id
+        self.arm_home = ARM_HOME.copy()
         self.object_names = ("bowl_object", "bottle_object", "cabinet_cabinet_bottom")
         self.renderer = None
         self.camera = mujoco.MjvCamera()
@@ -75,20 +85,33 @@ class Simulation:
         self.options.geomgroup[0] = 0
         self.options.geomgroup[3] = 0
         self.skill = GraspSkill(self)
+        self.collisions = CollisionTracker(
+            self.model, self.data, self.skill.target_body, self.skill.fingers, self.skill.table,
+        )
         self.reset()
 
     def reset(self) -> None:
+        self.case.__post_init__()
         mujoco.mj_resetData(self.model, self.data)
         self.data.qpos[self.arm_qpos] = ARM_HOME
         self.data.qpos[self.finger_qpos] = 0.04
         self.data.ctrl[self.arm_actuators] = ARM_HOME
         self.data.ctrl[self.gripper_actuator] = 0
-        self.data.qpos[self.model.joint("cabinet_bottom_level").qposadr[0]] = -0.12
+        self.data.qpos[self.model.joint("cabinet_bottom_level").qposadr[0]] = -0.16
+        joint = self.model.joint(f"{self.target.name}_free")
+        qpos = int(joint.qposadr[0])
+        self.data.qpos[qpos:qpos + 2] += self.case.offset_xy_m
+        half_yaw = self.case.yaw_rad / 2.0
+        yaw = np.array([np.cos(half_yaw), 0.0, 0.0, np.sin(half_yaw)])
+        orientation = self.data.qpos[qpos + 3:qpos + 7].copy()
+        mujoco.mju_mulQuat(self.data.qpos[qpos + 3:qpos + 7], yaw, orientation)
         mujoco.mj_forward(self.model, self.data)
         self.skill.reset()
+        self.collisions.reset()
 
-    def start_grasp(self, parameters: GraspParameters | None = None) -> None:
-        self.skill.start(parameters)
+    def start_task(self, task_kind: str, parameters: GraspParameters | None = None) -> None:
+        self.skill.start(task_kind, parameters)
+        self.collisions.reset()
 
     def step(self, duration_s: float = 0.02) -> None:
         steps = round(duration_s / self.model.opt.timestep)
@@ -97,9 +120,18 @@ class Simulation:
         for _ in range(steps):
             self.skill.update()
             self.skill.apply_control()
+            track_contacts = self.skill.status in ("running", "succeeded")
             mujoco.mj_step(self.model, self.data)
             # Refresh poses/contact forces for the controller at the next step.
             mujoco.mj_forward(self.model, self.data)
+            if track_contacts:
+                self.collisions.update(float(self.model.opt.timestep), self.skill)
+                if self.skill.task_kind == "store_bowl" and self.collisions.records:
+                    self.skill.fail("Unplanned contact during bowl storage")
+                elif (self.skill.status == "succeeded" and self.skill.storage is not None
+                      and not self.skill.storage.final_valid()):
+                    self.skill.storage.verification_hold_s = 0.0
+                    self.skill.fail("Stored-state verification lost after physics integration")
         warnings = self.warning_names()
         if warnings or not np.isfinite(self.data.qpos).all():
             raise RuntimeError(f"MuJoCo state is invalid: {warnings}")
@@ -128,6 +160,12 @@ class Simulation:
             "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
             "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
             "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+            "target_object": self.target.name,
+            "grasp_target": self.target.to_dict(),
+            "scenario": self.case.to_dict(),
+            "available_tasks": [task.to_dict() for task in TASKS.values()
+                                if self.target.name in task.target_objects],
+            "collisions": self.collisions.state(),
             "objects": [self.get_object_pose(name) for name in self.object_names],
             "joint_positions_rad": self.data.qpos[self.arm_qpos].tolist(),
             "gripper_opening_m": float(self.data.qpos[self.finger_qpos].sum()),
@@ -162,7 +200,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seconds", type=float, default=1.0)
     parser.add_argument("--image", type=Path, help="Save an actual MuJoCo-rendered JPEG")
-    parser.add_argument("--grasp", action="store_true", help="Execute the fixed-script grasp until success or failure")
+    parser.add_argument("--task", choices=tuple(TASKS), help="Execute grasp-and-hold or complete bowl storage")
+    parser.add_argument("--target", choices=tuple(TARGETS), default="bowl", help="Object to grasp")
     options = (
         ("--initial-opening-mm", "initial_opening_m", "Initial finger opening", "mm"),
         ("--descent-speed-mm-s", "descent_speed_m_s", "Nominal descent speed", "mm/s"),
@@ -175,31 +214,32 @@ def main() -> None:
         parser.add_argument(
             flag, dest=name, type=float,
             help=(f"{description}: {bounds['min'] * 1000:g}–{bounds['max'] * 1000:g} {unit}, "
-                  f"default {defaults[name] * 1000:g}; requires --grasp"),
+                  f"default {defaults[name] * 1000:g}; requires --task"),
         )
     args = parser.parse_args()
     supplied = {
         name: getattr(args, name) / 1000.0
         for _, name, _, _ in options if getattr(args, name) is not None
     }
-    if supplied and not args.grasp:
-        parser.error("Grasp parameter options require --grasp")
+    if supplied and not args.task:
+        parser.error("Grasp parameter options require --task")
     try:
         parameters = GraspParameters(**supplied) if supplied else None
     except ValueError as exc:
         parser.error(str(exc))
-    sim = Simulation()
+    case = SceneCase(f"{args.target}.nominal", args.target, "nominal", 0, (0.0, 0.0), 0.0)
+    sim = Simulation(case)
     try:
         if args.seconds:
             sim.step(args.seconds)
-        if args.grasp:
-            sim.start_grasp(parameters)
+        if args.task:
+            sim.start_task(args.task, parameters)
             while sim.skill.status == "running":
                 sim.step()
         print(json.dumps(sim.state(), indent=2, ensure_ascii=False))
         if args.image:
             args.image.write_bytes(base64.b64decode(sim.render()))
-        if args.grasp and sim.skill.status != "succeeded":
+        if args.task and sim.skill.status != "succeeded":
             raise SystemExit(1)
     finally:
         sim.close()
