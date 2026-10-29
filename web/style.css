@@ -58,7 +58,7 @@ button span { font-size: 10px; margin-left: 2px; }
 .planner-panel .section-heading > span { font-size: 12px; }
 .planner-panel[data-status="ready"] .section-heading > span, .planner-panel[data-status="executing"] .section-heading > span, .planner-panel[data-status="succeeded"] .section-heading > span { color: var(--accent); }
 .planner-panel[data-status="failed"] .section-heading > span, .planner-panel[data-status="unsupported"] .section-heading > span { color: #ffb9b3; }
-.planner-panel[data-status="stale"] .plan-preview, .planner-panel[data-status="stale"] .planner-metadata { opacity: .55; }
+.planner-panel[data-status="stale"] .plan-preview, .planner-panel[data-status="stale"] .planner-metadata, .planner-panel[data-status="stale"] .planner-history { opacity: .55; }
 .planner-note { margin: 8px 0; font-size: 11px; line-height: 1.7; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .task-label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 12px; margin-top: 12px; }
 .task-label span { color: var(--muted); font-size: 10px; }
@@ -72,11 +72,16 @@ button span { font-size: 10px; margin-left: 2px; }
 .planner-submitted h3, .plan-preview h3 { font-size: 12px; font-weight: 600; margin: 0 0 8px; }
 .planner-submitted p, #plan-summary { font-size: 12px; line-height: 1.7; margin: 8px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .plan-preview { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
-.plan-steps { position: relative; max-height: 320px; overflow-y: auto; overscroll-behavior: contain; padding-left: 24px; margin: 10px 0; }
-.plan-steps li { padding: 7px 8px; margin-block: 4px; border-left: 3px solid #364454; font-size: 11px; line-height: 1.7; color: #b8c8d9; overflow-wrap: anywhere; }
-.plan-steps strong { display: block; font-size: 12px; font-weight: 550; }
-.plan-steps span { white-space: pre-wrap; }
-.plan-steps li.active { border-color: var(--accent); background: #203b35; color: #c9f2e5; }
+.decision-skill { font-size: 13px; color: var(--accent); overflow-wrap: anywhere; }
+#plan-continuous { border-color: #a48b50; color: #f1d19a; }
+.planner-history { max-height: 440px; overflow-y: auto; overscroll-behavior: contain; padding-left: 24px; margin: 10px 0; }
+.planner-history li { padding: 8px; margin-block: 8px; border-left: 3px solid #364454; font-size: 11px; line-height: 1.7; color: #b8c8d9; overflow-wrap: anywhere; }
+.planner-history strong { display: block; font-size: 12px; font-weight: 550; }
+.planner-history p { margin: 6px 0; white-space: pre-wrap; }
+.planner-history li[data-status="succeeded"], .planner-history li[data-status="complete"] { border-color: var(--accent); }
+.planner-history li[data-status="failed"] { border-color: #ffb9b3; }
+.planner-history summary { cursor: pointer; color: var(--muted); }
+.planner-history pre { max-height: 220px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 10px; }
 .skill-panel { border: 1px solid var(--border); border-radius: 10px; padding: 14px; background: #151d28; }
 .skill-panel .section-heading { margin-bottom: 10px; }
 .skill-panel .section-heading > span { font-size: 12px; color: #c4d3e4; }

@@ -26,6 +26,7 @@ const ui = {
   plannerPanel: byId("planner-panel"), plannerStatus: byId("planner-status"),
   plannerTask: byId("planner-task"), plannerHint: byId("planner-hint"),
   planGenerate: byId("plan-generate"), planExecute: byId("plan-execute"),
+  planContinuous: byId("plan-continuous"), planNext: byId("plan-next"),
   planCancel: byId("plan-cancel"), plannerSetup: byId("planner-setup"),
   plannerError: byId("planner-error"), plannerModel: byId("planner-model"),
   plannerModelLabel: byId("planner-model-label"), plannerLatency: byId("planner-latency"),
@@ -33,7 +34,10 @@ const ui = {
   plannerSubmittedTask: byId("planner-submitted-task"), planPreview: byId("plan-preview"),
   planPreviewTitle: byId("plan-preview-title"), planSummary: byId("plan-summary"),
   planReason: byId("plan-reason"), planParameters: byId("plan-parameters"),
-  planSteps: byId("plan-steps"),
+  planGoal: byId("plan-goal"), planSkill: byId("plan-skill"),
+  plannerTotalLatency: byId("planner-total-latency"), plannerMode: byId("planner-mode"),
+  plannerGoalChecks: byId("planner-goal-checks"), plannerHistory: byId("planner-history"),
+  plannerHistoryEmpty: byId("planner-history-empty"),
   storeScript: byId("store-script"), goalCriteria: byId("goal-criteria"),
   taskOverlay: byId("task-overlay"), overlayTask: byId("overlay-task"), overlayPhase: byId("overlay-phase"),
   storageStatus: byId("storage-status"), storeContained: byId("store-contained"),
@@ -58,15 +62,15 @@ const jointOutputs = [];
 let lastSkill = null;
 let lastPlanner = null;
 let pendingPlannerAction = null;
-let plannerDisplayKey = null;
-let planPreviewKey = null;
+let plannerHistoryKey = null;
 let displayedPhaseOrder = "";
 let manualContractKey = null;
 let fatalRuntimeError = null;
 const plannerLabels = {
-  unconfigured: "未找到 Codex CLI", idle: "待规划", planning: "正在请求 GPT",
-  ready: "计划已校验 · 待执行", unsupported: "任务不受支持", failed: "失败",
-  executing: "物理执行中", succeeded: "物理任务成功", cancelled: "规划已取消",
+  unconfigured: "未找到 Codex CLI", idle: "待请求决策", planning: "正在请求 GPT",
+  ready: "单项决策已校验 · 待授权", unsupported: "任务不受支持", failed: "失败",
+  executing: "单技能执行中", waiting: "已收到反馈 · 待请求下一项",
+  stopping: "正在停止 · 等待当前技能结束", succeeded: "目标实测完成", cancelled: "决策循环已停止",
 };
 const phaseLabels = {
   idle: "待开始", prepare: "准备", approach: "接近", descend: "下降",
@@ -81,6 +85,22 @@ const primitiveLabels = {
   grasp_and_hold: "抓取与保持", place_and_release: "放置与释放",
   withdraw_from_drawer: "从抽屉撤出", close_drawer: "关闭抽屉", return_home: "机械臂归位",
 };
+const goalLabels = {
+  hold_target: "抓取目标并稳定保持", store_and_home: "收纳黑碗、关柜与归位",
+  close_and_home: "关闭抽屉并归位", home: "机械臂归位",
+};
+const checkLabels = {
+  bilateral_grip: "双侧真实夹持", clear_of_table: "目标离开桌面", target_lifted: "目标达到抬升高度",
+  relative_pose_stable: "相对夹持位姿稳定", verified_hold: "稳定保持验证通过",
+  bowl_inside_drawer: "黑碗完全位于抽屉内", bowl_supported: "黑碗受到抽屉底面支撑",
+  bowl_settled: "黑碗已静稳", hand_empty: "夹爪为空",
+  hand_clear_of_drawer: "手部已安全退出抽屉", support_preserved: "物体保持稳定支撑",
+  drawer_closed: "抽屉已关闭", home_reached: "机械臂已归位",
+};
+
+function checksSummary(checks) {
+  return Object.entries(checks || {}).map(([name, passed]) => `${checkLabels[name] || name}：${yesNo(passed)}`).join("；");
+}
 
 function primitiveLabel(name) {
   return state?.available_skills?.find((skill) => skill.name === name)?.label || primitiveLabels[name] || name || "未报告";
@@ -235,95 +255,119 @@ async function loadExperiments() {
 }
 
 function plannerLocksScene() {
-  return pendingPlannerAction !== null || ["planning", "ready"].includes(state?.planner?.status);
+  return pendingPlannerAction !== null || state?.planner?.locks_scene === true;
+}
+
+function renderPlannerHistory(planner) {
+  const history = planner?.history || [];
+  const key = JSON.stringify(history.map((record) => [
+    record.decision_id, record.status, record.error, record.latency_s,
+    record.execution_sim_s, record.execution_wall_s, record.result_observation?.time_s,
+  ]));
+  if (key === plannerHistoryKey) return;
+  plannerHistoryKey = key;
+  ui.plannerHistoryEmpty.hidden = history.length > 0;
+  ui.plannerHistory.replaceChildren(...history.map((record) => {
+    const item = document.createElement("li");
+    item.dataset.status = record.status;
+    const title = document.createElement("strong");
+    const decision = record.decision;
+    const action = decision?.decision === "execute" ? primitiveLabel(decision.skill)
+      : decision?.decision === "complete" ? "提出目标完成" : decision?.decision === "unsupported" ? "不支持" : "等待模型返回";
+    const resultLabel = record.status === "succeeded" ? "当前技能实测成功"
+      : record.status === "complete" ? "本地目标完成检查通过" : plannerLabels[record.status] || record.status;
+    title.textContent = `决策 #${record.decision_id} · ${action} · ${resultLabel}`;
+    const timing = document.createElement("p");
+    timing.textContent = `观察时刻 ${number(record.observation?.time_s, 3)} 仿真秒 → 反馈时刻 ${number(record.result_observation?.time_s, 3)} 仿真秒\nGPT ${number(record.latency_s, 2)} 墙钟秒 · 执行 ${number(record.execution_sim_s, 3)} 仿真秒 / ${number(record.execution_wall_s, 2)} 墙钟秒`;
+    const outcome = document.createElement("p");
+    const observed = record.result_observation?.skill;
+    outcome.textContent = record.error ? `失败：${record.error}`
+      : observed ? `实测反馈：${skillLabels[observed.status] || observed.status} · ${observed.message || ""}${observed.failure_reason ? ` · ${observed.failure_reason}` : ""}`
+      : "尚无执行反馈；模型回复不是物理成功证据。";
+    const goal = document.createElement("p");
+    goal.textContent = checksSummary(record.result_observation?.goal_checks?.[decision?.goal]);
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.textContent = "本次决策与真实请求 / 结果观测";
+    const payload = document.createElement("pre");
+    payload.textContent = JSON.stringify({
+      decision, model: record.model, thread_id: record.thread_id,
+      invocation_id: record.invocation_id, observation: record.observation,
+      result_observation: record.result_observation,
+    }, null, 2);
+    details.append(summary, payload);
+    item.append(title, timing, outcome, goal, details);
+    return item;
+  }));
 }
 
 function renderPlanner(ready) {
   const planner = ready ? state.planner : lastPlanner;
   const known = planner && Object.hasOwn(plannerLabels, planner.status);
-  const idle = ready && state.skill?.status === "idle";
-  const locked = known && ["planning", "ready", "executing"].includes(planner.status);
+  const canStart = ready && ["idle", "succeeded"].includes(state.skill?.status);
+  const locked = known && planner.locks_scene;
   const pending = pendingPlannerAction !== null;
   const task = ui.plannerTask.value.trim();
-  ui.plannerTask.disabled = !idle || !known || locked || pending;
-  ui.planGenerate.disabled = !idle || !known || locked || pending || !task || task.length > 1000;
-  ui.planExecute.disabled = !idle || !known || planner.status !== "ready"
-    || planner.plan?.decision !== "plan" || !Number.isInteger(planner.plan_id) || pending;
-  ui.planCancel.disabled = !ready || !known || !["planning", "ready"].includes(planner.status) || pending;
-  ui.planCancel.textContent = known && planner.status === "ready" ? "放弃待执行计划" : "取消规划";
-
-  const displayKey = JSON.stringify([ready, planner?.plan_id, planner?.status, planner?.configured,
-    planner?.model, planner?.latency_s, planner?.thread_id, planner?.diagnostic_count, planner?.error, pendingPlannerAction,
-    state?.skill?.status, state?.skill?.phase, state?.paused]);
-  if (displayKey === plannerDisplayKey) return;
-  plannerDisplayKey = displayKey;
+  const decision = known ? planner.decision : null;
+  const canExecute = ready && known && planner.status === "ready"
+    && ["execute", "complete"].includes(decision?.decision)
+    && Number.isInteger(planner.decision_id) && !pending;
+  ui.plannerTask.disabled = !canStart || !known || locked || pending;
+  ui.planGenerate.disabled = ui.plannerTask.disabled || !task || task.length > 1000;
+  ui.planExecute.disabled = !canExecute;
+  ui.planExecute.textContent = decision?.decision === "complete" ? "确认本地完成检查" : "仅执行当前一项";
+  ui.planContinuous.disabled = !canExecute || decision?.decision !== "execute";
+  ui.planNext.disabled = !ready || !known || planner.status !== "waiting" || pending;
+  ui.planCancel.disabled = !ready || !known || !locked || planner.status === "stopping" || pending;
   ui.plannerPanel.dataset.status = !ready ? "stale" : known ? planner.status : "waiting";
   ui.plannerStatus.textContent = known
-    ? `${plannerLabels[planner.status]}${!ready ? " · 最后状态" : planner.status === "executing" && state.paused ? " · 已暂停" : ""}`
-    : "等待规划状态";
+    ? `${plannerLabels[planner.status]}${!ready ? " · 最后状态" : state.paused ? " · 物理已暂停" : ""}`
+    : "等待决策状态";
   ui.plannerHint.textContent = !ready
-    ? "连接或状态不可用；预览仅为最后状态，不能确认当前规划或物理结果。不会自动重连、请求模型或执行。"
-    : !known ? "后端尚未报告规划功能状态，暂不能请求或执行。"
+    ? "连接或状态不可用；仅显示最后收到的记录，不会自动重连、请求模型或执行。"
+    : !known ? "等待后端决策功能状态。"
     : pending ? "操作已发送，等待后端确认；不会重复提交。"
-    : planner.status === "planning" ? "正在通过 Codex CLI 使用当前 ChatGPT 订阅；场景已冻结。可取消规划或重置，不会自动执行。"
-    : planner.status === "ready" ? "请检查下方本次任务和真实计划，再明确点击执行；放弃计划后才能使用手动控制。"
-    : planner.status === "unsupported" ? "GPT 判定任务超出固定控制器能力；没有可执行动作。请修改任务后重新生成。"
-    : planner.status === "executing" ? "已交由真实物理控制器执行；可暂停或重置，不能用「取消规划」中止物理执行。"
-    : !idle ? "物理任务不在待开始状态；请先重置，再生成新计划。任务结果以下方物理真值为准。"
-    : planner.status === "failed" ? "本次规划未获得可执行结果；请查看错误并按需重新生成，不会自动重试。"
-    : "使用当前 ChatGPT 订阅登录，不需要 API 密钥。生成前会检查 Codex 登录；生成只请求规划，不会执行。";
+    : planner.status === "planning" ? "GPT 正读取本次实时观测。未暂停时物理与夹持继续运行；第一次生成决策绝不自动执行。"
+    : planner.status === "ready" ? "检查本次目标、技能与参数。仅执行当前一项后会等待人工请求；持续授权才会依据实际反馈继续选择技能。"
+    : planner.status === "waiting" ? "当前技能已产生实际反馈。可从最新物理状态请求下一项；不会自动请求或重试。"
+    : planner.status === "stopping" ? "已停止后续决策；当前技能仍会正常完成，期间手动动作保持锁定。可暂停物理或重置。"
+    : planner.status === "unsupported" ? "GPT 判定任务不受支持；未使用替代动作。"
+    : planner.status === "executing" ? "仅运行本次选定技能；成功后记录真实结果，再按授权决定是否请求下一项。"
+    : planner.status === "failed" ? "决策或物理执行失败；没有自动重试或替代动作。请查看错误与历史。"
+    : planner.status === "succeeded" ? "目标已通过本地实测检查；物理仍持续验证，后续失稳会报告失败。"
+    : !canStart ? "当前物理执行不能开始新决策；等待成功或检查失败原因。"
+    : "使用当前 ChatGPT 订阅，无需 API 密钥。从当前场景生成第一项决策，不执行、不重置。";
+  if (ready && state.paused) ui.plannerHint.textContent += " 当前物理时钟已停止；授权不会自动恢复，请点击「开始运行」。GPT 墙钟延迟仍真实计时。";
   ui.plannerSetup.hidden = !known || planner.configured;
   ui.plannerError.textContent = known ? planner.error || "" : "";
   ui.plannerError.hidden = !ui.plannerError.textContent;
   ui.plannerModelLabel.textContent = "Codex 请求模型 · 当前 ChatGPT 订阅";
   ui.plannerModel.textContent = known ? planner.model : "—";
   ui.plannerLatency.textContent = number(known ? planner.latency_s : undefined, 2);
+  ui.plannerTotalLatency.textContent = number(known ? planner.total_latency_s : undefined, 2);
+  ui.plannerMode.textContent = known && planner.continuous
+    ? `持续授权 · 同一目标最多 ${planner.max_skills} 次技能调用 / 9 次模型请求`
+    : "逐项授权 · 当前一项结束后等待人工请求";
   ui.plannerResponse.textContent = known && planner.thread_id
-    ? `已完成的 Codex 会话 ID：${planner.thread_id}${planner.diagnostic_count ? ` · 非致命诊断 ${planner.diagnostic_count} 条（CLI 隔离设置会产生启动提示）` : ""}`
-    : "";
+    ? `最近 Codex 会话 ID：${planner.thread_id}${planner.diagnostic_count ? ` · 非致命诊断 ${planner.diagnostic_count} 条` : ""}` : "";
   ui.plannerResponse.hidden = !ui.plannerResponse.textContent;
   ui.plannerSubmitted.hidden = !known || !planner.task;
   ui.plannerSubmittedTask.textContent = known ? planner.task : "";
-  const plan = known ? planner.plan : null;
-  const previewKey = JSON.stringify([ready, planner?.plan_id, plan?.decision]);
-  ui.planPreview.hidden = !plan;
-  if (previewKey !== planPreviewKey) {
-    planPreviewKey = previewKey;
-    ui.planSummary.textContent = plan?.summary || "";
-    ui.planReason.textContent = plan ? `规划依据：${plan.reason}` : "";
-    ui.planParameters.hidden = !plan?.parameters;
-    ui.planParameters.textContent = plan?.parameters ? `已校验参数：${parameterSummary(plan.parameters)}` : "";
-    ui.planSteps.replaceChildren();
-    for (const step of plan?.steps || []) {
-      const item = document.createElement("li");
-      item.dataset.phase = step.phase;
-      const title = document.createElement("strong");
-      title.textContent = phaseLabels[step.phase] || step.phase;
-      const instruction = document.createElement("span");
-      instruction.textContent = step.instruction;
-      item.append(title, instruction);
-      ui.planSteps.append(item);
-    }
-  }
-  ui.planPreviewTitle.textContent = plan?.decision === "unsupported"
-    ? "GPT 不支持此任务 · 不可执行"
-    : planner?.status === "ready" ? "后端已校验计划 · 尚未执行" : "后端已校验计划 · 实际结果见物理状态";
-  const executing = known && ["executing", "succeeded", "failed"].includes(planner.status)
-    && plan?.decision === "plan";
-  for (const item of ui.planSteps.children) {
-    const active = executing && state?.skill?.phase === item.dataset.phase;
-    item.classList.toggle("active", active);
-    if (active) {
-      if (item.getAttribute("aria-current") !== "step") {
-        const top = item.offsetTop;
-        const bottom = top + item.offsetHeight;
-        if (top < ui.planSteps.scrollTop || bottom > ui.planSteps.scrollTop + ui.planSteps.clientHeight) {
-          ui.planSteps.scrollTop = Math.max(0, top - ui.planSteps.clientHeight / 3);
-        }
-      }
-      item.setAttribute("aria-current", "step");
-    } else item.removeAttribute("aria-current");
-  }
+  ui.planPreview.hidden = !decision;
+  ui.planSummary.textContent = decision?.summary || "";
+  ui.planReason.textContent = decision ? `决策依据：${decision.reason}` : "";
+  ui.planParameters.hidden = !decision?.parameters;
+  ui.planParameters.textContent = decision?.parameters ? `已校验参数：${parameterSummary(decision.parameters)}` : "";
+  const goal = planner?.goal || decision?.goal;
+  ui.planGoal.textContent = goal ? `${planner.goal ? "已授权目标" : "待批准目标"}：${goalLabels[goal] || goal} · 目标物体 ${decision?.target_object || "—"}` : "未提出可支持目标";
+  ui.planSkill.textContent = decision?.decision === "execute" ? `唯一选定技能：${primitiveLabel(decision.skill)}`
+    : decision?.decision === "complete" ? "模型提出完成；必须由本地物理判据验证，不再调用技能。" : "无可执行技能";
+  ui.planPreviewTitle.textContent = decision?.decision === "unsupported" ? "GPT 不支持此任务"
+    : `单项决策 #${planner?.decision_id} · ${planner?.status === "ready" ? "尚未执行" : "结果见实际反馈"}`;
+  ui.plannerGoalChecks.textContent = !ready ? "连接不可用；不能确认当前目标判据。"
+    : goal ? checksSummary(state.goal_checks?.[goal]) || "后端尚未报告此目标判据"
+    : "生成第一项决策后显示对应目标的实时物理判据。";
+  renderPlannerHistory(planner);
 }
 
 function sendPlanner(command) {
@@ -360,7 +404,7 @@ function renderManualSkills(ready) {
   ui.manualReadiness.dataset.ready = String(!ui.startSkill.disabled);
   ui.manualReadiness.textContent = !ready ? "未连接或状态不可用；不能确认技能当前是否可运行。"
     : !selected ? "等待后端技能列表；不推断可用性。"
-    : locked ? "GPT 规划或待执行计划已锁定场景；先取消规划或放弃计划，不能直接启动技能。"
+    : locked ? "GPT 决策循环拥有场景；先停止后续决策并等待当前技能结束，不能插入手动动作。"
     : selected.available !== true ? `不可运行：${selected.unavailable_reason || "后端未确认前置条件满足。"}`
     : needsParameters && !hasLimits ? "物理条件就绪，但后端尚未报告抓取参数范围。"
     : "后端已确认当前物理条件可用；启动时仍会重新检查。仅执行本技能，不自动选择下一项。";
@@ -406,7 +450,7 @@ function renderSkill(ready) {
   ui.skillHint.textContent = !ready
     ? "未连接或状态不可用；已有数值仅为最后状态，无法确认当前执行结果。"
     : !known ? "等待后端技能状态；暂不能开始物理任务。"
-    : plannerLocksScene() ? "GPT 规划或待执行计划已锁定场景；先取消规划、放弃计划或重置，才能运行手动对照。"
+    : plannerLocksScene() ? "GPT 决策循环拥有场景；停止后续决策并等待当前技能结束后，才能运行手动对照。"
     : skill.status === "idle" ? "固定任务仅可从待开始状态启动；独立技能由上方后端物理条件决定，不调用 GPT。"
     : skill.status === "running" ? "物理执行中，可暂停；不能插入其他任务或技能。"
     : skill.status === "succeeded" ? "本次执行已成功；可按上方物理条件启动下一独立技能，无需重置。固定任务重跑仍需重置。"
@@ -515,10 +559,10 @@ function setStatus(text, kind) {
 
 function updateControls() {
   const ready = socket?.readyState === WebSocket.OPEN && state !== null;
-  ui.toggle.disabled = !ready || (state.paused && plannerLocksScene());
+  ui.toggle.disabled = !ready;
   ui.reset.disabled = !ready;
   ui.camera.disabled = !ready;
-  ui.step.disabled = !ready || !state.paused || plannerLocksScene();
+  ui.step.disabled = !ready || !state.paused;
   ui.toggle.textContent = state && !state.paused ? "暂停" : "开始运行";
   renderSkill(ready);
   renderPlanner(ready);
@@ -593,11 +637,7 @@ function renderState(next) {
       || !Array.isArray(next.warnings)) {
     throw new Error("后端状态字段不完整，无法更新仿真状态。");
   }
-  if (state === null) {
-    plannerDisplayKey = null;
-    planPreviewKey = null;
-  }
-  if (pendingPlannerAction && (next.planner?.plan_id !== state?.planner?.plan_id
+  if (pendingPlannerAction && (next.planner?.decision_id !== state?.planner?.decision_id
       || next.planner?.status !== state?.planner?.status)) pendingPlannerAction = null;
   state = next;
   if (state.skill) lastSkill = state.skill;
@@ -773,7 +813,13 @@ ui.planGenerate.addEventListener("click", () => {
   if (!ui.planGenerate.disabled) sendPlanner({ action: "plan", task: ui.plannerTask.value.trim() });
 });
 ui.planExecute.addEventListener("click", () => {
-  if (!ui.planExecute.disabled) sendPlanner({ action: "execute_plan", plan_id: state.planner.plan_id });
+  if (!ui.planExecute.disabled) sendPlanner({ action: "execute_decision", decision_id: state.planner.decision_id, continuous: false });
+});
+ui.planContinuous.addEventListener("click", () => {
+  if (!ui.planContinuous.disabled) sendPlanner({ action: "execute_decision", decision_id: state.planner.decision_id, continuous: true });
+});
+ui.planNext.addEventListener("click", () => {
+  if (!ui.planNext.disabled) sendPlanner({ action: "plan_next" });
 });
 ui.planCancel.addEventListener("click", () => {
   if (!ui.planCancel.disabled) sendPlanner({ action: "cancel_plan" });

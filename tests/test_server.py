@@ -8,15 +8,24 @@ from unittest.mock import AsyncMock, patch
 from aiohttp import WSMsgType
 from aiohttp.test_utils import TestClient, TestServer
 
-from planner import PlannerConfig
+from grasp import GraspParameters
+from planner import DecisionResult, PlannerConfig, PlannerError, SkillDecision
 import server
 
 
 class ServerTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        config = patch("planning.PlannerConfig.load", return_value=PlannerConfig(None))
+        config = patch("planning.PlannerConfig.load", return_value=PlannerConfig("/fixture/codex"))
         config.start()
         self.addCleanup(config.stop)
+        self.decision = SkillDecision(
+            "execute", "Fixture grasp", "Explicit test fixture, not model evidence",
+            "hold_target", "bowl", "grasp_and_hold", GraspParameters(),
+        )
+        provider = patch("planning.request_decision", new_callable=AsyncMock)
+        self.provider = provider.start()
+        self.provider.return_value = DecisionResult(self.decision, "fixture-model", "fixture-thread", 0.25)
+        self.addCleanup(provider.stop)
         render = patch("server.Simulation.render", return_value="test-image")
         render.start()
         self.addCleanup(render.stop)
@@ -40,6 +49,19 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
                 message = await ws.receive_json()
                 if "error" in message:
                     return message
+
+    async def receive_state(self, ws, predicate) -> dict:
+        async with asyncio.timeout(2):
+            while True:
+                message = await ws.receive_json()
+                self.assertNotIn("error", message, message)
+                if predicate(message["state"]):
+                    return message["state"]
+
+    async def preview(self, ws) -> dict:
+        self.sim.step(1.0)
+        await ws.send_json({"action": "plan", "task": "抓起黑碗并稳定保持"})
+        return await self.receive_state(ws, lambda state: state["planner"]["status"] == "ready")
 
     async def assert_fatal_close(self, ws) -> None:
         self.assertEqual(await self.receive_error(ws), {
@@ -159,29 +181,231 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("primary worker error", "\n".join(logs.output))
         self.assertIn("disconnected", "\n".join(logs.output))
 
-    async def test_manual_skill_lock_and_acceptance_attribution_are_preserved(self) -> None:
+    async def test_first_request_preserves_live_physics_without_actuation(self) -> None:
         self.sim.step(1.0)
         ws = await self.connect()
-        self.planner._status = "ready"
-        revision = self.planner._revision
+        requested = asyncio.Event()
+        release = asyncio.Event()
+
+        async def delayed_decision(*args, **kwargs):
+            requested.set()
+            await release.wait()
+            return DecisionResult(self.decision, "fixture-model", "fixture-thread", 0.25)
+
+        self.provider.side_effect = delayed_decision
         with patch.object(self.sim, "start_skill", wraps=self.sim.start_skill) as start_skill:
-            await ws.send_json({"action": "skill", "skill": "grasp_and_hold"})
-            self.assertIn("锁定", (await self.receive_error(ws))["error"])
+            await ws.send_json({"action": "play"})
+            running = await self.receive_state(ws, lambda state: not state["paused"])
+            await ws.send_json({"action": "plan", "task": "抓起黑碗并稳定保持"})
+            await asyncio.wait_for(requested.wait(), 2)
+            live = await self.receive_state(ws, lambda state: (
+                state["planner"]["status"] == "planning" and state["time_s"] > running["time_s"]
+            ))
+            self.assertTrue(live["planner"]["locks_scene"])
+            self.assertEqual(live["skill"]["status"], "idle")
+            release.set()
+            preview = await self.receive_state(ws, lambda state: state["planner"]["status"] == "ready")
+            self.assertFalse(preview["paused"])
+            self.assertFalse(preview["planner"]["continuous"])
+            self.assertEqual(preview["planner"]["latency_s"], 0.25)
+            self.assertEqual(preview["planner"]["history"][0]["status"], "ready")
             start_skill.assert_not_called()
-            self.assertEqual(self.planner._revision, revision)
-            self.assertEqual(self.planner._status, "ready")
-            self.planner._status = "unsupported"
-            await ws.send_json({"action": "skill", "skill": "unknown_skill"})
+
+    async def test_manual_motion_locked_but_pause_play_and_single_tick_work(self) -> None:
+        ws = await self.connect()
+        preview = await self.preview(ws)
+        decision_id = preview["planner"]["decision_id"]
+        for command in (
+            {"action": "grasp"}, {"action": "store"},
+            {"action": "skill", "skill": "grasp_and_hold"},
+        ):
+            await ws.send_json(command)
+            self.assertIn("锁定", (await self.receive_error(ws))["error"])
+        await ws.send_json({"action": "step"})
+        stepped = await self.receive_state(ws, lambda state: state["time_s"] > preview["time_s"])
+        self.assertTrue(stepped["paused"])
+        self.assertEqual(stepped["skill"]["status"], "idle")
+        self.assertEqual(stepped["planner"]["decision_id"], decision_id)
+        await ws.send_json({"action": "play"})
+        await self.receive_state(ws, lambda state: not state["paused"])
+        await ws.send_json({"action": "pause"})
+        paused = await self.receive_state(ws, lambda state: state["paused"])
+        for _ in range(2):
+            current = await self.receive_state(ws, lambda state: True)
+            self.assertEqual(current["time_s"], paused["time_s"])
+            self.assertEqual(current["planner"]["status"], "ready")
+        self.provider.assert_awaited_once()
+
+    async def test_authorization_validates_arguments_and_preserves_pause(self) -> None:
+        ws = await self.connect()
+        preview = await self.preview(ws)
+        decision_id = preview["planner"]["decision_id"]
+        for command in (
+            {"action": "execute_plan", "plan_id": decision_id},
+            {"action": "execute_decision", "decision_id": True},
+            {"action": "execute_decision", "decision_id": decision_id + 1},
+            {"action": "execute_decision", "decision_id": decision_id, "continuous": "true"},
+        ):
+            await ws.send_json(command)
             self.assertNotIn("fatal", await self.receive_error(ws))
-            self.assertEqual(self.planner._revision, revision)
-            self.assertEqual(self.planner._status, "unsupported")
-            await ws.send_json({"action": "skill", "skill": "grasp_and_hold"})
-            async with asyncio.timeout(2):
-                while self.planner._revision == revision:
-                    message = await ws.receive_json()
-                    self.assertNotIn("error", message, message)
-            self.assertFalse(self.app[server.CONTROLS].paused)
-        await ws.close()
+            self.assertEqual(self.sim.skill.status, "idle")
+        await ws.send_json({"action": "execute_decision", "decision_id": decision_id, "continuous": True})
+        executing = await self.receive_state(ws, lambda state: state["planner"]["status"] == "executing")
+        self.assertTrue(executing["paused"])
+        self.assertTrue(executing["planner"]["continuous"])
+        self.assertEqual(executing["skill"]["skill_name"], "grasp_and_hold")
+        self.assertEqual(executing["time_s"], preview["time_s"])
+        for _ in range(2):
+            current = await self.receive_state(ws, lambda state: True)
+            self.assertEqual(current["time_s"], preview["time_s"])
+            self.assertEqual(current["skill"]["invocation_id"], executing["skill"]["invocation_id"])
+        self.provider.assert_awaited_once()
+        await ws.send_json({"action": "plan_next"})
+        self.assertNotIn("fatal", await self.receive_error(ws))
+        self.provider.assert_awaited_once()
+        await ws.send_json({"action": "cancel_plan"})
+        stopping = await self.receive_state(ws, lambda state: state["planner"]["status"] == "stopping")
+        self.assertTrue(stopping["paused"])
+        self.assertTrue(stopping["planner"]["locks_scene"])
+        await ws.send_json({"action": "skill", "skill": "return_home"})
+        self.assertIn("锁定", (await self.receive_error(ws))["error"])
+
+    async def test_cancelled_preview_unlocks_only_accepted_manual_motion(self) -> None:
+        ws = await self.connect()
+        await self.preview(ws)
+        await ws.send_json({"action": "cancel_plan"})
+        cancelled = await self.receive_state(ws, lambda state: state["planner"]["status"] == "cancelled")
+        self.assertFalse(cancelled["planner"]["locks_scene"])
+        self.assertTrue(cancelled["paused"])
+        await ws.send_json({"action": "skill", "skill": "unknown_skill"})
+        self.assertNotIn("fatal", await self.receive_error(ws))
+        self.assertEqual(self.planner.state()["status"], "cancelled")
+        await ws.send_json({"action": "skill", "skill": "grasp_and_hold"})
+        manual = await self.receive_state(ws, lambda state: state["skill"]["status"] == "running")
+        self.assertFalse(manual["paused"])
+        self.assertEqual(manual["planner"]["status"], "idle")
+        self.assertEqual(manual["planner"]["history"], [])
+
+    async def test_one_step_feedback_requires_next_request_and_local_completion(self) -> None:
+        ws = await self.connect()
+        preview = await self.preview(ws)
+        await ws.send_json({
+            "action": "execute_decision", "decision_id": preview["planner"]["decision_id"],
+            "continuous": False,
+        })
+        executing = await self.receive_state(ws, lambda state: state["planner"]["status"] == "executing")
+        for _ in range(1500):
+            if self.sim.skill.status != "running":
+                break
+            self.sim.step(0.02)
+        self.assertEqual(self.sim.skill.status, "succeeded")
+        feedback = await self.receive_state(ws, lambda state: state["planner"]["status"] == "waiting")
+        self.assertTrue(feedback["paused"])
+        self.assertTrue(all(feedback["goal_checks"]["hold_target"].values()))
+        record = feedback["planner"]["history"][0]
+        self.assertEqual(record["invocation_id"], executing["skill"]["invocation_id"])
+        self.assertEqual(record["result_observation"]["skill"]["status"], "succeeded")
+        self.assertGreater(record["execution_sim_s"], 0)
+        self.provider.assert_awaited_once()
+        self.provider.return_value = DecisionResult(
+            SkillDecision("complete", "Fixture complete", "Measured hold checks",
+                          "hold_target", "bowl", None, None),
+            "fixture-model", "fixture-completion-thread", 0.5,
+        )
+        await ws.send_json({"action": "plan_next"})
+        complete = await self.receive_state(ws, lambda state: (
+            state["planner"]["status"] == "ready"
+            and state["planner"]["decision_id"] != preview["planner"]["decision_id"]
+        ))
+        self.assertEqual(self.provider.await_count, 2)
+        self.assertEqual(complete["planner"]["history"][1]["observation"]["skill"]["status"], "succeeded")
+        await ws.send_json({
+            "action": "execute_decision", "decision_id": complete["planner"]["decision_id"],
+            "continuous": False,
+        })
+        succeeded = await self.receive_state(ws, lambda state: state["planner"]["status"] == "succeeded")
+        self.assertEqual(succeeded["skill"]["invocation_id"], executing["skill"]["invocation_id"])
+        self.assertEqual(succeeded["planner"]["total_latency_s"], 0.75)
+        self.assertEqual(succeeded["planner"]["history"][1]["status"], "complete")
+
+    async def test_reset_invalidates_pending_decision_before_resetting_scene(self) -> None:
+        requested = asyncio.Event()
+
+        async def late_decision(*args, **kwargs):
+            requested.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                return DecisionResult(self.decision, "fixture-model", "late-thread", 0.25)
+
+        self.provider.side_effect = late_decision
+        ws = await self.connect()
+        revision = self.sim.state()["scene_revision"]
+        await ws.send_json({"action": "plan", "task": "抓起黑碗并稳定保持"})
+        await asyncio.wait_for(requested.wait(), 2)
+        await ws.send_json({"action": "reset"})
+        reset = await self.receive_state(ws, lambda state: state["scene_revision"] != revision)
+        self.assertEqual(reset["planner"]["status"], "idle")
+        self.assertEqual(reset["planner"]["history"], [])
+        self.assertTrue(reset["paused"])
+        for _ in range(2):
+            current = await self.receive_state(ws, lambda state: True)
+            self.assertEqual(current["planner"]["status"], "idle")
+            self.assertIsNone(current["planner"]["decision"])
+            self.assertEqual(current["skill"]["status"], "idle")
+
+    async def test_provider_failure_is_visible_without_fallback_or_retry(self) -> None:
+        self.provider.side_effect = PlannerError("fixture provider failure")
+        ws = await self.connect()
+        await ws.send_json({"action": "plan", "task": "抓起黑碗并稳定保持"})
+        failed = await self.receive_state(ws, lambda state: state["planner"]["status"] == "failed")
+        self.assertIn("fixture provider failure", failed["planner"]["error"])
+        self.assertEqual(failed["planner"]["history"][0]["status"], "failed")
+        self.assertEqual(failed["skill"]["status"], "idle")
+        self.assertTrue(failed["paused"])
+        self.provider.assert_awaited_once()
+
+    async def test_fatal_failure_cancels_pending_provider(self) -> None:
+        requested = asyncio.Event()
+        cancelled = asyncio.Event()
+
+        async def pending_decision(*args, **kwargs):
+            requested.set()
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cancelled.set()
+
+        self.provider.side_effect = pending_decision
+        ws = await self.connect()
+        await ws.send_json({"action": "plan", "task": "抓起黑碗并稳定保持"})
+        await asyncio.wait_for(requested.wait(), 2)
+        with (
+            patch.object(self.sim, "step", side_effect=RuntimeError("fatal during model wait")),
+            self.assertLogs("server", level="ERROR"),
+        ):
+            await ws.send_json({"action": "step"})
+            await self.assert_fatal_close(ws)
+        await asyncio.wait_for(cancelled.wait(), 2)
+        self.provider.assert_awaited_once()
+
+    async def test_client_shutdown_timeout_still_releases_renderer_and_other_clients(self):
+        class RendererLease:
+            released = False
+
+            def close(self):
+                self.released = True
+
+        renderer = RendererLease()
+        self.sim.renderer = renderer
+        failed, remaining = AsyncMock(), AsyncMock()
+        failed.close.side_effect = asyncio.TimeoutError()
+        self.app[server.CLIENTS].update((failed, remaining))
+        with self.assertLogs("server", level="ERROR"):
+            await self.client.close()
+        self.assertTrue(renderer.released)
+        self.assertIsNone(self.sim.renderer)
+        remaining.close.assert_awaited_once()
 
 
 if __name__ == "__main__":

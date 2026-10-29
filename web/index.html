@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>GPT 完整任务 · 抓取、收纳、关柜、归位</title>
+  <title>GPT 实时单技能决策 · 物理执行与反馈</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
   <main class="viewer">
     <header class="page-header">
-      <div class="eyebrow">完整任务 <span>GPT + LIVE PHYSICS</span></div>
-      <h1>GPT 规划 <span>· 抓取、收纳、关柜、归位</span></h1>
-      <p class="scope">显式计划 <span aria-hidden="true">/</span> 真实接触执行 · 放置与关柜验证 · 机械臂归位</p>
+      <div class="eyebrow">实时决策 <span>GPT + LIVE PHYSICS</span></div>
+      <h1>GPT 单技能决策 <span>· 观察、执行、反馈</span></h1>
+      <p class="scope">每次只选一项技能 <span aria-hidden="true">/</span> 明确授权 · 真实接触执行 · 本地目标检查</p>
     </header>
 
     <section class="scene-panel" aria-label="实时物理仿真">
@@ -45,32 +45,43 @@
 
     <aside class="right-pane" aria-label="抓取任务与仿真状态">
       <section id="planner-panel" class="planner-panel" aria-labelledby="planner-title" data-status="waiting">
-        <div class="section-heading"><h2 id="planner-title">GPT 订阅规划</h2><span id="planner-status" role="status">等待状态</span></div>
-        <p id="planner-scope" class="planner-note">按后端选定目标规划：黑碗可抓取保持，或放入已打开的下层抽屉、关柜并归位；酒瓶仅支持抓取保持。GPT 选择任务与三个有界抓取参数，不能编写动作代码、重排阶段或打开已关闭的抽屉。</p>
+        <div class="section-heading"><h2 id="planner-title">GPT 订阅 · 实时决策循环</h2><span id="planner-status" role="status">等待状态</span></div>
+        <p id="planner-scope" class="planner-note">GPT 依据当前物理观测从五个独立技能中选择一项；每次执行结果会进入下一次请求，不预编整段动作。支持抓取保持、黑碗收纳归位、关柜归位或直接归位；不能打开抽屉、编写动作代码或切换已授权目标。无需重置已成功的夹持状态。</p>
         <label class="task-label" for="planner-task">任务描述 <span>最多 1000 字符</span></label>
         <textarea id="planner-task" rows="3" maxlength="1000" required disabled aria-describedby="planner-scope planner-hint">抓起黑碗并稳定保持，然后放入已经打开的下层抽屉，撤出夹爪，关闭抽屉，最后机械臂归位。</textarea>
         <div class="planner-actions">
-          <button id="plan-generate" class="primary" type="button" disabled>生成 GPT 计划</button>
-          <button id="plan-execute" type="button" disabled>执行已校验计划</button>
-          <button id="plan-cancel" type="button" disabled>取消规划</button>
+          <button id="plan-generate" class="primary" type="button" disabled>生成第一项决策</button>
+          <button id="plan-execute" type="button" disabled>仅执行当前一项</button>
+          <button id="plan-continuous" type="button" disabled>授权持续完成当前目标</button>
+          <button id="plan-next" type="button" disabled>根据反馈请求下一项</button>
+          <button id="plan-cancel" type="button" disabled>停止后续决策</button>
         </div>
-        <p id="planner-hint" class="planner-note">使用当前 ChatGPT 订阅；不会自动请求模型或执行计划。</p>
+        <p class="planner-note">生成第一项不会执行。持续授权仅限同一目标，最多 8 次技能调用 / 9 次模型请求，不自动重试。停止后续决策会等待当前技能完成；暂停会停止物理时钟与自动派发，但不会隐藏真实 GPT 墙钟延迟。</p>
+        <p id="planner-mode" class="planner-note">逐项授权 · 当前一项结束后等待人工请求</p>
+        <p id="planner-hint" class="planner-note">未暂停时，物理与夹持会在 GPT 等待期间继续运行。</p>
         <p id="planner-setup" class="planner-setup" hidden>请安装官方 Codex CLI，并在本机运行 codex login 使用 ChatGPT 订阅登录。无需 API 密钥。模型可通过本机 .env 的 CODEX_MODEL 设置；不要复制或上传 Codex 登录凭证。</p>
         <p id="planner-error" class="skill-failure" role="alert" hidden></p>
         <dl class="metadata planner-metadata">
           <div><dt id="planner-model-label">Codex 请求模型 · 当前 ChatGPT 订阅</dt><dd id="planner-model">—</dd></div>
-          <div><dt>规划延迟 · 墙钟时间 WALL CLOCK</dt><dd><output id="planner-latency">—</output> <small>s · 非仿真秒</small></dd></div>
+          <div><dt>最近 GPT 延迟 · 墙钟时间</dt><dd><output id="planner-latency">—</output> <small>s · 非仿真秒</small></dd></div>
+          <div><dt>累计 GPT 延迟 · 墙钟时间</dt><dd><output id="planner-total-latency">—</output> <small>s · 非仿真秒</small></dd></div>
         </dl>
         <p id="planner-response" class="planner-note" hidden></p>
         <div id="planner-submitted" class="planner-submitted" hidden><h3>后端本次任务 · 所有客户端共享</h3><p id="planner-submitted-task"></p></div>
         <div id="plan-preview" class="plan-preview" hidden>
-          <h3 id="plan-preview-title">后端已校验计划 · 尚未执行</h3>
+          <h3 id="plan-preview-title">单项决策 · 尚未执行</h3>
+          <p id="plan-goal" class="planner-note"></p>
+          <p id="plan-skill" class="decision-skill"></p>
           <p id="plan-summary"></p>
           <p id="plan-reason" class="planner-note"></p>
           <p id="plan-parameters" class="applied-parameters" hidden></p>
-          <ol id="plan-steps" class="plan-steps" aria-label="GPT 固定阶段计划"></ol>
-          <p class="planner-note">规划文本不是成功证据。完整收纳任务必须完成放置、关柜与归位；仅抓起黑碗不算完成。</p>
+          <p class="planner-note">模型提出完成不等于成功；后端必须检查当前物理目标判据。预览过期会明确拒绝，不会偷偷重试。</p>
         </div>
+        <h3 class="postconditions-title">当前目标判据 · 实时物理检查</h3>
+        <p id="planner-goal-checks" class="planner-note">生成第一项决策后显示对应目标判据。</p>
+        <h3 class="postconditions-title">决策与执行反馈 · 按发生顺序</h3>
+        <p id="planner-history-empty" class="planner-note">尚无请求记录；不展示预设步骤或替代结果。</p>
+        <ol id="planner-history" class="planner-history" aria-label="真实决策与执行反馈记录"></ol>
       </section>
       <section id="skill-panel" class="skill-panel" aria-labelledby="skill-title" data-status="waiting">
         <div class="section-heading"><h2 id="skill-title">物理执行与手动对照</h2><span id="skill-result" role="status">等待状态</span></div>
@@ -173,7 +184,7 @@
       <p class="source">场景来源 <span id="source">—</span></p>
     </section>
     </aside>
-    <footer>GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅生成受限计划；后端校验后仍须明确执行。实时画面与任务成败来自 MuJoCo，不是视频回放或模型自报成功。碗与抽屉保持原尺寸，抽屉初态使用原滑轨的完整开度；放置、关闭和归位均由真实物理状态验证。</footer>
+    <footer>GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，每次只选择一个已定义技能；首项决策须人工授权。后续决策依据真实物理反馈，逐项或有界持续执行。实时画面与任务成败来自 MuJoCo，不是视频回放或模型自报成功。碗与抽屉保持原尺寸，抽屉初态使用原滑轨的完整开度。</footer>
   </main>
 </body>
 </html>

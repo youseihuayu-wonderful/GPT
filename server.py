@@ -12,6 +12,7 @@ import time
 from aiohttp import WSMsgType, web
 
 from grasp import GraspParameters
+from planner import PlannerError
 from planning import PlanningSession
 from scenarios import DEFAULT_CASE, TARGETS, SceneCase
 from simulation import Simulation
@@ -83,6 +84,10 @@ async def stop_failed_runtime(app: web.Application) -> None:
     app[CONTROLS].runtime_error = WORKER_FAILURE_MESSAGE
     app[CONTROLS].paused = True
     LOGGER.exception("Physics execution stopped; restart the local server to recover")
+    try:
+        await app[PLANNING].close()
+    except Exception:
+        LOGGER.exception("Could not stop planner after fatal simulation failure")
     for client in tuple(app[CLIENTS]):
         await close_failed_websocket(app, client)
         app[CLIENTS].discard(client)
@@ -92,8 +97,10 @@ async def physics_loop(app: web.Application) -> None:
     try:
         while app[CONTROLS].runtime_error is None:
             started = time.monotonic()
-            if app[CLIENTS] and not app[CONTROLS].paused:
+            allow_execution = bool(app[CLIENTS]) and not app[CONTROLS].paused
+            if allow_execution:
                 app[SIMULATION].step(FRAME_PERIOD)
+            app[PLANNING].advance(allow_execution=allow_execution)
             await broadcast(app)
             await asyncio.sleep(max(0, FRAME_PERIOD - (time.monotonic() - started)))
     except asyncio.CancelledError:
@@ -117,9 +124,14 @@ async def lifecycle(app: web.Application):
             try:
                 await app[PLANNING].close()
             finally:
-                for client in tuple(app[CLIENTS]):
-                    await client.close(code=1001, message=b"Server shutdown")
-                app[SIMULATION].close()
+                try:
+                    for client in tuple(app[CLIENTS]):
+                        try:
+                            await client.close(code=1001, message=b"Server shutdown")
+                        except (ConnectionError, asyncio.TimeoutError):
+                            LOGGER.exception("Could not close a client during server shutdown")
+                finally:
+                    app[SIMULATION].close()
 
 
 @web.middleware
@@ -157,8 +169,8 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     raise ValueError("命令必须是 JSON 对象")
                 action = command.get("action")
                 planner = app[PLANNING]
-                if action in ("play", "step", "grasp", "store", "skill") and planner.locks_scene:
-                    raise ValueError("规划中的场景已锁定，请先取消计划或重置，再手动运行")
+                if action in ("grasp", "store", "skill") and planner.state()["locks_scene"]:
+                    raise ValueError("GPT 决策循环已锁定场景；请先停止后续决策并等待当前技能结束，或重置")
                 if action == "pause":
                     app[CONTROLS].paused = True
                 elif action == "play":
@@ -193,6 +205,7 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     if not app[CONTROLS].paused:
                         raise ValueError("请先暂停，再单步推进")
                     app[SIMULATION].step(0.02)
+                    planner.advance(allow_execution=False)
                 elif action == "plan":
                     try:
                         report = load_experiment_report()
@@ -200,14 +213,16 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                         raise ValueError("无法读取本地参数实验记录，未调用 GPT；请检查 results/parameter_sweep.json") from exc
                     if not isinstance(report, dict):
                         raise ValueError("参数实验报告必须是 JSON 对象，未调用 GPT")
-                    if planner.start(command.get("task"), report):
-                        app[CONTROLS].paused = True
-                elif action == "execute_plan":
-                    planner.execute(command.get("plan_id"))
-                    app[CONTROLS].paused = False
+                    planner.start(command.get("task"), report)
+                elif action == "execute_decision":
+                    continuous = command.get("continuous", False)
+                    if not isinstance(continuous, bool):
+                        raise ValueError("continuous 必须是布尔值")
+                    planner.execute(command.get("decision_id"), continuous=continuous)
+                elif action == "plan_next":
+                    planner.next()
                 elif action == "cancel_plan":
                     planner.cancel()
-                    app[CONTROLS].paused = True
                 elif action == "camera":
                     view = command.get("view")
                     if view not in ("overview", "front", "top"):
@@ -215,7 +230,7 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     app[CONTROLS].view = view
                 else:
                     raise ValueError("未知命令")
-            except (ValueError, TypeError) as exc:
+            except (ValueError, TypeError, PlannerError) as exc:
                 await ws.send_json({"error": str(exc)})
                 continue
             except RuntimeError:

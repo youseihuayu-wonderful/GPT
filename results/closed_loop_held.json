@@ -1,0 +1,6402 @@
+{
+  "kind": "subscription_live_skill_loop",
+  "status": "succeeded",
+  "success": true,
+  "generated_at": "2026-10-28T23:55:20.110405+00:00",
+  "task": "把当前黑碗放入已打开的下层抽屉，松开并撤出夹爪，实际推关抽屉，然后机械臂归位。",
+  "protocol": {
+    "authorization": "continuous",
+    "start_held": true,
+    "sample_period_s": 0.02,
+    "validation_hold_s": 5.0,
+    "max_skills": 8,
+    "max_requests": 9,
+    "provider_retries": 0,
+    "physics_during_provider_wait": true,
+    "note": "Real Codex subscription decisions and MuJoCo execution; no provider substitutes. Starting held uses an actual independent grasp before the first request. Model wall latency and physics time are separate; final success requires five additional simulated seconds and a local goal recheck."
+  },
+  "initial_observation": {
+    "time_s": 0.5000000000000003,
+    "scene_revision": 1,
+    "goal_checks": {
+      "hold_target": {
+        "bilateral_grip": false,
+        "clear_of_table": false,
+        "target_lifted": false,
+        "relative_pose_stable": false,
+        "verified_hold": false
+      },
+      "store_and_home": {
+        "bowl_inside_drawer": false,
+        "bowl_supported": false,
+        "bowl_settled": true,
+        "drawer_closed": false,
+        "home_reached": true,
+        "hand_empty": true,
+        "hand_clear_of_drawer": true,
+        "support_preserved": true
+      },
+      "close_and_home": {
+        "drawer_closed": false,
+        "home_reached": true,
+        "hand_empty": true,
+        "hand_clear_of_drawer": true,
+        "support_preserved": true
+      },
+      "home": {
+        "home_reached": true,
+        "hand_empty": true,
+        "hand_clear_of_drawer": true,
+        "support_preserved": true
+      }
+    },
+    "timestep_s": 0.002,
+    "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+    "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+    "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+    "target_object": "bowl",
+    "grasp_target": {
+      "name": "bowl",
+      "label": "黑碗",
+      "grasp_offset_m": [
+        0.0,
+        -0.047,
+        0.042
+      ],
+      "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+    },
+    "scenario": {
+      "case_id": "bowl.nominal",
+      "target_object": "bowl",
+      "position_label": "nominal",
+      "seed": 0,
+      "offset_xy_m": [
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0
+    },
+    "available_tasks": [
+      {
+        "kind": "grasp",
+        "label": "抓取并保持",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "watchdog_s": 20.0,
+        "minimum_opening_m": 0.02
+      },
+      {
+        "kind": "store_bowl",
+        "label": "黑碗入抽屉、关抽屉并归位",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold",
+          "transfer",
+          "place",
+          "release",
+          "withdraw",
+          "push_approach",
+          "push_drawer",
+          "push_withdraw",
+          "return_home",
+          "verify_store"
+        ],
+        "watchdog_s": 90.0,
+        "minimum_opening_m": 0.06
+      }
+    ],
+    "available_skills": [
+      {
+        "name": "grasp_and_hold",
+        "label": "抓取并保持",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "watchdog_s": 20.0,
+        "accepts_grasp_parameters": true,
+        "preconditions": [
+          "夹爪空闲",
+          "目标在桌面稳定且位于支持的工位"
+        ],
+        "postconditions": [
+          "双侧真实夹持",
+          "离桌至少 100 mm",
+          "稳定保持至少 1 s"
+        ],
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "name": "place_and_release",
+        "label": "放置并松开",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "transfer",
+          "place",
+          "release"
+        ],
+        "watchdog_s": 30.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "已稳定持有黑碗",
+          "下层抽屉全开",
+          "持物碰撞几何适合已验证的放置通道"
+        ],
+        "postconditions": [
+          "黑碗完整入屉",
+          "底板真实支撑",
+          "夹爪脱离且碗稳定"
+        ],
+        "available": false,
+        "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+      },
+      {
+        "name": "withdraw_from_drawer",
+        "label": "撤出夹爪",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "withdraw"
+        ],
+        "watchdog_s": 15.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "黑碗已完整入屉并稳定支撑",
+          "夹爪已松开",
+          "仍在支持的放置交接位姿"
+        ],
+        "postconditions": [
+          "手部离开抽屉运动区域",
+          "黑碗保持支撑和静稳"
+        ],
+        "available": false,
+        "unavailable_reason": "Withdrawal requires a contained, supported, settled and detached bowl"
+      },
+      {
+        "name": "close_drawer",
+        "label": "关抽屉并撤离",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "push_approach",
+          "push_drawer",
+          "push_withdraw"
+        ],
+        "watchdog_s": 45.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "抽屉全开且目标物体稳定支撑",
+          "空夹爪已撤离并处于高位"
+        ],
+        "postconditions": [
+          "真实接触推动抽屉",
+          "抽屉关闭且停止",
+          "手部撤离"
+        ],
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "name": "return_home",
+        "label": "机械臂归位",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "return_home"
+        ],
+        "watchdog_s": 18.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "空夹爪已离开抽屉",
+          "机械臂处于已验证的高位回程区域"
+        ],
+        "postconditions": [
+          "关节位姿到达 home",
+          "关节速度低",
+          "手部仍为空且已撤离"
+        ],
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "collisions": {
+      "episodes": 0,
+      "duration_s": 0.0,
+      "peak_force_n": 0.0,
+      "pairs": [],
+      "force_threshold_n": 0.1
+    },
+    "objects": [
+      {
+        "name": "bowl_object",
+        "position_m": [
+          0.49999998110205296,
+          -0.0800000303197358,
+          0.7184048539785207
+        ],
+        "quaternion_wxyz": [
+          0.9999999999480335,
+          -8.651107325592743e-06,
+          5.393590124990144e-06,
+          -6.040263955161126e-12
+        ]
+      },
+      {
+        "name": "bottle_object",
+        "position_m": [
+          0.3499999901058965,
+          -0.23999992038351084,
+          0.7188650437298081
+        ],
+        "quaternion_wxyz": [
+          0.999999999657628,
+          2.596782734931842e-05,
+          3.2276556070381847e-06,
+          4.345507911222393e-11
+        ]
+      },
+      {
+        "name": "cabinet_cabinet_bottom",
+        "position_m": [
+          0.65,
+          0.07999999999999999,
+          0.715
+        ],
+        "quaternion_wxyz": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "joint_positions_rad": [
+      -1.2047018802907853e-20,
+      -0.5,
+      -4.2402063081815736e-20,
+      -2.2,
+      2.8401250038247423e-20,
+      1.8,
+      0.7853981634
+    ],
+    "gripper_opening_m": 0.07999999999998844,
+    "contacts": 24,
+    "warnings": [],
+    "skill": {
+      "name": "grasp_bowl",
+      "target_label": "黑碗",
+      "status": "idle",
+      "phase": "idle",
+      "task_kind": "grasp",
+      "execution_mode": "task",
+      "skill_name": "grasp_and_hold",
+      "invocation_id": 0,
+      "phase_order": [
+        "prepare",
+        "approach",
+        "descend",
+        "close",
+        "lift",
+        "hold"
+      ],
+      "storage": null,
+      "postconditions": {},
+      "message": "等待开始；由本地物理控制器执行抓取",
+      "elapsed_s": 0.0,
+      "phase_elapsed_s": 0.0,
+      "lift_height_m": 0.0,
+      "hold_elapsed_s": 0.0,
+      "target_lift_m": 0.1,
+      "required_hold_s": 1.0,
+      "phase_times_s": {},
+      "failure_reason": null,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "parameter_limits": {
+        "initial_opening_m": {
+          "min": 0.02,
+          "max": 0.08
+        },
+        "descent_speed_m_s": {
+          "min": 0.04,
+          "max": 0.2
+        },
+        "close_trigger_height_m": {
+          "min": 0.0,
+          "max": 0.02
+        }
+      },
+      "close_started_s": null,
+      "descent_completed_s": null,
+      "descent_close_overlap_s": 0.0
+    }
+  },
+  "planning_initial_observation": {
+    "time_s": 13.580000000001204,
+    "scene_revision": 1,
+    "goal_checks": {
+      "hold_target": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "store_and_home": {
+        "bowl_inside_drawer": false,
+        "bowl_supported": false,
+        "bowl_settled": true,
+        "drawer_closed": false,
+        "home_reached": false,
+        "hand_empty": false,
+        "hand_clear_of_drawer": true,
+        "support_preserved": false
+      },
+      "close_and_home": {
+        "drawer_closed": false,
+        "home_reached": false,
+        "hand_empty": false,
+        "hand_clear_of_drawer": true,
+        "support_preserved": false
+      },
+      "home": {
+        "home_reached": false,
+        "hand_empty": false,
+        "hand_clear_of_drawer": true,
+        "support_preserved": false
+      }
+    },
+    "timestep_s": 0.002,
+    "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+    "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+    "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+    "target_object": "bowl",
+    "grasp_target": {
+      "name": "bowl",
+      "label": "黑碗",
+      "grasp_offset_m": [
+        0.0,
+        -0.047,
+        0.042
+      ],
+      "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+    },
+    "scenario": {
+      "case_id": "bowl.nominal",
+      "target_object": "bowl",
+      "position_label": "nominal",
+      "seed": 0,
+      "offset_xy_m": [
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0
+    },
+    "available_tasks": [
+      {
+        "kind": "grasp",
+        "label": "抓取并保持",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "watchdog_s": 20.0,
+        "minimum_opening_m": 0.02
+      },
+      {
+        "kind": "store_bowl",
+        "label": "黑碗入抽屉、关抽屉并归位",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold",
+          "transfer",
+          "place",
+          "release",
+          "withdraw",
+          "push_approach",
+          "push_drawer",
+          "push_withdraw",
+          "return_home",
+          "verify_store"
+        ],
+        "watchdog_s": 90.0,
+        "minimum_opening_m": 0.06
+      }
+    ],
+    "available_skills": [
+      {
+        "name": "grasp_and_hold",
+        "label": "抓取并保持",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "watchdog_s": 20.0,
+        "accepts_grasp_parameters": true,
+        "preconditions": [
+          "夹爪空闲",
+          "目标在桌面稳定且位于支持的工位"
+        ],
+        "postconditions": [
+          "双侧真实夹持",
+          "离桌至少 100 mm",
+          "稳定保持至少 1 s"
+        ],
+        "available": false,
+        "unavailable_reason": "Grasp requires an empty released gripper"
+      },
+      {
+        "name": "place_and_release",
+        "label": "放置并松开",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "transfer",
+          "place",
+          "release"
+        ],
+        "watchdog_s": 30.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "已稳定持有黑碗",
+          "下层抽屉全开",
+          "持物碰撞几何适合已验证的放置通道"
+        ],
+        "postconditions": [
+          "黑碗完整入屉",
+          "底板真实支撑",
+          "夹爪脱离且碗稳定"
+        ],
+        "available": true,
+        "unavailable_reason": null
+      },
+      {
+        "name": "withdraw_from_drawer",
+        "label": "撤出夹爪",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "withdraw"
+        ],
+        "watchdog_s": 15.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "黑碗已完整入屉并稳定支撑",
+          "夹爪已松开",
+          "仍在支持的放置交接位姿"
+        ],
+        "postconditions": [
+          "手部离开抽屉运动区域",
+          "黑碗保持支撑和静稳"
+        ],
+        "available": false,
+        "unavailable_reason": "Withdrawal requires a contained, supported, settled and detached bowl"
+      },
+      {
+        "name": "close_drawer",
+        "label": "关抽屉并撤离",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "push_approach",
+          "push_drawer",
+          "push_withdraw"
+        ],
+        "watchdog_s": 45.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "抽屉全开且目标物体稳定支撑",
+          "空夹爪已撤离并处于高位"
+        ],
+        "postconditions": [
+          "真实接触推动抽屉",
+          "抽屉关闭且停止",
+          "手部撤离"
+        ],
+        "available": false,
+        "unavailable_reason": "This skill requires an empty released gripper"
+      },
+      {
+        "name": "return_home",
+        "label": "机械臂归位",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "return_home"
+        ],
+        "watchdog_s": 18.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "空夹爪已离开抽屉",
+          "机械臂处于已验证的高位回程区域"
+        ],
+        "postconditions": [
+          "关节位姿到达 home",
+          "关节速度低",
+          "手部仍为空且已撤离"
+        ],
+        "available": false,
+        "unavailable_reason": "This skill requires an empty released gripper"
+      }
+    ],
+    "collisions": {
+      "episodes": 0,
+      "duration_s": 0.0,
+      "peak_force_n": 0.0,
+      "pairs": [],
+      "force_threshold_n": 0.1
+    },
+    "objects": [
+      {
+        "name": "bowl_object",
+        "position_m": [
+          0.501244950414683,
+          -0.09121289167024602,
+          0.8576351744316627
+        ],
+        "quaternion_wxyz": [
+          0.9903211378084082,
+          -0.13840379134623945,
+          -0.00920328802868622,
+          0.004871759467187648
+        ]
+      },
+      {
+        "name": "bottle_object",
+        "position_m": [
+          0.34999999010567173,
+          -0.23999992038169793,
+          0.7188650631497034
+        ],
+        "quaternion_wxyz": [
+          0.9999999996576066,
+          2.596863464501465e-05,
+          3.227755992095905e-06,
+          4.345896437735809e-11
+        ]
+      },
+      {
+        "name": "cabinet_cabinet_bottom",
+        "position_m": [
+          0.65,
+          0.07999999999999999,
+          0.715
+        ],
+        "quaternion_wxyz": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "joint_positions_rad": [
+      -0.07075556576658566,
+      0.10707015134510546,
+      -0.17770389565926695,
+      -2.327323391831647,
+      0.028989683690359126,
+      2.432398060272995,
+      0.5159264539667497
+    ],
+    "gripper_opening_m": 0.0036022826405737035,
+    "contacts": 15,
+    "warnings": [],
+    "skill": {
+      "name": "grasp_and_hold",
+      "target_label": "黑碗",
+      "status": "succeeded",
+      "phase": "done",
+      "task_kind": null,
+      "execution_mode": "skill",
+      "skill_name": "grasp_and_hold",
+      "invocation_id": 1,
+      "phase_order": [
+        "prepare",
+        "approach",
+        "descend",
+        "close",
+        "lift",
+        "hold"
+      ],
+      "storage": null,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "message": "抓取并保持已完成；持续物理验证，可调用下一项技能",
+      "elapsed_s": 13.074000000001202,
+      "phase_elapsed_s": 0.0,
+      "lift_height_m": 0.1392302132111043,
+      "hold_elapsed_s": 1.0000000000000007,
+      "target_lift_m": 0.1,
+      "required_hold_s": 1.0,
+      "phase_times_s": {
+        "prepare": 0.05800000000000005,
+        "approach": 5.973999999999502,
+        "descend": 3.0020000000003506,
+        "close": 0.22800000000007614,
+        "lift": 2.812000000000939,
+        "hold": 1.000000000000334
+      },
+      "failure_reason": null,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "parameter_limits": {
+        "initial_opening_m": {
+          "min": 0.02,
+          "max": 0.08
+        },
+        "descent_speed_m_s": {
+          "min": 0.04,
+          "max": 0.2
+        },
+        "close_trigger_height_m": {
+          "min": 0.0,
+          "max": 0.02
+        }
+      },
+      "close_started_s": 9.033999999999853,
+      "descent_completed_s": 9.033999999999853,
+      "descent_close_overlap_s": 0.0
+    }
+  },
+  "initial_grasp": {
+    "skill": "grasp_and_hold",
+    "parameters": {
+      "initial_opening_m": 0.08,
+      "descent_speed_m_s": 0.1,
+      "close_trigger_height_m": 0.0
+    },
+    "status": "succeeded",
+    "observation": {
+      "time_s": 0.5000000000000003,
+      "scene_revision": 1,
+      "goal_checks": {
+        "hold_target": {
+          "bilateral_grip": false,
+          "clear_of_table": false,
+          "target_lifted": false,
+          "relative_pose_stable": false,
+          "verified_hold": false
+        },
+        "store_and_home": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "bowl_settled": true,
+          "drawer_closed": false,
+          "home_reached": true,
+          "hand_empty": true,
+          "hand_clear_of_drawer": true,
+          "support_preserved": true
+        },
+        "close_and_home": {
+          "drawer_closed": false,
+          "home_reached": true,
+          "hand_empty": true,
+          "hand_clear_of_drawer": true,
+          "support_preserved": true
+        },
+        "home": {
+          "home_reached": true,
+          "hand_empty": true,
+          "hand_clear_of_drawer": true,
+          "support_preserved": true
+        }
+      },
+      "timestep_s": 0.002,
+      "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+      "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+      "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+      "target_object": "bowl",
+      "grasp_target": {
+        "name": "bowl",
+        "label": "黑碗",
+        "grasp_offset_m": [
+          0.0,
+          -0.047,
+          0.042
+        ],
+        "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+      },
+      "scenario": {
+        "case_id": "bowl.nominal",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 0,
+        "offset_xy_m": [
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "available_tasks": [
+        {
+          "kind": "grasp",
+          "label": "抓取并保持",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold"
+          ],
+          "watchdog_s": 20.0,
+          "minimum_opening_m": 0.02
+        },
+        {
+          "kind": "store_bowl",
+          "label": "黑碗入抽屉、关抽屉并归位",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold",
+            "transfer",
+            "place",
+            "release",
+            "withdraw",
+            "push_approach",
+            "push_drawer",
+            "push_withdraw",
+            "return_home",
+            "verify_store"
+          ],
+          "watchdog_s": 90.0,
+          "minimum_opening_m": 0.06
+        }
+      ],
+      "available_skills": [
+        {
+          "name": "grasp_and_hold",
+          "label": "抓取并保持",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold"
+          ],
+          "watchdog_s": 20.0,
+          "accepts_grasp_parameters": true,
+          "preconditions": [
+            "夹爪空闲",
+            "目标在桌面稳定且位于支持的工位"
+          ],
+          "postconditions": [
+            "双侧真实夹持",
+            "离桌至少 100 mm",
+            "稳定保持至少 1 s"
+          ],
+          "available": true,
+          "unavailable_reason": null
+        },
+        {
+          "name": "place_and_release",
+          "label": "放置并松开",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "transfer",
+            "place",
+            "release"
+          ],
+          "watchdog_s": 30.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "已稳定持有黑碗",
+            "下层抽屉全开",
+            "持物碰撞几何适合已验证的放置通道"
+          ],
+          "postconditions": [
+            "黑碗完整入屉",
+            "底板真实支撑",
+            "夹爪脱离且碗稳定"
+          ],
+          "available": false,
+          "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+        },
+        {
+          "name": "withdraw_from_drawer",
+          "label": "撤出夹爪",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "withdraw"
+          ],
+          "watchdog_s": 15.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "黑碗已完整入屉并稳定支撑",
+            "夹爪已松开",
+            "仍在支持的放置交接位姿"
+          ],
+          "postconditions": [
+            "手部离开抽屉运动区域",
+            "黑碗保持支撑和静稳"
+          ],
+          "available": false,
+          "unavailable_reason": "Withdrawal requires a contained, supported, settled and detached bowl"
+        },
+        {
+          "name": "close_drawer",
+          "label": "关抽屉并撤离",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "push_approach",
+            "push_drawer",
+            "push_withdraw"
+          ],
+          "watchdog_s": 45.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "抽屉全开且目标物体稳定支撑",
+            "空夹爪已撤离并处于高位"
+          ],
+          "postconditions": [
+            "真实接触推动抽屉",
+            "抽屉关闭且停止",
+            "手部撤离"
+          ],
+          "available": true,
+          "unavailable_reason": null
+        },
+        {
+          "name": "return_home",
+          "label": "机械臂归位",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "return_home"
+          ],
+          "watchdog_s": 18.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "空夹爪已离开抽屉",
+            "机械臂处于已验证的高位回程区域"
+          ],
+          "postconditions": [
+            "关节位姿到达 home",
+            "关节速度低",
+            "手部仍为空且已撤离"
+          ],
+          "available": true,
+          "unavailable_reason": null
+        }
+      ],
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "objects": [
+        {
+          "name": "bowl_object",
+          "position_m": [
+            0.49999998110205296,
+            -0.0800000303197358,
+            0.7184048539785207
+          ],
+          "quaternion_wxyz": [
+            0.9999999999480335,
+            -8.651107325592743e-06,
+            5.393590124990144e-06,
+            -6.040263955161126e-12
+          ]
+        },
+        {
+          "name": "bottle_object",
+          "position_m": [
+            0.3499999901058965,
+            -0.23999992038351084,
+            0.7188650437298081
+          ],
+          "quaternion_wxyz": [
+            0.999999999657628,
+            2.596782734931842e-05,
+            3.2276556070381847e-06,
+            4.345507911222393e-11
+          ]
+        },
+        {
+          "name": "cabinet_cabinet_bottom",
+          "position_m": [
+            0.65,
+            0.07999999999999999,
+            0.715
+          ],
+          "quaternion_wxyz": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "joint_positions_rad": [
+        -1.2047018802907853e-20,
+        -0.5,
+        -4.2402063081815736e-20,
+        -2.2,
+        2.8401250038247423e-20,
+        1.8,
+        0.7853981634
+      ],
+      "gripper_opening_m": 0.07999999999998844,
+      "contacts": 24,
+      "warnings": [],
+      "skill": {
+        "name": "grasp_bowl",
+        "target_label": "黑碗",
+        "status": "idle",
+        "phase": "idle",
+        "task_kind": "grasp",
+        "execution_mode": "task",
+        "skill_name": "grasp_and_hold",
+        "invocation_id": 0,
+        "phase_order": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "storage": null,
+        "postconditions": {},
+        "message": "等待开始；由本地物理控制器执行抓取",
+        "elapsed_s": 0.0,
+        "phase_elapsed_s": 0.0,
+        "lift_height_m": 0.0,
+        "hold_elapsed_s": 0.0,
+        "target_lift_m": 0.1,
+        "required_hold_s": 1.0,
+        "phase_times_s": {},
+        "failure_reason": null,
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.1,
+          "close_trigger_height_m": 0.0
+        },
+        "parameter_limits": {
+          "initial_opening_m": {
+            "min": 0.02,
+            "max": 0.08
+          },
+          "descent_speed_m_s": {
+            "min": 0.04,
+            "max": 0.2
+          },
+          "close_trigger_height_m": {
+            "min": 0.0,
+            "max": 0.02
+          }
+        },
+        "close_started_s": null,
+        "descent_completed_s": null,
+        "descent_close_overlap_s": 0.0
+      }
+    },
+    "result_observation": {
+      "time_s": 13.580000000001204,
+      "scene_revision": 1,
+      "goal_checks": {
+        "hold_target": {
+          "bilateral_grip": true,
+          "clear_of_table": true,
+          "target_lifted": true,
+          "relative_pose_stable": true,
+          "verified_hold": true
+        },
+        "store_and_home": {
+          "bowl_inside_drawer": false,
+          "bowl_supported": false,
+          "bowl_settled": true,
+          "drawer_closed": false,
+          "home_reached": false,
+          "hand_empty": false,
+          "hand_clear_of_drawer": true,
+          "support_preserved": false
+        },
+        "close_and_home": {
+          "drawer_closed": false,
+          "home_reached": false,
+          "hand_empty": false,
+          "hand_clear_of_drawer": true,
+          "support_preserved": false
+        },
+        "home": {
+          "home_reached": false,
+          "hand_empty": false,
+          "hand_clear_of_drawer": true,
+          "support_preserved": false
+        }
+      },
+      "timestep_s": 0.002,
+      "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+      "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+      "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+      "target_object": "bowl",
+      "grasp_target": {
+        "name": "bowl",
+        "label": "黑碗",
+        "grasp_offset_m": [
+          0.0,
+          -0.047,
+          0.042
+        ],
+        "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+      },
+      "scenario": {
+        "case_id": "bowl.nominal",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 0,
+        "offset_xy_m": [
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "available_tasks": [
+        {
+          "kind": "grasp",
+          "label": "抓取并保持",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold"
+          ],
+          "watchdog_s": 20.0,
+          "minimum_opening_m": 0.02
+        },
+        {
+          "kind": "store_bowl",
+          "label": "黑碗入抽屉、关抽屉并归位",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold",
+            "transfer",
+            "place",
+            "release",
+            "withdraw",
+            "push_approach",
+            "push_drawer",
+            "push_withdraw",
+            "return_home",
+            "verify_store"
+          ],
+          "watchdog_s": 90.0,
+          "minimum_opening_m": 0.06
+        }
+      ],
+      "available_skills": [
+        {
+          "name": "grasp_and_hold",
+          "label": "抓取并保持",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold"
+          ],
+          "watchdog_s": 20.0,
+          "accepts_grasp_parameters": true,
+          "preconditions": [
+            "夹爪空闲",
+            "目标在桌面稳定且位于支持的工位"
+          ],
+          "postconditions": [
+            "双侧真实夹持",
+            "离桌至少 100 mm",
+            "稳定保持至少 1 s"
+          ],
+          "available": false,
+          "unavailable_reason": "Grasp requires an empty released gripper"
+        },
+        {
+          "name": "place_and_release",
+          "label": "放置并松开",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "transfer",
+            "place",
+            "release"
+          ],
+          "watchdog_s": 30.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "已稳定持有黑碗",
+            "下层抽屉全开",
+            "持物碰撞几何适合已验证的放置通道"
+          ],
+          "postconditions": [
+            "黑碗完整入屉",
+            "底板真实支撑",
+            "夹爪脱离且碗稳定"
+          ],
+          "available": true,
+          "unavailable_reason": null
+        },
+        {
+          "name": "withdraw_from_drawer",
+          "label": "撤出夹爪",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "withdraw"
+          ],
+          "watchdog_s": 15.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "黑碗已完整入屉并稳定支撑",
+            "夹爪已松开",
+            "仍在支持的放置交接位姿"
+          ],
+          "postconditions": [
+            "手部离开抽屉运动区域",
+            "黑碗保持支撑和静稳"
+          ],
+          "available": false,
+          "unavailable_reason": "Withdrawal requires a contained, supported, settled and detached bowl"
+        },
+        {
+          "name": "close_drawer",
+          "label": "关抽屉并撤离",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "push_approach",
+            "push_drawer",
+            "push_withdraw"
+          ],
+          "watchdog_s": 45.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "抽屉全开且目标物体稳定支撑",
+            "空夹爪已撤离并处于高位"
+          ],
+          "postconditions": [
+            "真实接触推动抽屉",
+            "抽屉关闭且停止",
+            "手部撤离"
+          ],
+          "available": false,
+          "unavailable_reason": "This skill requires an empty released gripper"
+        },
+        {
+          "name": "return_home",
+          "label": "机械臂归位",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "return_home"
+          ],
+          "watchdog_s": 18.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "空夹爪已离开抽屉",
+            "机械臂处于已验证的高位回程区域"
+          ],
+          "postconditions": [
+            "关节位姿到达 home",
+            "关节速度低",
+            "手部仍为空且已撤离"
+          ],
+          "available": false,
+          "unavailable_reason": "This skill requires an empty released gripper"
+        }
+      ],
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "objects": [
+        {
+          "name": "bowl_object",
+          "position_m": [
+            0.501244950414683,
+            -0.09121289167024602,
+            0.8576351744316627
+          ],
+          "quaternion_wxyz": [
+            0.9903211378084082,
+            -0.13840379134623945,
+            -0.00920328802868622,
+            0.004871759467187648
+          ]
+        },
+        {
+          "name": "bottle_object",
+          "position_m": [
+            0.34999999010567173,
+            -0.23999992038169793,
+            0.7188650631497034
+          ],
+          "quaternion_wxyz": [
+            0.9999999996576066,
+            2.596863464501465e-05,
+            3.227755992095905e-06,
+            4.345896437735809e-11
+          ]
+        },
+        {
+          "name": "cabinet_cabinet_bottom",
+          "position_m": [
+            0.65,
+            0.07999999999999999,
+            0.715
+          ],
+          "quaternion_wxyz": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "joint_positions_rad": [
+        -0.07075556576658566,
+        0.10707015134510546,
+        -0.17770389565926695,
+        -2.327323391831647,
+        0.028989683690359126,
+        2.432398060272995,
+        0.5159264539667497
+      ],
+      "gripper_opening_m": 0.0036022826405737035,
+      "contacts": 15,
+      "warnings": [],
+      "skill": {
+        "name": "grasp_and_hold",
+        "target_label": "黑碗",
+        "status": "succeeded",
+        "phase": "done",
+        "task_kind": null,
+        "execution_mode": "skill",
+        "skill_name": "grasp_and_hold",
+        "invocation_id": 1,
+        "phase_order": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "storage": null,
+        "postconditions": {
+          "bilateral_grip": true,
+          "clear_of_table": true,
+          "target_lifted": true,
+          "relative_pose_stable": true,
+          "verified_hold": true
+        },
+        "message": "抓取并保持已完成；持续物理验证，可调用下一项技能",
+        "elapsed_s": 13.074000000001202,
+        "phase_elapsed_s": 0.0,
+        "lift_height_m": 0.1392302132111043,
+        "hold_elapsed_s": 1.0000000000000007,
+        "target_lift_m": 0.1,
+        "required_hold_s": 1.0,
+        "phase_times_s": {
+          "prepare": 0.05800000000000005,
+          "approach": 5.973999999999502,
+          "descend": 3.0020000000003506,
+          "close": 0.22800000000007614,
+          "lift": 2.812000000000939,
+          "hold": 1.000000000000334
+        },
+        "failure_reason": null,
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.1,
+          "close_trigger_height_m": 0.0
+        },
+        "parameter_limits": {
+          "initial_opening_m": {
+            "min": 0.02,
+            "max": 0.08
+          },
+          "descent_speed_m_s": {
+            "min": 0.04,
+            "max": 0.2
+          },
+          "close_trigger_height_m": {
+            "min": 0.0,
+            "max": 0.02
+          }
+        },
+        "close_started_s": 9.033999999999853,
+        "descent_completed_s": 9.033999999999853,
+        "descent_close_overlap_s": 0.0
+      }
+    },
+    "execution_sim_s": 13.080000000001204,
+    "execution_wall_s": 15.12133900000481
+  },
+  "planning": {
+    "status": "succeeded",
+    "configured": true,
+    "model": "gpt-5.6-terra",
+    "task": "把当前黑碗放入已打开的下层抽屉，松开并撤出夹爪，实际推关抽屉，然后机械臂归位。",
+    "decision_id": 517865307909766,
+    "decision": {
+      "decision": "complete",
+      "summary": "黑碗已稳定入屉，抽屉已实际关闭，机械臂已归位。",
+      "reason": "store_and_home 的全部物理检查项均为真。",
+      "goal": "store_and_home",
+      "target_object": "bowl",
+      "skill": null,
+      "parameters": null
+    },
+    "goal": "store_and_home",
+    "continuous": true,
+    "locks_scene": false,
+    "latency_s": 3.910624167008791,
+    "total_latency_s": 21.214228250959422,
+    "thread_id": "01a184f2-29b7-7d40-96f3-fc55be3a3de9",
+    "diagnostic_count": 2,
+    "max_skills": 8,
+    "error": null
+  },
+  "history": [
+    {
+      "index": 1,
+      "decision_id": 517865307909762,
+      "observation": {
+        "time_s": 13.580000000001204,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": true,
+            "clear_of_table": true,
+            "target_lifted": true,
+            "relative_pose_stable": true,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": false,
+            "bowl_supported": false,
+            "bowl_settled": true,
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": false,
+            "hand_clear_of_drawer": true,
+            "support_preserved": false
+          },
+          "close_and_home": {
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": false,
+            "hand_clear_of_drawer": true,
+            "support_preserved": false
+          },
+          "home": {
+            "home_reached": false,
+            "hand_empty": false,
+            "hand_clear_of_drawer": true,
+            "support_preserved": false
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires an empty released gripper"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": false,
+            "unavailable_reason": "Withdrawal requires a contained, supported, settled and detached bowl"
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "This skill requires an empty released gripper"
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "This skill requires an empty released gripper"
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.501244950414683,
+              -0.09121289167024602,
+              0.8576351744316627
+            ],
+            "quaternion_wxyz": [
+              0.9903211378084082,
+              -0.13840379134623945,
+              -0.00920328802868622,
+              0.004871759467187648
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.596863464501465e-05,
+              3.227755992095905e-06,
+              4.345896437735809e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.07999999999999999,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          -0.07075556576658566,
+          0.10707015134510546,
+          -0.17770389565926695,
+          -2.327323391831647,
+          0.028989683690359126,
+          2.432398060272995,
+          0.5159264539667497
+        ],
+        "gripper_opening_m": 0.0036022826405737035,
+        "contacts": 15,
+        "warnings": [],
+        "skill": {
+          "name": "grasp_and_hold",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "grasp_and_hold",
+          "invocation_id": 1,
+          "phase_order": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold"
+          ],
+          "storage": null,
+          "postconditions": {
+            "bilateral_grip": true,
+            "clear_of_table": true,
+            "target_lifted": true,
+            "relative_pose_stable": true,
+            "verified_hold": true
+          },
+          "message": "抓取并保持已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 13.074000000001202,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.1392302132111043,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "prepare": 0.05800000000000005,
+            "approach": 5.973999999999502,
+            "descend": 3.0020000000003506,
+            "close": 0.22800000000007614,
+            "lift": 2.812000000000939,
+            "hold": 1.000000000000334
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "result_observation": {
+        "time_s": 31.359999999993498,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": false,
+            "clear_of_table": true,
+            "target_lifted": false,
+            "relative_pose_stable": false,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "bowl_settled": true,
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": false,
+            "support_preserved": true
+          },
+          "close_and_home": {
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": false,
+            "support_preserved": true
+          },
+          "home": {
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": false,
+            "support_preserved": true
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires a target stably supported on the table"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": false,
+            "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "Withdraw the hand from the drawer before closing or returning home"
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "Withdraw the hand from the drawer before closing or returning home"
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.6674046276539957,
+              0.07681585757897016,
+              0.7342399728036176
+            ],
+            "quaternion_wxyz": [
+              0.7180502682792363,
+              -5.410361426773004e-08,
+              -1.1661481270153397e-08,
+              0.6959912443588027
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.5968634645014035e-05,
+              3.227755992096105e-06,
+              4.345896533701005e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.08005299347105255,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          0.12012761720211083,
+          0.8044263867826938,
+          -0.017114316686251536,
+          -1.5362004599449004,
+          0.017191208791703244,
+          2.3402835914637627,
+          -0.6891043634614004
+        ],
+        "gripper_opening_m": 0.0496243529389849,
+        "contacts": 24,
+        "warnings": [],
+        "skill": {
+          "name": "place_and_release",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "place_and_release",
+          "invocation_id": 2,
+          "phase_order": [
+            "transfer",
+            "place",
+            "release"
+          ],
+          "storage": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_clear": true,
+            "drawer_position_m": -0.15994700652894744,
+            "hand_clear_of_drawer": false,
+            "hand_empty": true,
+            "drawer_closed": false,
+            "home_error_rad": 1.4745025268614005,
+            "home_reached": false,
+            "verification_hold_s": 0.0,
+            "drawer_travel_m": 5.299347105255925e-05,
+            "push_contact_seen": false
+          },
+          "postconditions": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_detached": true,
+            "bowl_settled": true
+          },
+          "message": "放置并松开已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 13.96599999999226,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.015835011583059222,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "transfer": 8.955999999995036,
+            "place": 4.541999999997483,
+            "release": 0.4679999999997406
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "decision": {
+        "decision": "execute",
+        "summary": "黑碗已稳定持有且下层抽屉已开，先放入并松开。",
+        "reason": "当前仅放置松开技能满足前置条件；随后撤出、关屉和归位须依据实际反馈分别执行。",
+        "goal": "store_and_home",
+        "target_object": "bowl",
+        "skill": "place_and_release",
+        "parameters": null
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a184f0-cd58-7a71-a764-802dcdc72737",
+      "latency_s": 5.131580332992598,
+      "diagnostic_count": 2,
+      "status": "succeeded",
+      "error": null,
+      "invocation_id": 2,
+      "execution_sim_s": 13.96599999999226,
+      "execution_wall_s": 17.763763000024483
+    },
+    {
+      "index": 2,
+      "decision_id": 517865307909763,
+      "observation": {
+        "time_s": 31.359999999993498,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": false,
+            "clear_of_table": true,
+            "target_lifted": false,
+            "relative_pose_stable": false,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "bowl_settled": true,
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": false,
+            "support_preserved": true
+          },
+          "close_and_home": {
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": false,
+            "support_preserved": true
+          },
+          "home": {
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": false,
+            "support_preserved": true
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires a target stably supported on the table"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": false,
+            "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "Withdraw the hand from the drawer before closing or returning home"
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "Withdraw the hand from the drawer before closing or returning home"
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.6674046276539957,
+              0.07681585757897016,
+              0.7342399728036176
+            ],
+            "quaternion_wxyz": [
+              0.7180502682792363,
+              -5.410361426773004e-08,
+              -1.1661481270153397e-08,
+              0.6959912443588027
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.5968634645014035e-05,
+              3.227755992096105e-06,
+              4.345896533701005e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.08005299347105255,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          0.12012761720211083,
+          0.8044263867826938,
+          -0.017114316686251536,
+          -1.5362004599449004,
+          0.017191208791703244,
+          2.3402835914637627,
+          -0.6891043634614004
+        ],
+        "gripper_opening_m": 0.0496243529389849,
+        "contacts": 24,
+        "warnings": [],
+        "skill": {
+          "name": "place_and_release",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "place_and_release",
+          "invocation_id": 2,
+          "phase_order": [
+            "transfer",
+            "place",
+            "release"
+          ],
+          "storage": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_clear": true,
+            "drawer_position_m": -0.15994700652894744,
+            "hand_clear_of_drawer": false,
+            "hand_empty": true,
+            "drawer_closed": false,
+            "home_error_rad": 1.4745025268614005,
+            "home_reached": false,
+            "verification_hold_s": 0.0,
+            "drawer_travel_m": 5.299347105255925e-05,
+            "push_contact_seen": false
+          },
+          "postconditions": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_detached": true,
+            "bowl_settled": true
+          },
+          "message": "放置并松开已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 13.96599999999226,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.015835011583059222,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "transfer": 8.955999999995036,
+            "place": 4.541999999997483,
+            "release": 0.4679999999997406
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "result_observation": {
+        "time_s": 38.48000000000106,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": false,
+            "clear_of_table": true,
+            "target_lifted": false,
+            "relative_pose_stable": false,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "bowl_settled": true,
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "close_and_home": {
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "home": {
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires a target stably supported on the table"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": false,
+            "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": false,
+            "unavailable_reason": "Hand is already clear of the drawer"
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.6674046276539961,
+              0.07681586339418003,
+              0.7342399728036254
+            ],
+            "quaternion_wxyz": [
+              0.7180502682792363,
+              -5.410349621472295e-08,
+              -1.1661924929499734e-08,
+              0.6959912443588027
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.5968634645014854e-05,
+              3.2277559920961444e-06,
+              4.3458965641618715e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.08005299929261858,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          0.12215472479735467,
+          0.5093562179238943,
+          -0.02169984763407471,
+          -1.345479038537508,
+          0.011021042733595226,
+          1.854854806554049,
+          -0.685280431931602
+        ],
+        "gripper_opening_m": 0.050000000000391065,
+        "contacts": 24,
+        "warnings": [],
+        "skill": {
+          "name": "withdraw_from_drawer",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "withdraw_from_drawer",
+          "invocation_id": 3,
+          "phase_order": [
+            "withdraw"
+          ],
+          "storage": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_clear": true,
+            "drawer_position_m": -0.1599470007073814,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "drawer_closed": false,
+            "home_error_rad": 1.4706785953316022,
+            "home_reached": false,
+            "verification_hold_s": 0.0,
+            "drawer_travel_m": 5.299929261859404e-05,
+            "push_contact_seen": false
+          },
+          "postconditions": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_detached": true,
+            "bowl_settled": true,
+            "hand_clear_of_drawer": true,
+            "elevated_handoff": true
+          },
+          "message": "撤出夹爪已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 4.796000000005861,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.015835011583066994,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "withdraw": 4.796000000005861
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "decision": {
+        "decision": "execute",
+        "summary": "黑碗已入屉并松开，先撤出夹爪。",
+        "reason": "撤出技能当前可用；关抽屉和归位需在手部撤离后执行。",
+        "goal": "store_and_home",
+        "target_object": "bowl",
+        "skill": "withdraw_from_drawer",
+        "parameters": null
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a184f1-26bb-7601-8811-0078937cbec6",
+      "latency_s": 3.975861583952792,
+      "diagnostic_count": 2,
+      "status": "succeeded",
+      "error": null,
+      "invocation_id": 3,
+      "execution_sim_s": 4.796000000005861,
+      "execution_wall_s": 6.396806832985021
+    },
+    {
+      "index": 3,
+      "decision_id": 517865307909764,
+      "observation": {
+        "time_s": 38.48000000000106,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": false,
+            "clear_of_table": true,
+            "target_lifted": false,
+            "relative_pose_stable": false,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "bowl_settled": true,
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "close_and_home": {
+            "drawer_closed": false,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "home": {
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires a target stably supported on the table"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": false,
+            "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": false,
+            "unavailable_reason": "Hand is already clear of the drawer"
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.6674046276539961,
+              0.07681586339418003,
+              0.7342399728036254
+            ],
+            "quaternion_wxyz": [
+              0.7180502682792363,
+              -5.410349621472295e-08,
+              -1.1661924929499734e-08,
+              0.6959912443588027
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.5968634645014854e-05,
+              3.2277559920961444e-06,
+              4.3458965641618715e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.08005299929261858,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          0.12215472479735467,
+          0.5093562179238943,
+          -0.02169984763407471,
+          -1.345479038537508,
+          0.011021042733595226,
+          1.854854806554049,
+          -0.685280431931602
+        ],
+        "gripper_opening_m": 0.050000000000391065,
+        "contacts": 24,
+        "warnings": [],
+        "skill": {
+          "name": "withdraw_from_drawer",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "withdraw_from_drawer",
+          "invocation_id": 3,
+          "phase_order": [
+            "withdraw"
+          ],
+          "storage": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_clear": true,
+            "drawer_position_m": -0.1599470007073814,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "drawer_closed": false,
+            "home_error_rad": 1.4706785953316022,
+            "home_reached": false,
+            "verification_hold_s": 0.0,
+            "drawer_travel_m": 5.299929261859404e-05,
+            "push_contact_seen": false
+          },
+          "postconditions": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_detached": true,
+            "bowl_settled": true,
+            "hand_clear_of_drawer": true,
+            "elevated_handoff": true
+          },
+          "message": "撤出夹爪已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 4.796000000005861,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.015835011583066994,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "withdraw": 4.796000000005861
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "result_observation": {
+        "time_s": 68.7800000000211,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": false,
+            "clear_of_table": true,
+            "target_lifted": false,
+            "relative_pose_stable": false,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "bowl_settled": true,
+            "drawer_closed": true,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "close_and_home": {
+            "drawer_closed": true,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "home": {
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires a target stably supported on the table"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": false,
+            "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": false,
+            "unavailable_reason": "Hand is already clear of the drawer"
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.6674046276537027,
+              0.2359565541560043,
+              0.7342399728036262
+            ],
+            "quaternion_wxyz": [
+              0.7180502682797041,
+              -5.410349616220381e-08,
+              -1.1661924931385874e-08,
+              0.6959912443583193
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.596863464501261e-05,
+              3.2277559920966963e-06,
+              4.345896923622535e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.23919369005444313,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          -0.35251784879281034,
+          0.5310275010403532,
+          0.2170731289632949,
+          -1.5109263204564158,
+          0.93077828087886,
+          1.7066056362371438,
+          -1.2369054538960633
+        ],
+        "gripper_opening_m": 0.008000000000287999,
+        "contacts": 24,
+        "warnings": [],
+        "skill": {
+          "name": "close_drawer",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "close_drawer",
+          "invocation_id": 4,
+          "phase_order": [
+            "push_approach",
+            "push_drawer",
+            "push_withdraw"
+          ],
+          "storage": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_clear": true,
+            "drawer_position_m": -0.000806309945556856,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "drawer_closed": true,
+            "home_error_rad": 2.022303617296063,
+            "home_reached": false,
+            "verification_hold_s": 0.0,
+            "drawer_travel_m": 0.15914069076182455,
+            "push_contact_seen": true
+          },
+          "postconditions": {
+            "drawer_closed": true,
+            "push_contact_seen": true,
+            "drawer_moved": true,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "support_preserved": true
+          },
+          "message": "关抽屉并撤离已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 28.946000000018437,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.01583501158306777,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "push_approach": 8.442000000010317,
+            "push_drawer": 13.680000000016719,
+            "push_withdraw": 6.8239999999914005
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "decision": {
+        "decision": "execute",
+        "summary": "黑碗已稳定入屉且夹爪已撤离，执行实际推关抽屉。",
+        "reason": "关抽屉技能当前可用；归位须待抽屉关闭的实际反馈后再执行。",
+        "goal": "store_and_home",
+        "target_object": "bowl",
+        "skill": "close_drawer",
+        "parameters": null
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a184f1-4f67-7d92-b67a-7e2c8437d4a3",
+      "latency_s": 4.000520500005223,
+      "diagnostic_count": 2,
+      "status": "succeeded",
+      "error": null,
+      "invocation_id": 4,
+      "execution_sim_s": 28.946000000018437,
+      "execution_wall_s": 39.044157000025734
+    },
+    {
+      "index": 4,
+      "decision_id": 517865307909765,
+      "observation": {
+        "time_s": 68.7800000000211,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": false,
+            "clear_of_table": true,
+            "target_lifted": false,
+            "relative_pose_stable": false,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "bowl_settled": true,
+            "drawer_closed": true,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "close_and_home": {
+            "drawer_closed": true,
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "home": {
+            "home_reached": false,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires a target stably supported on the table"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": false,
+            "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": false,
+            "unavailable_reason": "Hand is already clear of the drawer"
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.6674046276537027,
+              0.2359565541560043,
+              0.7342399728036262
+            ],
+            "quaternion_wxyz": [
+              0.7180502682797041,
+              -5.410349616220381e-08,
+              -1.1661924931385874e-08,
+              0.6959912443583193
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.596863464501261e-05,
+              3.2277559920966963e-06,
+              4.345896923622535e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.23919369005444313,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          -0.35251784879281034,
+          0.5310275010403532,
+          0.2170731289632949,
+          -1.5109263204564158,
+          0.93077828087886,
+          1.7066056362371438,
+          -1.2369054538960633
+        ],
+        "gripper_opening_m": 0.008000000000287999,
+        "contacts": 24,
+        "warnings": [],
+        "skill": {
+          "name": "close_drawer",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "close_drawer",
+          "invocation_id": 4,
+          "phase_order": [
+            "push_approach",
+            "push_drawer",
+            "push_withdraw"
+          ],
+          "storage": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_clear": true,
+            "drawer_position_m": -0.000806309945556856,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "drawer_closed": true,
+            "home_error_rad": 2.022303617296063,
+            "home_reached": false,
+            "verification_hold_s": 0.0,
+            "drawer_travel_m": 0.15914069076182455,
+            "push_contact_seen": true
+          },
+          "postconditions": {
+            "drawer_closed": true,
+            "push_contact_seen": true,
+            "drawer_moved": true,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "support_preserved": true
+          },
+          "message": "关抽屉并撤离已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 28.946000000018437,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.01583501158306777,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "push_approach": 8.442000000010317,
+            "push_drawer": 13.680000000016719,
+            "push_withdraw": 6.8239999999914005
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "result_observation": {
+        "time_s": 76.84000000000232,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": false,
+            "clear_of_table": true,
+            "target_lifted": false,
+            "relative_pose_stable": false,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "bowl_settled": true,
+            "drawer_closed": true,
+            "home_reached": true,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "close_and_home": {
+            "drawer_closed": true,
+            "home_reached": true,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "home": {
+            "home_reached": true,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires a target stably supported on the table"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": false,
+            "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": false,
+            "unavailable_reason": "Hand is already clear of the drawer"
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.6674046276537027,
+              0.2359565541560043,
+              0.7342399728036262
+            ],
+            "quaternion_wxyz": [
+              0.7180502682797041,
+              -5.410349611813396e-08,
+              -1.1661924892581186e-08,
+              0.6959912443583193
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.5968634645012927e-05,
+              3.227755992095987e-06,
+              4.345896632345544e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.23919369005444313,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          -6.035592825473965e-05,
+          -0.49983303564344805,
+          3.763317044931101e-05,
+          -2.199879073437137,
+          0.0001604895867645177,
+          1.7999835247672755,
+          0.7850487590390512
+        ],
+        "gripper_opening_m": 0.008000000608860358,
+        "contacts": 24,
+        "warnings": [],
+        "skill": {
+          "name": "return_home",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "return_home",
+          "invocation_id": 5,
+          "phase_order": [
+            "return_home"
+          ],
+          "storage": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_clear": true,
+            "drawer_position_m": -0.000806309945556856,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "drawer_closed": true,
+            "home_error_rad": 0.0003494043609487685,
+            "home_reached": true,
+            "verification_hold_s": 0.0,
+            "drawer_travel_m": 0.15914069076182455,
+            "push_contact_seen": true
+          },
+          "postconditions": {
+            "home_reached": true,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "support_preserved": true
+          },
+          "message": "机械臂归位已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 6.319999999985271,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.01583501158306777,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "return_home": 6.319999999985271
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "decision": {
+        "decision": "execute",
+        "summary": "抽屉已关且黑碗稳定，执行机械臂归位。",
+        "reason": "归位技能当前可用，且尚未满足 home_reached。",
+        "goal": "store_and_home",
+        "target_object": "bowl",
+        "skill": "return_home",
+        "parameters": null
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a184f1-f7b2-7902-8368-01f5d2be3106",
+      "latency_s": 4.195641667000018,
+      "diagnostic_count": 2,
+      "status": "succeeded",
+      "error": null,
+      "invocation_id": 5,
+      "execution_sim_s": 6.319999999985271,
+      "execution_wall_s": 8.531369833042845
+    },
+    {
+      "index": 5,
+      "decision_id": 517865307909766,
+      "observation": {
+        "time_s": 76.84000000000232,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": false,
+            "clear_of_table": true,
+            "target_lifted": false,
+            "relative_pose_stable": false,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "bowl_settled": true,
+            "drawer_closed": true,
+            "home_reached": true,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "close_and_home": {
+            "drawer_closed": true,
+            "home_reached": true,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "home": {
+            "home_reached": true,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires a target stably supported on the table"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": false,
+            "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": false,
+            "unavailable_reason": "Hand is already clear of the drawer"
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.6674046276537027,
+              0.2359565541560043,
+              0.7342399728036262
+            ],
+            "quaternion_wxyz": [
+              0.7180502682797041,
+              -5.410349611813396e-08,
+              -1.1661924892581186e-08,
+              0.6959912443583193
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.5968634645012927e-05,
+              3.227755992095987e-06,
+              4.345896632345544e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.23919369005444313,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          -6.035592825473965e-05,
+          -0.49983303564344805,
+          3.763317044931101e-05,
+          -2.199879073437137,
+          0.0001604895867645177,
+          1.7999835247672755,
+          0.7850487590390512
+        ],
+        "gripper_opening_m": 0.008000000608860358,
+        "contacts": 24,
+        "warnings": [],
+        "skill": {
+          "name": "return_home",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "return_home",
+          "invocation_id": 5,
+          "phase_order": [
+            "return_home"
+          ],
+          "storage": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_clear": true,
+            "drawer_position_m": -0.000806309945556856,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "drawer_closed": true,
+            "home_error_rad": 0.0003494043609487685,
+            "home_reached": true,
+            "verification_hold_s": 0.0,
+            "drawer_travel_m": 0.15914069076182455,
+            "push_contact_seen": true
+          },
+          "postconditions": {
+            "home_reached": true,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "support_preserved": true
+          },
+          "message": "机械臂归位已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 6.319999999985271,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.01583501158306777,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "return_home": 6.319999999985271
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "result_observation": {
+        "time_s": 78.43999999999859,
+        "scene_revision": 1,
+        "goal_checks": {
+          "hold_target": {
+            "bilateral_grip": false,
+            "clear_of_table": true,
+            "target_lifted": false,
+            "relative_pose_stable": false,
+            "verified_hold": true
+          },
+          "store_and_home": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "bowl_settled": true,
+            "drawer_closed": true,
+            "home_reached": true,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "close_and_home": {
+            "drawer_closed": true,
+            "home_reached": true,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          },
+          "home": {
+            "home_reached": true,
+            "hand_empty": true,
+            "hand_clear_of_drawer": true,
+            "support_preserved": true
+          }
+        },
+        "timestep_s": 0.002,
+        "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+        "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+        "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+        "target_object": "bowl",
+        "grasp_target": {
+          "name": "bowl",
+          "label": "黑碗",
+          "grasp_offset_m": [
+            0.0,
+            -0.047,
+            0.042
+          ],
+          "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+        },
+        "scenario": {
+          "case_id": "bowl.nominal",
+          "target_object": "bowl",
+          "position_label": "nominal",
+          "seed": 0,
+          "offset_xy_m": [
+            0.0,
+            0.0
+          ],
+          "yaw_rad": 0.0
+        },
+        "available_tasks": [
+          {
+            "kind": "grasp",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "minimum_opening_m": 0.02
+          },
+          {
+            "kind": "store_bowl",
+            "label": "黑碗入抽屉、关抽屉并归位",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold",
+              "transfer",
+              "place",
+              "release",
+              "withdraw",
+              "push_approach",
+              "push_drawer",
+              "push_withdraw",
+              "return_home",
+              "verify_store"
+            ],
+            "watchdog_s": 90.0,
+            "minimum_opening_m": 0.06
+          }
+        ],
+        "available_skills": [
+          {
+            "name": "grasp_and_hold",
+            "label": "抓取并保持",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "prepare",
+              "approach",
+              "descend",
+              "close",
+              "lift",
+              "hold"
+            ],
+            "watchdog_s": 20.0,
+            "accepts_grasp_parameters": true,
+            "preconditions": [
+              "夹爪空闲",
+              "目标在桌面稳定且位于支持的工位"
+            ],
+            "postconditions": [
+              "双侧真实夹持",
+              "离桌至少 100 mm",
+              "稳定保持至少 1 s"
+            ],
+            "available": false,
+            "unavailable_reason": "Grasp requires a target stably supported on the table"
+          },
+          {
+            "name": "place_and_release",
+            "label": "放置并松开",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "transfer",
+              "place",
+              "release"
+            ],
+            "watchdog_s": 30.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "已稳定持有黑碗",
+              "下层抽屉全开",
+              "持物碰撞几何适合已验证的放置通道"
+            ],
+            "postconditions": [
+              "黑碗完整入屉",
+              "底板真实支撑",
+              "夹爪脱离且碗稳定"
+            ],
+            "available": false,
+            "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+          },
+          {
+            "name": "withdraw_from_drawer",
+            "label": "撤出夹爪",
+            "target_objects": [
+              "bowl"
+            ],
+            "phases": [
+              "withdraw"
+            ],
+            "watchdog_s": 15.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "黑碗已完整入屉并稳定支撑",
+              "夹爪已松开",
+              "仍在支持的放置交接位姿"
+            ],
+            "postconditions": [
+              "手部离开抽屉运动区域",
+              "黑碗保持支撑和静稳"
+            ],
+            "available": false,
+            "unavailable_reason": "Hand is already clear of the drawer"
+          },
+          {
+            "name": "close_drawer",
+            "label": "关抽屉并撤离",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "push_approach",
+              "push_drawer",
+              "push_withdraw"
+            ],
+            "watchdog_s": 45.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "抽屉全开且目标物体稳定支撑",
+              "空夹爪已撤离并处于高位"
+            ],
+            "postconditions": [
+              "真实接触推动抽屉",
+              "抽屉关闭且停止",
+              "手部撤离"
+            ],
+            "available": false,
+            "unavailable_reason": "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
+          },
+          {
+            "name": "return_home",
+            "label": "机械臂归位",
+            "target_objects": [
+              "bowl",
+              "bottle"
+            ],
+            "phases": [
+              "return_home"
+            ],
+            "watchdog_s": 18.0,
+            "accepts_grasp_parameters": false,
+            "preconditions": [
+              "空夹爪已离开抽屉",
+              "机械臂处于已验证的高位回程区域"
+            ],
+            "postconditions": [
+              "关节位姿到达 home",
+              "关节速度低",
+              "手部仍为空且已撤离"
+            ],
+            "available": true,
+            "unavailable_reason": null
+          }
+        ],
+        "collisions": {
+          "episodes": 0,
+          "duration_s": 0.0,
+          "peak_force_n": 0.0,
+          "pairs": [],
+          "force_threshold_n": 0.1
+        },
+        "objects": [
+          {
+            "name": "bowl_object",
+            "position_m": [
+              0.6674046276537027,
+              0.2359565541560043,
+              0.7342399728036262
+            ],
+            "quaternion_wxyz": [
+              0.7180502682797041,
+              -5.41034961178867e-08,
+              -1.166192489392587e-08,
+              0.6959912443583193
+            ]
+          },
+          {
+            "name": "bottle_object",
+            "position_m": [
+              0.34999999010567173,
+              -0.23999992038169793,
+              0.7188650631497034
+            ],
+            "quaternion_wxyz": [
+              0.9999999996576066,
+              2.5968634645012608e-05,
+              3.2277559920961364e-06,
+              4.345896627949764e-11
+            ]
+          },
+          {
+            "name": "cabinet_cabinet_bottom",
+            "position_m": [
+              0.65,
+              0.23919369005444313,
+              0.715
+            ],
+            "quaternion_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "joint_positions_rad": [
+          -5.538929263663065e-12,
+          -0.49999999998954703,
+          3.6190573904069997e-12,
+          -2.1999999999885005,
+          1.4959525329212662e-11,
+          1.7999999999979228,
+          0.785398163366781
+        ],
+        "gripper_opening_m": 0.008000000000000049,
+        "contacts": 24,
+        "warnings": [],
+        "skill": {
+          "name": "return_home",
+          "target_label": "黑碗",
+          "status": "succeeded",
+          "phase": "done",
+          "task_kind": null,
+          "execution_mode": "skill",
+          "skill_name": "return_home",
+          "invocation_id": 5,
+          "phase_order": [
+            "return_home"
+          ],
+          "storage": {
+            "bowl_inside_drawer": true,
+            "bowl_supported": true,
+            "gripper_clear": true,
+            "drawer_position_m": -0.000806309945556856,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "drawer_closed": true,
+            "home_error_rad": 3.321898311980931e-11,
+            "home_reached": true,
+            "verification_hold_s": 0.0,
+            "drawer_travel_m": 0.15914069076182455,
+            "push_contact_seen": true
+          },
+          "postconditions": {
+            "home_reached": true,
+            "hand_clear_of_drawer": true,
+            "hand_empty": true,
+            "support_preserved": true
+          },
+          "message": "机械臂归位已完成；持续物理验证，可调用下一项技能",
+          "elapsed_s": 6.319999999985271,
+          "phase_elapsed_s": 0.0,
+          "lift_height_m": 0.01583501158306777,
+          "hold_elapsed_s": 1.0000000000000007,
+          "target_lift_m": 0.1,
+          "required_hold_s": 1.0,
+          "phase_times_s": {
+            "return_home": 6.319999999985271
+          },
+          "failure_reason": null,
+          "parameters": {
+            "initial_opening_m": 0.08,
+            "descent_speed_m_s": 0.1,
+            "close_trigger_height_m": 0.0
+          },
+          "parameter_limits": {
+            "initial_opening_m": {
+              "min": 0.02,
+              "max": 0.08
+            },
+            "descent_speed_m_s": {
+              "min": 0.04,
+              "max": 0.2
+            },
+            "close_trigger_height_m": {
+              "min": 0.0,
+              "max": 0.02
+            }
+          },
+          "close_started_s": 9.033999999999853,
+          "descent_completed_s": 9.033999999999853,
+          "descent_close_overlap_s": 0.0
+        }
+      },
+      "decision": {
+        "decision": "complete",
+        "summary": "黑碗已稳定入屉，抽屉已实际关闭，机械臂已归位。",
+        "reason": "store_and_home 的全部物理检查项均为真。",
+        "goal": "store_and_home",
+        "target_object": "bowl",
+        "skill": null,
+        "parameters": null
+      },
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a184f2-29b7-7d40-96f3-fc55be3a3de9",
+      "latency_s": 3.910624167008791,
+      "diagnostic_count": 2,
+      "status": "complete",
+      "error": null,
+      "invocation_id": null,
+      "execution_sim_s": null,
+      "execution_wall_s": null
+    }
+  ],
+  "final_state": {
+    "time_s": 83.43999999998694,
+    "scene_revision": 1,
+    "goal_checks": {
+      "hold_target": {
+        "bilateral_grip": false,
+        "clear_of_table": true,
+        "target_lifted": false,
+        "relative_pose_stable": false,
+        "verified_hold": true
+      },
+      "store_and_home": {
+        "bowl_inside_drawer": true,
+        "bowl_supported": true,
+        "bowl_settled": true,
+        "drawer_closed": true,
+        "home_reached": true,
+        "hand_empty": true,
+        "hand_clear_of_drawer": true,
+        "support_preserved": true
+      },
+      "close_and_home": {
+        "drawer_closed": true,
+        "home_reached": true,
+        "hand_empty": true,
+        "hand_clear_of_drawer": true,
+        "support_preserved": true
+      },
+      "home": {
+        "home_reached": true,
+        "hand_empty": true,
+        "hand_clear_of_drawer": true,
+        "support_preserved": true
+      }
+    },
+    "timestep_s": 0.002,
+    "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+    "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+    "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+    "target_object": "bowl",
+    "grasp_target": {
+      "name": "bowl",
+      "label": "黑碗",
+      "grasp_offset_m": [
+        0.0,
+        -0.047,
+        0.042
+      ],
+      "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+    },
+    "scenario": {
+      "case_id": "bowl.nominal",
+      "target_object": "bowl",
+      "position_label": "nominal",
+      "seed": 0,
+      "offset_xy_m": [
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0
+    },
+    "available_tasks": [
+      {
+        "kind": "grasp",
+        "label": "抓取并保持",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "watchdog_s": 20.0,
+        "minimum_opening_m": 0.02
+      },
+      {
+        "kind": "store_bowl",
+        "label": "黑碗入抽屉、关抽屉并归位",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold",
+          "transfer",
+          "place",
+          "release",
+          "withdraw",
+          "push_approach",
+          "push_drawer",
+          "push_withdraw",
+          "return_home",
+          "verify_store"
+        ],
+        "watchdog_s": 90.0,
+        "minimum_opening_m": 0.06
+      }
+    ],
+    "available_skills": [
+      {
+        "name": "grasp_and_hold",
+        "label": "抓取并保持",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "prepare",
+          "approach",
+          "descend",
+          "close",
+          "lift",
+          "hold"
+        ],
+        "watchdog_s": 20.0,
+        "accepts_grasp_parameters": true,
+        "preconditions": [
+          "夹爪空闲",
+          "目标在桌面稳定且位于支持的工位"
+        ],
+        "postconditions": [
+          "双侧真实夹持",
+          "离桌至少 100 mm",
+          "稳定保持至少 1 s"
+        ],
+        "available": false,
+        "unavailable_reason": "Grasp requires a target stably supported on the table"
+      },
+      {
+        "name": "place_and_release",
+        "label": "放置并松开",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "transfer",
+          "place",
+          "release"
+        ],
+        "watchdog_s": 30.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "已稳定持有黑碗",
+          "下层抽屉全开",
+          "持物碰撞几何适合已验证的放置通道"
+        ],
+        "postconditions": [
+          "黑碗完整入屉",
+          "底板真实支撑",
+          "夹爪脱离且碗稳定"
+        ],
+        "available": false,
+        "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+      },
+      {
+        "name": "withdraw_from_drawer",
+        "label": "撤出夹爪",
+        "target_objects": [
+          "bowl"
+        ],
+        "phases": [
+          "withdraw"
+        ],
+        "watchdog_s": 15.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "黑碗已完整入屉并稳定支撑",
+          "夹爪已松开",
+          "仍在支持的放置交接位姿"
+        ],
+        "postconditions": [
+          "手部离开抽屉运动区域",
+          "黑碗保持支撑和静稳"
+        ],
+        "available": false,
+        "unavailable_reason": "Hand is already clear of the drawer"
+      },
+      {
+        "name": "close_drawer",
+        "label": "关抽屉并撤离",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "push_approach",
+          "push_drawer",
+          "push_withdraw"
+        ],
+        "watchdog_s": 45.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "抽屉全开且目标物体稳定支撑",
+          "空夹爪已撤离并处于高位"
+        ],
+        "postconditions": [
+          "真实接触推动抽屉",
+          "抽屉关闭且停止",
+          "手部撤离"
+        ],
+        "available": false,
+        "unavailable_reason": "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
+      },
+      {
+        "name": "return_home",
+        "label": "机械臂归位",
+        "target_objects": [
+          "bowl",
+          "bottle"
+        ],
+        "phases": [
+          "return_home"
+        ],
+        "watchdog_s": 18.0,
+        "accepts_grasp_parameters": false,
+        "preconditions": [
+          "空夹爪已离开抽屉",
+          "机械臂处于已验证的高位回程区域"
+        ],
+        "postconditions": [
+          "关节位姿到达 home",
+          "关节速度低",
+          "手部仍为空且已撤离"
+        ],
+        "available": true,
+        "unavailable_reason": null
+      }
+    ],
+    "collisions": {
+      "episodes": 0,
+      "duration_s": 0.0,
+      "peak_force_n": 0.0,
+      "pairs": [],
+      "force_threshold_n": 0.1
+    },
+    "objects": [
+      {
+        "name": "bowl_object",
+        "position_m": [
+          0.6674046276537027,
+          0.2359565541560043,
+          0.7342399728036262
+        ],
+        "quaternion_wxyz": [
+          0.7180502682797041,
+          -5.410349612664454e-08,
+          -1.166192490198219e-08,
+          0.6959912443583193
+        ]
+      },
+      {
+        "name": "bottle_object",
+        "position_m": [
+          0.34999999010567173,
+          -0.23999992038169793,
+          0.7188650631497034
+        ],
+        "quaternion_wxyz": [
+          0.9999999996576066,
+          2.5968634645009742e-05,
+          3.227755992096802e-06,
+          4.345896990591047e-11
+        ]
+      },
+      {
+        "name": "cabinet_cabinet_bottom",
+        "position_m": [
+          0.65,
+          0.23919369005444313,
+          0.715
+        ],
+        "quaternion_wxyz": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "joint_positions_rad": [
+      1.3897544630062517e-21,
+      -0.4999999999999988,
+      1.3366202046726107e-20,
+      -2.1999999999999895,
+      -3.9364374934664584e-20,
+      1.7999999999999945,
+      0.7853981633999971
+    ],
+    "gripper_opening_m": 0.008,
+    "contacts": 24,
+    "warnings": [],
+    "skill": {
+      "name": "return_home",
+      "target_label": "黑碗",
+      "status": "succeeded",
+      "phase": "done",
+      "task_kind": null,
+      "execution_mode": "skill",
+      "skill_name": "return_home",
+      "invocation_id": 5,
+      "phase_order": [
+        "return_home"
+      ],
+      "storage": {
+        "bowl_inside_drawer": true,
+        "bowl_supported": true,
+        "gripper_clear": true,
+        "drawer_position_m": -0.000806309945556856,
+        "hand_clear_of_drawer": true,
+        "hand_empty": true,
+        "drawer_closed": true,
+        "home_error_rad": 1.0658141036401503e-14,
+        "home_reached": true,
+        "verification_hold_s": 0.0,
+        "drawer_travel_m": 0.15914069076182455,
+        "push_contact_seen": true
+      },
+      "postconditions": {
+        "home_reached": true,
+        "hand_clear_of_drawer": true,
+        "hand_empty": true,
+        "support_preserved": true
+      },
+      "message": "机械臂归位已完成；持续物理验证，可调用下一项技能",
+      "elapsed_s": 6.319999999985271,
+      "phase_elapsed_s": 0.0,
+      "lift_height_m": 0.01583501158306777,
+      "hold_elapsed_s": 1.0000000000000007,
+      "target_lift_m": 0.1,
+      "required_hold_s": 1.0,
+      "phase_times_s": {
+        "return_home": 6.319999999985271
+      },
+      "failure_reason": null,
+      "parameters": {
+        "initial_opening_m": 0.08,
+        "descent_speed_m_s": 0.1,
+        "close_trigger_height_m": 0.0
+      },
+      "parameter_limits": {
+        "initial_opening_m": {
+          "min": 0.02,
+          "max": 0.08
+        },
+        "descent_speed_m_s": {
+          "min": 0.04,
+          "max": 0.2
+        },
+        "close_trigger_height_m": {
+          "min": 0.0,
+          "max": 0.02
+        }
+      },
+      "close_started_s": 9.033999999999853,
+      "descent_completed_s": 9.033999999999853,
+      "descent_close_overlap_s": 0.0
+    }
+  },
+  "validation": {
+    "status": "succeeded",
+    "sim_s": 4.999999999988347,
+    "wall_s": 10.79492733295774,
+    "before": {
+      "time_s": 78.43999999999859,
+      "scene_revision": 1,
+      "goal_checks": {
+        "hold_target": {
+          "bilateral_grip": false,
+          "clear_of_table": true,
+          "target_lifted": false,
+          "relative_pose_stable": false,
+          "verified_hold": true
+        },
+        "store_and_home": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "bowl_settled": true,
+          "drawer_closed": true,
+          "home_reached": true,
+          "hand_empty": true,
+          "hand_clear_of_drawer": true,
+          "support_preserved": true
+        },
+        "close_and_home": {
+          "drawer_closed": true,
+          "home_reached": true,
+          "hand_empty": true,
+          "hand_clear_of_drawer": true,
+          "support_preserved": true
+        },
+        "home": {
+          "home_reached": true,
+          "hand_empty": true,
+          "hand_clear_of_drawer": true,
+          "support_preserved": true
+        }
+      },
+      "timestep_s": 0.002,
+      "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+      "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+      "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+      "target_object": "bowl",
+      "grasp_target": {
+        "name": "bowl",
+        "label": "黑碗",
+        "grasp_offset_m": [
+          0.0,
+          -0.047,
+          0.042
+        ],
+        "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+      },
+      "scenario": {
+        "case_id": "bowl.nominal",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 0,
+        "offset_xy_m": [
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "available_tasks": [
+        {
+          "kind": "grasp",
+          "label": "抓取并保持",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold"
+          ],
+          "watchdog_s": 20.0,
+          "minimum_opening_m": 0.02
+        },
+        {
+          "kind": "store_bowl",
+          "label": "黑碗入抽屉、关抽屉并归位",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold",
+            "transfer",
+            "place",
+            "release",
+            "withdraw",
+            "push_approach",
+            "push_drawer",
+            "push_withdraw",
+            "return_home",
+            "verify_store"
+          ],
+          "watchdog_s": 90.0,
+          "minimum_opening_m": 0.06
+        }
+      ],
+      "available_skills": [
+        {
+          "name": "grasp_and_hold",
+          "label": "抓取并保持",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold"
+          ],
+          "watchdog_s": 20.0,
+          "accepts_grasp_parameters": true,
+          "preconditions": [
+            "夹爪空闲",
+            "目标在桌面稳定且位于支持的工位"
+          ],
+          "postconditions": [
+            "双侧真实夹持",
+            "离桌至少 100 mm",
+            "稳定保持至少 1 s"
+          ],
+          "available": false,
+          "unavailable_reason": "Grasp requires a target stably supported on the table"
+        },
+        {
+          "name": "place_and_release",
+          "label": "放置并松开",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "transfer",
+            "place",
+            "release"
+          ],
+          "watchdog_s": 30.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "已稳定持有黑碗",
+            "下层抽屉全开",
+            "持物碰撞几何适合已验证的放置通道"
+          ],
+          "postconditions": [
+            "黑碗完整入屉",
+            "底板真实支撑",
+            "夹爪脱离且碗稳定"
+          ],
+          "available": false,
+          "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+        },
+        {
+          "name": "withdraw_from_drawer",
+          "label": "撤出夹爪",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "withdraw"
+          ],
+          "watchdog_s": 15.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "黑碗已完整入屉并稳定支撑",
+            "夹爪已松开",
+            "仍在支持的放置交接位姿"
+          ],
+          "postconditions": [
+            "手部离开抽屉运动区域",
+            "黑碗保持支撑和静稳"
+          ],
+          "available": false,
+          "unavailable_reason": "Hand is already clear of the drawer"
+        },
+        {
+          "name": "close_drawer",
+          "label": "关抽屉并撤离",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "push_approach",
+            "push_drawer",
+            "push_withdraw"
+          ],
+          "watchdog_s": 45.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "抽屉全开且目标物体稳定支撑",
+            "空夹爪已撤离并处于高位"
+          ],
+          "postconditions": [
+            "真实接触推动抽屉",
+            "抽屉关闭且停止",
+            "手部撤离"
+          ],
+          "available": false,
+          "unavailable_reason": "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
+        },
+        {
+          "name": "return_home",
+          "label": "机械臂归位",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "return_home"
+          ],
+          "watchdog_s": 18.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "空夹爪已离开抽屉",
+            "机械臂处于已验证的高位回程区域"
+          ],
+          "postconditions": [
+            "关节位姿到达 home",
+            "关节速度低",
+            "手部仍为空且已撤离"
+          ],
+          "available": true,
+          "unavailable_reason": null
+        }
+      ],
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "objects": [
+        {
+          "name": "bowl_object",
+          "position_m": [
+            0.6674046276537027,
+            0.2359565541560043,
+            0.7342399728036262
+          ],
+          "quaternion_wxyz": [
+            0.7180502682797041,
+            -5.41034961178867e-08,
+            -1.166192489392587e-08,
+            0.6959912443583193
+          ]
+        },
+        {
+          "name": "bottle_object",
+          "position_m": [
+            0.34999999010567173,
+            -0.23999992038169793,
+            0.7188650631497034
+          ],
+          "quaternion_wxyz": [
+            0.9999999996576066,
+            2.5968634645012608e-05,
+            3.2277559920961364e-06,
+            4.345896627949764e-11
+          ]
+        },
+        {
+          "name": "cabinet_cabinet_bottom",
+          "position_m": [
+            0.65,
+            0.23919369005444313,
+            0.715
+          ],
+          "quaternion_wxyz": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "joint_positions_rad": [
+        -5.538929263663065e-12,
+        -0.49999999998954703,
+        3.6190573904069997e-12,
+        -2.1999999999885005,
+        1.4959525329212662e-11,
+        1.7999999999979228,
+        0.785398163366781
+      ],
+      "gripper_opening_m": 0.008000000000000049,
+      "contacts": 24,
+      "warnings": [],
+      "skill": {
+        "name": "return_home",
+        "target_label": "黑碗",
+        "status": "succeeded",
+        "phase": "done",
+        "task_kind": null,
+        "execution_mode": "skill",
+        "skill_name": "return_home",
+        "invocation_id": 5,
+        "phase_order": [
+          "return_home"
+        ],
+        "storage": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "gripper_clear": true,
+          "drawer_position_m": -0.000806309945556856,
+          "hand_clear_of_drawer": true,
+          "hand_empty": true,
+          "drawer_closed": true,
+          "home_error_rad": 3.321898311980931e-11,
+          "home_reached": true,
+          "verification_hold_s": 0.0,
+          "drawer_travel_m": 0.15914069076182455,
+          "push_contact_seen": true
+        },
+        "postconditions": {
+          "home_reached": true,
+          "hand_clear_of_drawer": true,
+          "hand_empty": true,
+          "support_preserved": true
+        },
+        "message": "机械臂归位已完成；持续物理验证，可调用下一项技能",
+        "elapsed_s": 6.319999999985271,
+        "phase_elapsed_s": 0.0,
+        "lift_height_m": 0.01583501158306777,
+        "hold_elapsed_s": 1.0000000000000007,
+        "target_lift_m": 0.1,
+        "required_hold_s": 1.0,
+        "phase_times_s": {
+          "return_home": 6.319999999985271
+        },
+        "failure_reason": null,
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.1,
+          "close_trigger_height_m": 0.0
+        },
+        "parameter_limits": {
+          "initial_opening_m": {
+            "min": 0.02,
+            "max": 0.08
+          },
+          "descent_speed_m_s": {
+            "min": 0.04,
+            "max": 0.2
+          },
+          "close_trigger_height_m": {
+            "min": 0.0,
+            "max": 0.02
+          }
+        },
+        "close_started_s": 9.033999999999853,
+        "descent_completed_s": 9.033999999999853,
+        "descent_close_overlap_s": 0.0
+      }
+    },
+    "after": {
+      "time_s": 83.43999999998694,
+      "scene_revision": 1,
+      "goal_checks": {
+        "hold_target": {
+          "bilateral_grip": false,
+          "clear_of_table": true,
+          "target_lifted": false,
+          "relative_pose_stable": false,
+          "verified_hold": true
+        },
+        "store_and_home": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "bowl_settled": true,
+          "drawer_closed": true,
+          "home_reached": true,
+          "hand_empty": true,
+          "hand_clear_of_drawer": true,
+          "support_preserved": true
+        },
+        "close_and_home": {
+          "drawer_closed": true,
+          "home_reached": true,
+          "hand_empty": true,
+          "hand_clear_of_drawer": true,
+          "support_preserved": true
+        },
+        "home": {
+          "home_reached": true,
+          "hand_empty": true,
+          "hand_clear_of_drawer": true,
+          "support_preserved": true
+        }
+      },
+      "timestep_s": 0.002,
+      "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
+      "robot_name": "Franka Panda · 7 轴 · 双指夹爪",
+      "source": "Menagerie Panda + LIBERO 视频同款物体资产；重新布置的工位，非原任务回放",
+      "target_object": "bowl",
+      "grasp_target": {
+        "name": "bowl",
+        "label": "黑碗",
+        "grasp_offset_m": [
+          0.0,
+          -0.047,
+          0.042
+        ],
+        "strategy": "107 mm 碗宽于 80 mm 夹爪，夹取近侧碗沿，一指在碗内、一指在碗外。"
+      },
+      "scenario": {
+        "case_id": "bowl.nominal",
+        "target_object": "bowl",
+        "position_label": "nominal",
+        "seed": 0,
+        "offset_xy_m": [
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "available_tasks": [
+        {
+          "kind": "grasp",
+          "label": "抓取并保持",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold"
+          ],
+          "watchdog_s": 20.0,
+          "minimum_opening_m": 0.02
+        },
+        {
+          "kind": "store_bowl",
+          "label": "黑碗入抽屉、关抽屉并归位",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold",
+            "transfer",
+            "place",
+            "release",
+            "withdraw",
+            "push_approach",
+            "push_drawer",
+            "push_withdraw",
+            "return_home",
+            "verify_store"
+          ],
+          "watchdog_s": 90.0,
+          "minimum_opening_m": 0.06
+        }
+      ],
+      "available_skills": [
+        {
+          "name": "grasp_and_hold",
+          "label": "抓取并保持",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "prepare",
+            "approach",
+            "descend",
+            "close",
+            "lift",
+            "hold"
+          ],
+          "watchdog_s": 20.0,
+          "accepts_grasp_parameters": true,
+          "preconditions": [
+            "夹爪空闲",
+            "目标在桌面稳定且位于支持的工位"
+          ],
+          "postconditions": [
+            "双侧真实夹持",
+            "离桌至少 100 mm",
+            "稳定保持至少 1 s"
+          ],
+          "available": false,
+          "unavailable_reason": "Grasp requires a target stably supported on the table"
+        },
+        {
+          "name": "place_and_release",
+          "label": "放置并松开",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "transfer",
+            "place",
+            "release"
+          ],
+          "watchdog_s": 30.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "已稳定持有黑碗",
+            "下层抽屉全开",
+            "持物碰撞几何适合已验证的放置通道"
+          ],
+          "postconditions": [
+            "黑碗完整入屉",
+            "底板真实支撑",
+            "夹爪脱离且碗稳定"
+          ],
+          "available": false,
+          "unavailable_reason": "Placement requires a physically verified stable bowl grasp"
+        },
+        {
+          "name": "withdraw_from_drawer",
+          "label": "撤出夹爪",
+          "target_objects": [
+            "bowl"
+          ],
+          "phases": [
+            "withdraw"
+          ],
+          "watchdog_s": 15.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "黑碗已完整入屉并稳定支撑",
+            "夹爪已松开",
+            "仍在支持的放置交接位姿"
+          ],
+          "postconditions": [
+            "手部离开抽屉运动区域",
+            "黑碗保持支撑和静稳"
+          ],
+          "available": false,
+          "unavailable_reason": "Hand is already clear of the drawer"
+        },
+        {
+          "name": "close_drawer",
+          "label": "关抽屉并撤离",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "push_approach",
+            "push_drawer",
+            "push_withdraw"
+          ],
+          "watchdog_s": 45.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "抽屉全开且目标物体稳定支撑",
+            "空夹爪已撤离并处于高位"
+          ],
+          "postconditions": [
+            "真实接触推动抽屉",
+            "抽屉关闭且停止",
+            "手部撤离"
+          ],
+          "available": false,
+          "unavailable_reason": "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
+        },
+        {
+          "name": "return_home",
+          "label": "机械臂归位",
+          "target_objects": [
+            "bowl",
+            "bottle"
+          ],
+          "phases": [
+            "return_home"
+          ],
+          "watchdog_s": 18.0,
+          "accepts_grasp_parameters": false,
+          "preconditions": [
+            "空夹爪已离开抽屉",
+            "机械臂处于已验证的高位回程区域"
+          ],
+          "postconditions": [
+            "关节位姿到达 home",
+            "关节速度低",
+            "手部仍为空且已撤离"
+          ],
+          "available": true,
+          "unavailable_reason": null
+        }
+      ],
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "objects": [
+        {
+          "name": "bowl_object",
+          "position_m": [
+            0.6674046276537027,
+            0.2359565541560043,
+            0.7342399728036262
+          ],
+          "quaternion_wxyz": [
+            0.7180502682797041,
+            -5.410349612664454e-08,
+            -1.166192490198219e-08,
+            0.6959912443583193
+          ]
+        },
+        {
+          "name": "bottle_object",
+          "position_m": [
+            0.34999999010567173,
+            -0.23999992038169793,
+            0.7188650631497034
+          ],
+          "quaternion_wxyz": [
+            0.9999999996576066,
+            2.5968634645009742e-05,
+            3.227755992096802e-06,
+            4.345896990591047e-11
+          ]
+        },
+        {
+          "name": "cabinet_cabinet_bottom",
+          "position_m": [
+            0.65,
+            0.23919369005444313,
+            0.715
+          ],
+          "quaternion_wxyz": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "joint_positions_rad": [
+        1.3897544630062517e-21,
+        -0.4999999999999988,
+        1.3366202046726107e-20,
+        -2.1999999999999895,
+        -3.9364374934664584e-20,
+        1.7999999999999945,
+        0.7853981633999971
+      ],
+      "gripper_opening_m": 0.008,
+      "contacts": 24,
+      "warnings": [],
+      "skill": {
+        "name": "return_home",
+        "target_label": "黑碗",
+        "status": "succeeded",
+        "phase": "done",
+        "task_kind": null,
+        "execution_mode": "skill",
+        "skill_name": "return_home",
+        "invocation_id": 5,
+        "phase_order": [
+          "return_home"
+        ],
+        "storage": {
+          "bowl_inside_drawer": true,
+          "bowl_supported": true,
+          "gripper_clear": true,
+          "drawer_position_m": -0.000806309945556856,
+          "hand_clear_of_drawer": true,
+          "hand_empty": true,
+          "drawer_closed": true,
+          "home_error_rad": 1.0658141036401503e-14,
+          "home_reached": true,
+          "verification_hold_s": 0.0,
+          "drawer_travel_m": 0.15914069076182455,
+          "push_contact_seen": true
+        },
+        "postconditions": {
+          "home_reached": true,
+          "hand_clear_of_drawer": true,
+          "hand_empty": true,
+          "support_preserved": true
+        },
+        "message": "机械臂归位已完成；持续物理验证，可调用下一项技能",
+        "elapsed_s": 6.319999999985271,
+        "phase_elapsed_s": 0.0,
+        "lift_height_m": 0.01583501158306777,
+        "hold_elapsed_s": 1.0000000000000007,
+        "target_lift_m": 0.1,
+        "required_hold_s": 1.0,
+        "phase_times_s": {
+          "return_home": 6.319999999985271
+        },
+        "failure_reason": null,
+        "parameters": {
+          "initial_opening_m": 0.08,
+          "descent_speed_m_s": 0.1,
+          "close_trigger_height_m": 0.0
+        },
+        "parameter_limits": {
+          "initial_opening_m": {
+            "min": 0.02,
+            "max": 0.08
+          },
+          "descent_speed_m_s": {
+            "min": 0.04,
+            "max": 0.2
+          },
+          "close_trigger_height_m": {
+            "min": 0.0,
+            "max": 0.02
+          }
+        },
+        "close_started_s": 9.033999999999853,
+        "descent_completed_s": 9.033999999999853,
+        "descent_close_overlap_s": 0.0
+      }
+    },
+    "goal_verified": true
+  },
+  "error": null,
+  "elapsed_wall_s": 119.82482474995777,
+  "planning_sim_s": 64.85999999999738
+}

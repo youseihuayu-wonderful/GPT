@@ -13,7 +13,7 @@ from PIL import Image
 from grasp import GraspParameters, GraspSkill
 from collisions import CollisionTracker
 from scenarios import DEFAULT_CASE, TARGETS, SceneCase
-from task_specs import SKILLS, TASKS
+from task_specs import GOALS, SKILLS, TASKS
 
 ROOT = Path(__file__).resolve().parent
 ARM_HOME = np.array([0.0, -0.5, 0.0, -2.2, 0.0, 1.8, 0.7853981634])
@@ -109,6 +109,7 @@ class Simulation:
         self.skill.reset()
         self.collisions.reset()
         self._numerical_failure = None
+        self.scene_revision = getattr(self, "scene_revision", 0) + 1
 
     def start_task(self, task_kind: str, parameters: GraspParameters | None = None) -> None:
         self.skill.start(task_kind, parameters)
@@ -173,9 +174,23 @@ class Simulation:
             if warning.number
         ]
 
+    def goal_checks(self) -> dict:
+        """Measure goals independently of a model's completion declaration."""
+        observer = self.skill._storage_context()
+        facts = observer.state() | self.skill.grasp_postconditions() | {
+            "bowl_settled": observer.bowl_settled(),
+            "support_preserved": observer.support_preserved(),
+        }
+        return {
+            name: {check: bool(facts[check]) for check in spec.checks}
+            for name, spec in GOALS.items() if self.target.name in spec.target_objects
+        }
+
     def state(self) -> dict:
         return {
             "time_s": float(self.data.time),
+            "scene_revision": self.scene_revision,
+            "goal_checks": self.goal_checks(),
             "timestep_s": float(self.model.opt.timestep),
             "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
             "robot_name": "Franka Panda · 7 轴 · 双指夹爪",

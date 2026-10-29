@@ -80,3 +80,34 @@ TASK_SKILLS = MappingProxyType({
     "grasp": ("grasp_and_hold",),
     "store_bowl": tuple(SKILLS),
 })
+
+
+@dataclass(frozen=True)
+class GoalSpec:
+    name: str
+    label: str
+    target_objects: tuple[str, ...]
+    checks: tuple[str, ...]
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+_EMPTY_SUPPORTED = ("hand_empty", "hand_clear_of_drawer", "support_preserved")
+GOALS = MappingProxyType({
+    "hold_target": GoalSpec(
+        "hold_target", "抓起当前目标并稳定保持", tuple(TARGETS),
+        ("bilateral_grip", "clear_of_table", "target_lifted", "relative_pose_stable", "verified_hold"),
+    ),
+    "store_and_home": GoalSpec(
+        "store_and_home", "黑碗入屉、关抽屉并归位", ("bowl",),
+        ("bowl_inside_drawer", "bowl_supported", "bowl_settled", "drawer_closed", "home_reached") + _EMPTY_SUPPORTED,
+    ),
+    "close_and_home": GoalSpec(
+        "close_and_home", "关抽屉并归位，保持物体支撑", tuple(TARGETS),
+        ("drawer_closed", "home_reached") + _EMPTY_SUPPORTED,
+    ),
+    "home": GoalSpec(
+        "home", "空夹爪安全归位", tuple(TARGETS), ("home_reached",) + _EMPTY_SUPPORTED,
+    ),
+})

@@ -13,24 +13,21 @@ import numpy as np
 
 import benchmark
 from grasp import GraspParameters
-from planner import PlannerConfig, PlannerError, PlanResult, validate_plan
+from planner import DecisionResult, PlannerConfig, PlannerError, validate_decision
 from scenarios import DEFAULT_CASE, benchmark_cases
 from simulation import Simulation
-from task_specs import TASKS
 
 
-def result_fixture(target="bowl", decision="plan", task_kind="grasp"):
-    plan = validate_plan({
-        "decision": decision, "summary": "Test-only plan", "reason": "Test-only reason",
-        "task_kind": task_kind if decision == "plan" else None,
-        "target_object": target if decision == "plan" else None,
-        "steps": [
-            {"phase": phase, "instruction": phase}
-            for phase in TASKS[task_kind].phases
-        ] if decision == "plan" else [],
-        "parameters": GraspParameters().to_dict() if decision == "plan" else None,
+def result_fixture(target="bowl", decision="execute", goal="hold_target", skill="grasp_and_hold"):
+    action = validate_decision({
+        "decision": decision, "summary": "Test-only decision", "reason": "Test-only reason",
+        "goal": goal if decision != "unsupported" else None,
+        "target_object": target if decision != "unsupported" else None,
+        "skill": skill if decision == "execute" else None,
+        "parameters": GraspParameters().to_dict()
+        if decision == "execute" and skill == "grasp_and_hold" else None,
     })
-    return PlanResult(plan, "fixture-not-gpt", "fixture-thread", 1.5)
+    return DecisionResult(action, "fixture-not-gpt", "fixture-thread", 1.5)
 
 
 class Clock:
@@ -80,6 +77,7 @@ class ControllerFixture:
         return {
             "target_object": self.case.target_object,
             "scenario": self.case.to_dict(),
+            "available_skills": [{"name": "grasp_and_hold", "available": True}],
             "warnings": [],
             "skill": {"status": self.skill.status, "failure_reason": "lost grip" if self.drop else None},
             "collisions": {
@@ -120,7 +118,7 @@ class RunCaseTests(unittest.IsolatedAsyncioTestCase):
             self.clock.now += 2.0
             raise PlannerError("subscription unavailable")
 
-        with patch("benchmark.request_plan", new=AsyncMock(side_effect=fail)) as request:
+        with patch("benchmark.request_decision", new=AsyncMock(side_effect=fail)) as request:
             row = await benchmark.run_case(DEFAULT_CASE, "gpt", {}, {"calibration": "only"})
         request.assert_awaited_once()
         self.assertEqual(row["status"], "planning_failed")
@@ -135,25 +133,26 @@ class RunCaseTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_configuration_error_does_not_fabricate_request_latency(self):
         with patch("benchmark.PlannerConfig.load", side_effect=PlannerError("bad config")), \
-                patch("benchmark.request_plan", new_callable=AsyncMock) as request:
+                patch("benchmark.request_decision", new_callable=AsyncMock) as request:
             row = await benchmark.run_case(DEFAULT_CASE, "gpt", {}, {})
         self.assertEqual(row["status"], "planning_failed")
         self.assertIsNone(row["gpt_latency_s"])
         request.assert_not_awaited()
 
-    async def test_unsupported_wrong_target_and_storage_never_execute_or_use_defaults(self):
+    async def test_unsupported_wrong_target_goal_skill_and_complete_never_execute(self):
         for result in (
             result_fixture(decision="unsupported"), result_fixture(target="bottle"),
-            result_fixture(task_kind="store_bowl"),
+            result_fixture(goal="store_and_home"),
+            result_fixture(skill="return_home"), result_fixture(decision="complete"),
         ):
-            with self.subTest(decision=result.plan.decision, task_kind=result.plan.task_kind), \
-                    patch("benchmark.request_plan", new=AsyncMock(return_value=result)):
+            with self.subTest(decision=result.decision.to_dict()), \
+                    patch("benchmark.request_decision", new=AsyncMock(return_value=result)):
                 row = await benchmark.run_case(DEFAULT_CASE, "gpt", {}, {})
-            self.assertEqual(row["status"], "unsupported" if result.plan.decision == "unsupported" else "planning_failed")
+            self.assertEqual(row["status"], "unsupported" if result.decision.decision == "unsupported" else "planning_failed")
             self.assertFalse(self.simulations[-1].started)
             self.assertIsNone(row["parameters"])
             self.assertIsNone(row["collisions"])
-            self.assertEqual(row["plan"], result.plan.to_dict())
+            self.assertEqual(row["decision"], result.decision.to_dict())
             summary = benchmark.summarize_runs([row], ("gpt",))[0]
             self.assertEqual(summary["attempts"], 1)
             self.assertEqual(summary["successes"], 0)
@@ -166,7 +165,7 @@ class RunCaseTests(unittest.IsolatedAsyncioTestCase):
             self.clock.now += 1.5
             return result_fixture()
 
-        with patch("benchmark.request_plan", new=AsyncMock(side_effect=respond)) as request:
+        with patch("benchmark.request_decision", new=AsyncMock(side_effect=respond)) as request:
             row = await benchmark.run_case(DEFAULT_CASE, "gpt", {}, calibration)
         request.assert_awaited_once()
         self.assertTrue(row["success"])
@@ -188,7 +187,7 @@ class RunCaseTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(row["gpt_latency_s"])
 
     async def test_pairing_mismatch_aborts_before_provider_or_execution(self):
-        with patch("benchmark.request_plan", new_callable=AsyncMock) as request:
+        with patch("benchmark.request_decision", new_callable=AsyncMock) as request:
             with self.assertRaisesRegex(RuntimeError, "initial state mismatch"):
                 await benchmark.run_case(DEFAULT_CASE, "gpt", {DEFAULT_CASE.case_id: "different"}, {})
         request.assert_not_awaited()

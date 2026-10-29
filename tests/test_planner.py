@@ -3,7 +3,6 @@
 import asyncio
 from contextlib import suppress
 from copy import deepcopy
-from dataclasses import FrozenInstanceError
 import json
 import os
 from pathlib import Path
@@ -14,172 +13,205 @@ from unittest.mock import AsyncMock, patch
 
 from grasp import GraspParameters
 from planner import (
-    PlannerConfig, PlannerError, _run_cli, _subscription_environment, request_plan, validate_plan,
+    PlannerConfig, PlannerError, _run_cli, _subscription_environment,
+    request_decision, scene_matches, validate_context, validate_decision,
 )
-from task_specs import TASKS
+from task_specs import GOALS, SKILLS
 
 
-def plan_payload(task_kind: str = "grasp", target: str = "bowl") -> dict:
+def decision_payload(goal="hold_target", target="bowl", skill="grasp_and_hold", decision="execute"):
     return {
-        "decision": "plan",
-        "task_kind": task_kind,
-        "summary": f"Test-only {task_kind} for {target}",
+        "decision": decision,
+        "summary": "Test-only single-skill decision",
         "reason": "Deterministic validation fixture; not a physical success report.",
-        "target_object": target,
-        "steps": [
-            {"phase": phase, "instruction": f"执行固定阶段 {phase}"}
-            for phase in TASKS[task_kind].phases
-        ],
-        "parameters": {
-            name: 0.08 if name == "initial_opening_m" else (bounds["min"] + bounds["max"]) / 2
-            for name, bounds in GraspParameters.limits().items()
-        },
+        "goal": goal if decision != "unsupported" else None,
+        "target_object": target if decision != "unsupported" else None,
+        "skill": skill if decision == "execute" else None,
+        "parameters": GraspParameters().to_dict()
+        if decision == "execute" and skill == "grasp_and_hold" else None,
     }
 
 
-def unsupported_payload() -> dict:
+def scene_fixture(target="bowl"):
     return {
-        "decision": "unsupported", "summary": "无法完成整项任务",
-        "reason": "没有打开已关闭抽屉的能力，不能只执行抓取部分。",
-        "task_kind": None, "target_object": None, "steps": [], "parameters": None,
+        "scene_revision": 1, "time_s": 0.5,
+        "target_object": target, "scenario": {"target_object": target, "case_id": "fixture"},
+        "skill": {"invocation_id": 0, "status": "idle"},
+        "available_skills": [
+            {"name": name, "available": name == "grasp_and_hold", "unavailable_reason": "Fixture precondition"}
+            for name in SKILLS
+        ],
+        "goal_checks": {
+            name: {check: False for check in spec.checks} for name, spec in GOALS.items()
+        },
+        "objects": [{"name": "bowl_object", "position_m": [0.3, 0.0, 0.8],
+                     "quaternion_wxyz": [1.0, 0.0, 0.0, 0.0]}],
+        "joint_positions_rad": [0.0] * 7, "gripper_opening_m": 0.08,
     }
 
 
-class PlanValidationTests(unittest.TestCase):
-    def test_validated_plan_is_immutable_and_detached_from_input_and_serialization(self) -> None:
-        payload = plan_payload()
-        expected = deepcopy(payload)
-        plan = validate_plan(payload)
-        self.assertEqual(plan.to_dict(), expected)
-        self.assertIsInstance(plan.steps, tuple)
-        for target, name, value in (
-            (plan, "target_object", "bottle"),
-            (plan, "task_kind", "store_bowl"),
-            (plan.steps[0], "phase", "release"),
-            (plan.parameters, "initial_opening_m", 100),
-        ):
-            with self.subTest(name=name), self.assertRaises(FrozenInstanceError):
-                setattr(target, name, value)
-        payload["steps"][0]["phase"] = "release"
-        payload["parameters"]["initial_opening_m"] = 100
-        encoded = plan.to_dict()
-        encoded["steps"].clear()
-        encoded["parameters"].clear()
-        self.assertEqual(plan.to_dict(), expected)
-
-    def test_parameter_boundaries_are_inclusive_without_clipping(self) -> None:
+class DecisionValidationTests(unittest.TestCase):
+    def test_parameter_boundaries_are_inclusive_without_clipping(self):
         for endpoint in ("min", "max"):
-            payload = plan_payload()
+            payload = decision_payload()
             payload["parameters"] = {name: bounds[endpoint] for name, bounds in GraspParameters.limits().items()}
             with self.subTest(endpoint=endpoint):
-                self.assertEqual(validate_plan(payload).parameters.to_dict(), payload["parameters"])
+                self.assertEqual(validate_decision(payload).parameters.to_dict(), payload["parameters"])
 
-    def test_missing_and_extra_fields_cannot_add_commands_or_get_defaults(self) -> None:
-        for section in ("root", "step", "parameters"):
-            payload = plan_payload()
-            target = payload if section == "root" else payload["steps"][0] if section == "step" else payload["parameters"]
-            for key in list(target):
+    def test_missing_and_extra_action_fields_cannot_inject_commands(self):
+        for section in ("root", "parameters"):
+            payload = decision_payload()
+            fields = payload if section == "root" else payload["parameters"]
+            for key in fields:
                 damaged = deepcopy(payload)
-                candidate = damaged if section == "root" else damaged["steps"][0] if section == "step" else damaged["parameters"]
+                candidate = damaged if section == "root" else damaged["parameters"]
                 del candidate[key]
                 with self.subTest(section=section, missing=key), self.assertRaises(PlannerError):
-                    validate_plan(damaged)
-            target["joint_commands"] = [0, 1, 2]
+                    validate_decision(damaged)
+            fields["joint_commands"] = [0, 1, 2]
             with self.subTest(section=section, extra=True), self.assertRaises(PlannerError):
-                validate_plan(payload)
+                validate_decision(payload)
 
-    def test_unsafe_parameter_values_are_rejected(self) -> None:
+    def test_unsafe_parameter_values_are_rejected(self):
         for name, bounds in GraspParameters.limits().items():
             for value in (
                 True, False, "0.06", None, [], {}, complex(1, 0),
                 float("nan"), float("inf"), float("-inf"), 10**400,
                 bounds["min"] - 1e-9, bounds["max"] + 1e-9,
             ):
-                payload = plan_payload()
+                payload = decision_payload()
                 payload["parameters"][name] = value
                 with self.subTest(name=name, value=value), self.assertRaises(PlannerError):
-                    validate_plan(payload)
+                    validate_decision(payload)
 
-    def test_unknown_reordered_skipped_and_repeated_phases_are_rejected(self) -> None:
-        original = plan_payload()["steps"]
-        candidates = (
-            original[::-1], original[:-1], original + [original[-1]],
-            [original[0]] + original[:-1],
-            [{"phase": "release", "instruction": "放下"}] + original[1:],
-        )
-        for steps in candidates:
-            payload = plan_payload()
-            payload["steps"] = steps
-            with self.subTest(steps=steps), self.assertRaises(PlannerError):
-                validate_plan(payload)
-
-
-    def test_storage_opening_clearance_is_checked_before_plan_can_execute(self) -> None:
-        payload = plan_payload("store_bowl")
+    def test_storage_grasp_requires_clearance_and_supported_target(self):
+        payload = decision_payload(goal="store_and_home")
         payload["parameters"]["initial_opening_m"] = 0.059
         with self.assertRaises(PlannerError):
-            validate_plan(payload)
+            validate_decision(payload)
         payload["parameters"]["initial_opening_m"] = 0.06
-        self.assertEqual(validate_plan(payload).parameters.initial_opening_m, 0.06)
-        payload = plan_payload("grasp")
-        payload["parameters"]["initial_opening_m"] = 0.02
-        self.assertEqual(validate_plan(payload).parameters.initial_opening_m, 0.02)
-
-    def test_cross_kind_truncation_mixing_and_storage_reordering_are_rejected(self) -> None:
-        storage = plan_payload("store_bowl")
-        grasp = plan_payload()
-        mixed = deepcopy(storage["steps"])
-        mixed[-1] = grasp["steps"][-1]
-        reordered = deepcopy(storage["steps"])
-        reordered[-2], reordered[-1] = reordered[-1], reordered[-2]
-        for kind, steps in (
-            ("store_bowl", grasp["steps"]), ("grasp", storage["steps"]),
-            ("store_bowl", mixed), ("store_bowl", reordered),
-        ):
-            with self.subTest(kind=kind, steps=steps), self.assertRaises(PlannerError):
-                validate_plan(dict(plan_payload(kind), steps=steps))
-
-    def test_bottle_storage_is_rejected_even_with_complete_storage_steps(self) -> None:
+        self.assertEqual(validate_decision(payload).parameters.initial_opening_m, 0.06)
         with self.assertRaises(PlannerError):
-            validate_plan(plan_payload("store_bowl", "bottle"))
+            validate_decision(decision_payload(goal="store_and_home", target="bottle"))
 
-    def test_wrong_target_decision_and_container_types_are_rejected(self) -> None:
+    def test_only_grasp_accepts_parameters(self):
+        for skill in SKILLS:
+            payload = decision_payload(goal="store_and_home", skill=skill)
+            if skill == "grasp_and_hold":
+                payload["parameters"] = None
+            else:
+                payload["parameters"] = GraspParameters().to_dict()
+            with self.subTest(skill=skill), self.assertRaises(PlannerError):
+                validate_decision(payload)
+
+    def test_wrong_goals_skills_targets_and_decisions_are_rejected(self):
         for field, values in {
             "target_object": (None, "drawer", ["bowl"], True),
-            "task_kind": (None, "place", "", True, [], {}),
-            "decision": (None, "execute", True, []),
-            "steps": (None, {}, "prepare", tuple(plan_payload()["steps"])),
+            "goal": (None, "open_drawer", "", True, [], {}),
+            "skill": (None, "teleport", "", True, [], {}),
+            "decision": (None, "plan", True, []),
             "parameters": (None, [], "preset"),
         }.items():
             for value in values:
-                payload = plan_payload()
-                payload[field] = value
                 with self.subTest(field=field, value=value), self.assertRaises(PlannerError):
-                    validate_plan(payload)
+                    validate_decision(dict(decision_payload(), **{field: value}))
         for value in (None, [], "{}", 3):
             with self.subTest(root=value), self.assertRaises(PlannerError):
-                validate_plan(value)
+                validate_decision(value)
 
-    def test_text_fields_require_nonblank_bounded_strings(self) -> None:
-        for name, limit in (("summary", 300), ("reason", 600), ("instruction", 240)):
+    def test_text_fields_require_nonblank_bounded_strings(self):
+        for name, limit in (("summary", 300), ("reason", 600)):
             for value in (None, [], 1, "", " \n", "字" * (limit + 1)):
-                payload = plan_payload()
-                target = payload["steps"][0] if name == "instruction" else payload
-                target[name] = value
                 with self.subTest(name=name, value=value), self.assertRaises(PlannerError):
-                    validate_plan(payload)
+                    validate_decision(dict(decision_payload(), **{name: value}))
 
-    def test_unsupported_is_valid_only_without_any_executable_actions(self) -> None:
-        payload = unsupported_payload()
-        plan = validate_plan(payload)
-        self.assertEqual(plan.to_dict(), payload)
-        self.assertIsNone(plan.parameters)
-        self.assertEqual(plan.steps, ())
-        executable = plan_payload()
-        for field in ("task_kind", "target_object", "steps", "parameters"):
-            damaged = dict(payload, **{field: executable[field]})
+    def test_complete_and_unsupported_cannot_smuggle_executable_actions(self):
+        for kind in ("complete", "unsupported"):
+            payload = decision_payload(decision=kind)
+            validate_decision(payload)
+            for field, value in (("skill", "grasp_and_hold"), ("parameters", GraspParameters().to_dict())):
+                with self.subTest(kind=kind, field=field), self.assertRaises(PlannerError):
+                    validate_decision(dict(payload, **{field: value}))
+        for field, value in (("goal", "hold_target"), ("target_object", "bowl")):
             with self.subTest(field=field), self.assertRaises(PlannerError):
-                validate_plan(damaged)
+                validate_decision(dict(decision_payload(decision="unsupported"), **{field: value}))
+
+
+class ContextValidationTests(unittest.TestCase):
+    def test_premature_completion_requires_every_measured_predicate(self):
+        complete = validate_decision(decision_payload(decision="complete"))
+        scene = scene_fixture()
+        checks = scene["goal_checks"]["hold_target"]
+        for name in checks:
+            checks[name] = True
+        validate_context(complete, scene, "hold_target")
+        for name in checks:
+            checks[name] = False
+            with self.subTest(predicate=name), self.assertRaises(PlannerError):
+                validate_context(complete, scene, "hold_target")
+            checks[name] = True
+        first = next(iter(checks))
+        for invalid in (1, "true", None):
+            checks[first] = invalid
+            with self.subTest(value=invalid), self.assertRaises(PlannerError):
+                validate_context(complete, scene, "hold_target")
+        checks[first] = True
+        checks["invented_evidence"] = True
+        with self.assertRaises(PlannerError):
+            validate_context(complete, scene, "hold_target")
+        del scene["goal_checks"]["hold_target"]
+        with self.assertRaises(PlannerError):
+            validate_context(complete, scene, "hold_target")
+
+    def test_available_skill_selected_target_and_bound_goal_are_required(self):
+        action = validate_decision(decision_payload())
+        validate_context(action, scene_fixture())
+        with self.assertRaises(PlannerError):
+            validate_context(action, scene_fixture("bottle"))
+        with self.assertRaises(PlannerError):
+            validate_context(action, scene_fixture(), "store_and_home")
+        scene = scene_fixture()
+        scene["available_skills"][0]["available"] = False
+        with self.assertRaises(PlannerError):
+            validate_context(action, scene)
+        unsupported = validate_decision(decision_payload(decision="unsupported"))
+        validate_context(unsupported, scene_fixture(), "store_and_home")
+
+    def test_failed_or_numerically_warned_scene_cannot_accept_a_decision(self):
+        action = validate_decision(decision_payload())
+        for field, value in (
+            ("warnings", ["mjWARN_BADQPOS"]),
+            ("skill", {"status": "failed", "invocation_id": 0}),
+        ):
+            with self.subTest(field=field), self.assertRaises(PlannerError):
+                validate_context(action, dict(scene_fixture(), **{field: value}))
+
+    def test_stale_reset_target_invocation_or_physical_state_is_rejected(self):
+        before = scene_fixture()
+        changes = (
+            ("scene_revision", 2), ("target_object", "bottle"),
+            ("scenario", {"case_id": "another"}),
+            ("skill", {"invocation_id": 1, "status": "idle"}),
+            ("skill", {"invocation_id": 0, "status": "failed"}),
+            ("joint_positions_rad", [0.04] + [0.0] * 6),
+            ("gripper_opening_m", 0.07),
+            ("objects", [{"name": "bowl_object", "position_m": [0.31, 0.0, 0.8],
+                          "quaternion_wxyz": [1.0, 0.0, 0.0, 0.0]}]),
+            ("objects", [{"name": "bowl_object", "position_m": [0.3, 0.0, 0.8],
+                          "quaternion_wxyz": [0.9987502604, 0.0, 0.0, 0.0499791693]}]),
+        )
+        for field, value in changes:
+            with self.subTest(field=field, value=value):
+                self.assertFalse(scene_matches(before, dict(before, **{field: value})))
+
+    def test_clock_and_small_settling_do_not_make_a_decision_stale(self):
+        before = scene_fixture()
+        after = deepcopy(before)
+        after["time_s"] += 60
+        after["objects"][0]["position_m"][0] += 0.001
+        after["joint_positions_rad"][0] += 0.005
+        after["gripper_opening_m"] -= 0.001
+        self.assertTrue(scene_matches(before, after))
 
 
 class PlannerConfigTests(unittest.TestCase):
@@ -228,10 +260,10 @@ class PlannerRequestTests(unittest.IsolatedAsyncioTestCase):
         self.events = [
             {"type": "thread.started", "thread_id": "test-completed-thread"},
             {"type": "turn.started"},
-            {"type": "item.completed", "item": {"type": "agent_message", "text": "structured plan"}},
+            {"type": "item.completed", "item": {"type": "agent_message", "text": "structured decision"}},
             {"type": "turn.completed"},
         ]
-        self.plan = json.dumps(plan_payload()).encode()
+        self.response = json.dumps(decision_payload()).encode()
         self.login = (0, b"", b"Logged in using ChatGPT")
         self.exit_code = 0
         self.stderr = b""
@@ -242,35 +274,28 @@ class PlannerRequestTests(unittest.IsolatedAsyncioTestCase):
     async def run_cli(self, command, directory, environment, input_data=None, timeout=90):
         if command[1:3] == ["login", "status"]:
             return self.login
-        self.schema = json.loads((directory / "schema.json").read_text())
-        self.prompt = json.loads(input_data)
-        if self.plan is not None:
-            (directory / "plan.json").write_bytes(self.plan)
+        if self.response is not None:
+            (directory / "plan.json").write_bytes(self.response)
         return self.exit_code, b"\n".join(json.dumps(event).encode() for event in self.events), self.stderr
 
-    async def request(self, target="bowl"):
-        return await request_plan(self.config, "抓起选定物体", {"target_object": target}, {})
+    async def request(self, target="bowl", *, goal=None):
+        return await request_decision(
+            self.config, "抓起选定物体", scene_fixture(target), {}, goal=goal,
+        )
 
-    async def test_schema_and_capabilities_are_scoped_to_selected_target(self) -> None:
-        self.plan = json.dumps(plan_payload("grasp", "bottle")).encode()
-        result = await self.request("bottle")
-        self.assertEqual(result.plan.target_object, "bottle")
-        properties = self.schema["properties"]
-        self.assertIn("task_kind", self.schema["required"])
-        self.assertFalse(self.schema["additionalProperties"])
-        self.assertEqual(properties["task_kind"]["anyOf"][0]["enum"], ["grasp"])
-        self.assertEqual(properties["target_object"]["anyOf"][0]["enum"], ["bottle"])
-        self.assertNotIn("push_drawer", properties["steps"]["items"]["properties"]["phase"]["enum"])
-        self.assertEqual(set(self.prompt["task_specs"]), {"grasp"})
-        self.plan = json.dumps(plan_payload("store_bowl")).encode()
-        result = await self.request()
-        self.assertEqual(result.plan.task_kind, "store_bowl")
-        self.assertEqual(set(self.prompt["task_specs"]), {"grasp", "store_bowl"})
-        self.assertIn("verify_store", self.schema["properties"]["steps"]["items"]["properties"]["phase"]["enum"])
+    async def test_provider_decision_requires_live_skill_and_original_goal(self):
+        for payload, goal in (
+            (decision_payload(skill="place_and_release"), None),
+            (decision_payload(decision="complete"), None),
+            (decision_payload(), "store_and_home"),
+        ):
+            self.response = json.dumps(payload).encode()
+            with self.subTest(payload=payload, goal=goal), self.assertRaises(PlannerError):
+                await self.request(goal=goal)
 
-    async def test_valid_plan_for_other_scene_target_is_rejected(self) -> None:
-        for scene_target, plan_target in (("bowl", "bottle"), ("bottle", "bowl")):
-            self.plan = json.dumps(plan_payload("grasp", plan_target)).encode()
+    async def test_valid_decision_for_other_scene_target_is_rejected(self):
+        for scene_target, decision_target in (("bowl", "bottle"), ("bottle", "bowl")):
+            self.response = json.dumps(decision_payload(target=decision_target)).encode()
             with self.subTest(target=scene_target), self.assertRaises(PlannerError):
                 await self.request(scene_target)
 
@@ -278,16 +303,16 @@ class PlannerRequestTests(unittest.IsolatedAsyncioTestCase):
         for scene in ({}, {"target_object": None}, {"target_object": "drawer"}):
             with patch("planner._run_cli", new_callable=AsyncMock) as runner:
                 with self.subTest(scene=scene), self.assertRaises(PlannerError):
-                    await request_plan(self.config, "抓起物体", scene, {})
+                    await request_decision(self.config, "抓起物体", scene, {})
                 runner.assert_not_awaited()
 
-    async def test_api_login_or_signed_out_cannot_produce_an_executable_plan(self) -> None:
+    async def test_api_login_or_signed_out_cannot_produce_an_executable_decision(self) -> None:
         for login in ((0, b"", b"Logged in using an API key"), (1, b"", b"Not logged in")):
             self.login = login
             with self.subTest(login=login), self.assertRaises(PlannerError):
                 await self.request()
 
-    async def test_plan_file_cannot_bypass_incomplete_failed_or_tool_using_turn(self) -> None:
+    async def test_decision_file_cannot_bypass_incomplete_failed_or_tool_using_turn(self) -> None:
         original = deepcopy(self.events)
         candidates = [
             [], original[:-1], original[1:], original + [original[-1]],
@@ -316,18 +341,18 @@ class PlannerRequestTests(unittest.IsolatedAsyncioTestCase):
             await self.request()
         self.assertNotIn(private, str(caught.exception))
 
-    async def test_completed_turn_cannot_bypass_missing_or_invalid_plan_file(self) -> None:
-        unsafe = plan_payload()
+    async def test_completed_turn_cannot_bypass_missing_or_invalid_decision_file(self) -> None:
+        unsafe = decision_payload()
         unsafe["parameters"]["initial_opening_m"] = 100
-        for plan in (
-            None, b"", b"```json\n{}\n```", b'{"decision":"plan","decision":"unsupported"}',
+        for response in (
+            None, b"", b"```json\n{}\n```", b'{"decision":"execute","decision":"unsupported"}',
             b'{"value":NaN}', b"\xff", json.dumps(unsafe).encode(),
         ):
-            self.plan = plan
-            with self.subTest(plan=plan), self.assertRaises(PlannerError):
+            self.response = response
+            with self.subTest(response=response), self.assertRaises(PlannerError):
                 await self.request()
 
-    async def test_failed_cli_never_returns_its_plan_or_private_diagnostic(self) -> None:
+    async def test_failed_cli_never_returns_its_decision_or_private_diagnostic(self) -> None:
         self.exit_code = 1
         for message in (b"401 private-token", b"429 private-token", b"unknown private-token"):
             self.stderr = message
@@ -335,7 +360,7 @@ class PlannerRequestTests(unittest.IsolatedAsyncioTestCase):
                 await self.request()
             self.assertNotIn("private-token", str(caught.exception))
 
-    async def test_unexpected_errors_are_not_converted_to_synthetic_plans(self) -> None:
+    async def test_unexpected_errors_are_not_converted_to_synthetic_decisions(self) -> None:
         with patch("planner._run_cli", side_effect=RuntimeError("test-programming-error")):
             with self.assertRaises(RuntimeError):
                 await self.request()

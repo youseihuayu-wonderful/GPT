@@ -1,4 +1,4 @@
-"""Paired physical comparison of fixed flow, frozen handcrafted rules, and real GPT."""
+"""Paired one-decision grasp comparison, not a closed-loop planning evaluation."""
 
 import argparse
 import asyncio
@@ -13,7 +13,7 @@ from types import MappingProxyType
 
 from experiments import SAMPLE_PERIOD_S, VALIDATION_HOLD_S
 from grasp import GraspParameters
-from planner import PlannerConfig, PlannerError, request_plan, validate_plan
+from planner import PlannerConfig, PlannerError, request_decision, validate_context, validate_decision
 from scenarios import POSITION_OFFSETS, TARGETS, SceneCase, benchmark_cases
 from simulation import Simulation
 from task_specs import TASKS
@@ -91,7 +91,7 @@ async def run_case(
     started = time.monotonic()
     row = {
         "case": case.to_dict(), "method": method, "status": "planning_failed", "success": False,
-        "parameters": None, "plan": None, "model": None, "thread_id": None,
+        "parameters": None, "decision": None, "model": None, "thread_id": None,
         "planning_wall_s": None, "gpt_latency_s": None,
         "execution_sim_s": None, "execution_wall_s": None, "validation_sim_s": None,
         "end_to_end_wall_s": None, "collisions": None, "failure_reason": None,
@@ -115,23 +115,25 @@ async def run_case(
                 row["model"] = config.model
                 request_started = time.monotonic()
                 try:
-                    result = await request_plan(
+                    result = await request_decision(
                         config, f"抓起当前选定的{TARGETS[case.target_object].label}并稳定保持。",
                         scene, experiments,
                     )
                 finally:
                     # Failed requests have observed wall latency, not an invented provider value.
                     row["gpt_latency_s"] = time.monotonic() - request_started
-                row.update(plan=result.plan.to_dict(), model=result.model,
+                row.update(decision=result.decision.to_dict(), model=result.model,
                            thread_id=result.thread_id, gpt_latency_s=result.latency_s)
-                plan = validate_plan(result.plan.to_dict())
-                if plan.decision == "unsupported":
-                    row.update(status="unsupported", failure_reason=plan.reason)
+                decision = validate_decision(result.decision.to_dict())
+                if decision.decision == "unsupported":
+                    row.update(status="unsupported", failure_reason=decision.reason)
                     return row
-                if (plan.task_kind != "grasp" or plan.target_object != case.target_object
-                        or plan.parameters is None):
-                    raise PlannerError("Plan does not contain a supported grasp for the selected target")
-                parameters = plan.parameters
+                if (decision.decision != "execute" or decision.goal != "hold_target"
+                        or decision.skill != "grasp_and_hold"
+                        or decision.target_object != case.target_object or decision.parameters is None):
+                    raise PlannerError("Comparison requires one grasp_and_hold decision with goal hold_target")
+                validate_context(decision, scene)
+                parameters = decision.parameters
         except PlannerError as exc:
             row["failure_reason"] = str(exc)
             return row
@@ -211,8 +213,9 @@ async def run_benchmark(
                 "Fresh simulation and identical settled qpos/qvel/ctrl fingerprint per paired case. "
                 "Fixed: 80/100/0; frozen handcrafted rules: bowl 80/200/4 from phase-3 calibration, "
                 "bottle 40/120/0 conservative neck policy (mm, mm/s, mm), not learned from evaluation. "
-                "GPT gets only current scene and existing parameter_sweep.json; one request per row, "
-                "no retries, history feedback, stored-plan substitutes or fallbacks. "
+                "GPT chooses one grasp_and_hold action with goal hold_target using only current scene "
+                "and existing parameter_sweep.json; one request per row. This is not a closed-loop "
+                "evaluation: no retries, history feedback, stored-decision substitutes or fallbacks. "
                 "Success requires an additional 5 s physical hold. Planning failures remain in the "
                 "task-success denominator. Execution simulation time excludes validation; execution "
                 "wall time excludes planning and validation; end-to-end wall includes setup, settle, "
