@@ -32,6 +32,8 @@ class StorageTests(unittest.TestCase):
     def assert_stored(self, sim):
         state = sim.state()
         self.assertEqual(state["skill"]["status"], "succeeded", state["skill"])
+        self.assertTrue(state["drawer"]["closed"])
+        self.assertFalse(state["drawer"]["fully_open"])
         storage = state["skill"]["storage"]
         for key in ("bowl_inside_drawer", "bowl_supported", "gripper_clear", "drawer_closed", "home_reached", "push_contact_seen"):
             self.assertTrue(storage[key], (key, storage))
@@ -79,11 +81,45 @@ class StorageTests(unittest.TestCase):
         self.assertIsNone(sim.skill.storage)
         self.assertEqual(sim.state()["collisions"]["episodes"], 0)
         self.assertAlmostEqual(sim.data.qpos[sim.model.joint("cabinet_bottom_level").qposadr[0]], -.16)
+        self.assertTrue(sim.state()["drawer"]["fully_open"])
         np.testing.assert_array_equal(sim.data.qpos[sim.arm_qpos], ARM_HOME)
         sim.start_task("store_bowl")
         self.assertEqual(sim.skill.phase, "prepare")
         self.assertFalse(sim.skill.storage.released)
         self.assertEqual(sim.skill.storage.verification_hold_s, 0)
+
+    def test_idle_drawer_truth_distinguishes_full_open_partial_closed_and_moving(self):
+        cases = (
+            (-0.16, 0.0, True, False),
+            (-0.155, 0.0, True, False),
+            (-0.155 + 1e-6, 0.0, False, False),
+            (-0.003, 0.0, False, True),
+            (-0.003 - 1e-6, 0.0, False, False),
+            (0.0, 0.005, False, False),
+            (0.0, 0.005 - 1e-6, False, True),
+        )
+        for position, velocity, fully_open, closed in cases:
+            with self.subTest(position=position, velocity=velocity):
+                sim = self.make_sim()
+                joint = sim.model.joint("cabinet_bottom_level")
+                # Initial-condition fixtures, never a successful-motion shortcut.
+                sim.data.qpos[joint.qposadr[0]] = position
+                sim.data.qvel[joint.dofadr[0]] = velocity
+                mujoco.mj_forward(sim.model, sim.data)
+                before = deepcopy(sim.state())
+                self.assertIsNone(before["skill"]["storage"])
+                self.assertEqual(before["drawer"]["position_m"], position)
+                self.assertEqual(before["drawer"]["velocity_m_s"], velocity)
+                self.assertIs(before["drawer"]["fully_open"], fully_open)
+                self.assertIs(before["drawer"]["closed"], closed)
+                self.assertIs(before["goal_checks"]["store_and_home"]["drawer_closed"], closed)
+                if fully_open:
+                    sim.start_task("store_bowl")
+                    self.assertEqual(sim.skill.status, "running")
+                else:
+                    with self.assertRaises(ValueError):
+                        sim.start_task("store_bowl")
+                    self.assertEqual(sim.state(), before)
 
     def test_invalid_task_target_opening_and_closed_drawer_refuse_before_motion(self):
         sim = self.make_sim()
@@ -100,7 +136,7 @@ class StorageTests(unittest.TestCase):
         sim.data.qpos[drawer] = 0.0  # Deliberately invalid initial condition, not controller motion.
         mujoco.mj_forward(sim.model, sim.data)
         qpos, ctrl = sim.data.qpos.copy(), sim.data.ctrl.copy()
-        with self.assertRaisesRegex(ValueError, "fully open"):
+        with self.assertRaises(ValueError):
             sim.start_task("store_bowl")
         np.testing.assert_array_equal(sim.data.qpos, qpos)
         np.testing.assert_array_equal(sim.data.ctrl, ctrl)
@@ -126,6 +162,7 @@ class StorageTests(unittest.TestCase):
         sim.data.xfrc_applied[sim.skill.storage.drawer, 1] = -30.0
         sim.step(float(sim.model.opt.timestep))
         self.assertFalse(sim.skill.storage.state()["drawer_closed"])
+        self.assertFalse(sim.state()["drawer"]["closed"])
         self.assertEqual(sim.skill.status, "failed")
         self.assertIsNotNone(sim.skill.failure_reason)
         with self.assertRaises(ValueError):

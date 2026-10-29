@@ -423,6 +423,7 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
                 ("initial", "planning_comparison.json", "planning_failed"),
                 ("followup", "planning_comparison_followup.json", "succeeded"),
                 ("expanded", "planning_comparison_expanded.json", "running"),
+                ("drawer_state", "planning_comparison_drawer_state.json", "unsupported"),
             ):
                 (results / filename).write_text(json.dumps({
                     "kind": "paired_closed_loop_comparison",
@@ -432,6 +433,7 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
                 ("initial", "planning_comparison.json", "planning_failed"),
                 ("followup", "planning_comparison_followup.json", "succeeded"),
                 ("expanded", "planning_comparison_expanded.json", "running"),
+                ("drawer_state", "planning_comparison_drawer_state.json", "unsupported"),
                 (None, "planning_comparison.json", "planning_failed"),
             ):
                 response = await self.client.get(
@@ -489,7 +491,7 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
             (results / "planning_comparison.json").write_text(
                 '{"kind":"paired_closed_loop_comparison","runs":[]}', encoding="utf-8",
             )
-            for batch in ("followup", "expanded"):
+            for batch in ("followup", "expanded", "drawer_state"):
                 response = await self.client.get("/api/planning-comparison", params={"batch": batch})
                 self.assertEqual(response.status, 404)
                 filename = server.COMPARISON_REPORTS[batch]

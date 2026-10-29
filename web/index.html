@@ -172,17 +172,19 @@
         <div class="section-heading"><h2 id="comparison-title">闭环规划配对对照 · 已存储证据</h2><button id="comparison-refresh" type="button">刷新报告</button></div>
         <label class="comparison-batch-label" for="comparison-batch">实验批次
           <select id="comparison-batch" aria-describedby="comparison-batch-note">
-            <option value="expanded" selected>扩展批次 · 12 场景 × 3 次 × 2 方法</option>
+            <option value="drawer_state" selected>状态补全回归 · 6 场景 × 3 次 × 2 方法</option>
+            <option value="expanded">扩展批次 · 12 场景 × 3 次 × 2 方法</option>
             <option value="followup">补充批次 · 恢复额度后的五场景配对</option>
             <option value="initial">原始批次 · 21 组尝试，含额度受限记录</option>
           </select>
         </label>
         <p id="comparison-batch-note" class="experiment-note">每次只显示所选批次；新结果不覆盖旧失败，不合并不同批次的完成率。切换不会请求 GPT 或驱动机械臂。</p>
         <p class="experiment-note">主要对照是状态感知规则与 GPT；固定五技能序列仅作历史参考。扩展批次包含有限位姿变化、不同物体与目标，每个场景重复实际运行；相同场景的重复共享初态，不是独立场景抽样，不代表泛化能力。历史批次保持单次配对、独立读取。刷新只读取文件，不启动运行。</p>
+        <p class="experiment-note">状态补全回归单独检验新增抽屉真值和规划说明，复用扩展批次的六类场景与同一随机种子；不是未知场景盲测。原错误拒绝记录保留，不把新批结果覆盖或并入旧批。</p>
         <p class="experiment-note">任务完成仅统计有效已结束正例；基础设施失败及进行中试次单列、不计分母。安全停止（safe_stop）不等于任务成功。仿真时间、墙钟时间与 GPT 请求耗时分开显示，不相加；初始化与准备不计入方法延迟。未测量值不替换为零，各均值附计时样本数。正例墙钟同时列出全尝试与仅成功均值；提前失败导致耗时短，不代表方法更快。</p>
         <p id="comparison-status" class="experiment-note" role="status">正在读取闭环对照报告…</p>
         <p id="comparison-error" class="skill-failure" role="alert" hidden></p>
-        <p><a id="comparison-download" href="/api/planning-comparison?batch=expanded" download>下载当前批次原始 JSON（含请求、技能与物理证据）</a></p>
+        <p><a id="comparison-download" href="/api/planning-comparison?batch=drawer_state" download>下载当前批次原始 JSON（含请求、技能与物理证据）</a></p>
         <div id="comparison-report" hidden>
           <p id="comparison-meta" class="experiment-note"></p>
           <div class="experiment-scroll" tabindex="0" role="region" aria-label="闭环对照方法汇总，可横向滚动">

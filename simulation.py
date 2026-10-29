@@ -191,6 +191,7 @@ class Simulation:
             "time_s": float(self.data.time),
             "scene_revision": self.scene_revision,
             "goal_checks": self.goal_checks(),
+            "drawer": self.skill._storage_context().drawer_state(),
             "timestep_s": float(self.model.opt.timestep),
             "scene_name": "Panda 桌面工位 · 黑碗 / 酒瓶 / 抽屉柜 / 酒架",
             "robot_name": "Franka Panda · 7 轴 · 双指夹爪",

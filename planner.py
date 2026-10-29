@@ -220,14 +220,18 @@ scene.target_object 是唯一目标，不能换物体。store_and_home 仅支持
 grasp_and_hold 完成后继续持物，不会放置；place_and_release 完成后手仍在抽屉内；
 withdraw_from_drawer 只撤出；close_drawer 自带推关后的撤离，但不会归位。
 不得关闭夹爪尚未撤离的抽屉，不得持物归位；以 available_skills 的前置条件为准。
+available=false 只表示该技能现在不可调用，不等于永久缺少能力；unavailable_reason 只报告首个未满足条件。
+应结合各技能 postconditions 判断能否先满足后续技能的前置条件，但仍只能执行当前 available=true 的技能。
+scene.drawer 是下层抽屉实时关节真值；fully_open 表示已达到放置和推关所需的全开位置，closed 还要求静止。
+closed=false 不代表 fully_open=true；初态 fully_open=true 时不需要再打开抽屉，不得因没有开屉技能拒绝这一条件。
 只允许 grasp_and_hold 携带三个有界 SI 单位参数，其他技能 parameters 必须 null。
 store_and_home 的抓取初始开度必须至少 0.06 m，以便后续实际松爪释放碗沿。
 参数校准只针对固定工位黑碗抓取，每组一次，不是成功率或收纳/瓶子最优参数证明。
 complete 仅当 scene.goal_checks[goal] 每一项都为 true；不能因某个技能 succeeded 就报总任务完成。
 execute 要求 skill 非空；complete 要求 skill=null、parameters=null。两者目标物体和 goal 都必须填写。
-没有开抽屉、任意姿态恢复、通用避障、倾倒等能力。包含缺失动作的整个请求必须 unsupported，
-不能只做能够完成的子集。unsupported 要求 goal/target_object/skill/parameters 全为 null。
-初态可能已经持物或已完成部分目标，应根据真实状态跳过不需要的动作，不得要求重置后照固定顺序执行。
+没有开抽屉、任意姿态恢复、通用避障、倾倒等能力。只有剩余目标确实需要缺失能力时才返回 unsupported，
+不能只做能够完成的子集，也不能假设未满足条件已经满足。unsupported 要求 goal/target_object/skill/parameters 全为 null。
+初态可能已全开抽屉、已经持物或已完成部分目标，应根据真实状态跳过不需要的动作，不得要求重置后照固定顺序执行。
 失败后不重试，不虚构支撑、夹持、关闭、归位或执行结果。轨迹与物理判据全部由本地控制器负责。
 """
 

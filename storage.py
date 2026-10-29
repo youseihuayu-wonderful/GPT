@@ -57,8 +57,21 @@ class BowlStorage:
         center = self.data.site_xpos[self.region]
         return center - extent, center + extent
 
+    def drawer_fully_open(self):
+        return bool(self.data.qpos[self.drawer_qpos] <= -0.155)
+
+    def drawer_state(self):
+        position = float(self.data.qpos[self.drawer_qpos])
+        velocity = float(self.data.qvel[self.drawer_dof])
+        return {
+            "position_m": position,
+            "velocity_m_s": velocity,
+            "fully_open": self.drawer_fully_open(),
+            "closed": bool(abs(position) <= 0.003 and abs(velocity) < 0.005),
+        }
+
     def validate(self, parameters, held=False):
-        if self.data.qpos[self.drawer_qpos] > -0.155:
+        if not self.drawer_fully_open():
             raise ValueError("Bottom drawer must initially be fully open")
         minimum = TASKS["store_bowl"].minimum_opening_m
         if parameters.initial_opening_m < minimum:
@@ -173,7 +186,7 @@ class BowlStorage:
             if not self.support_preserved():
                 return "Target must remain stably supported on the table or inside the drawer"
             if name == "close_drawer":
-                if self.data.qpos[self.drawer_qpos] > -0.155:
+                if not self.drawer_fully_open():
                     return "Closing requires the fully open drawer; opening or partial-drawer approaches are not supported"
                 if not self.closing_corridor_clear():
                     return "An object obstructs the drawer closing corridor"
@@ -231,7 +244,8 @@ class BowlStorage:
         region_low, region_high = self.region_bounds()
         inside = bool(np.all(low >= region_low) and np.all(high <= region_high))
         supported, clear = self.support_and_clear()
-        q = float(self.data.qpos[self.drawer_qpos])
+        drawer = self.drawer_state()
+        q = drawer["position_m"]
         home_error = float(np.max(np.abs(self.data.qpos[self.sim.arm_qpos] - self.sim.arm_home)))
         return {
             "bowl_inside_drawer": inside, "bowl_supported": supported,
@@ -239,7 +253,7 @@ class BowlStorage:
             "drawer_position_m": q,
             "hand_clear_of_drawer": self.hand_clear(),
             "hand_empty": self.empty_hand(),
-            "drawer_closed": bool(abs(q) <= 0.003 and abs(self.data.qvel[self.drawer_dof]) < 0.005),
+            "drawer_closed": drawer["closed"],
             "home_error_rad": home_error,
             "home_reached": bool(home_error <= 0.03 and np.max(np.abs(self.data.qvel[self.skill.arm_dof])) < 0.03),
             "verification_hold_s": self.verification_hold_s,
