@@ -37,6 +37,7 @@ CLIENTS = web.AppKey("clients", set)
 CONTROLS = web.AppKey("controls", Controls)
 PLANNING = web.AppKey("planning", PlanningSession)
 SCENE_CASE = web.AppKey("scene_case", SceneCase)
+SCENE = web.AppKey("scene", str)
 FRAME_PERIOD = 0.05
 LOGGER = logging.getLogger(__name__)
 WORKER_FAILURE_MESSAGE = "仿真工作线程已停止；请查看服务日志并重启本地服务后重新连接。"
@@ -49,7 +50,13 @@ def public_state(app: web.Application) -> dict:
     state = app[SIMULATION].state()
     state["paused"] = app[CONTROLS].paused
     state["runtime_error"] = None
-    state["planner"] = app[PLANNING].state(state["skill"])
+    if PLANNING in app:
+        state["planner"] = app[PLANNING].state(state["skill"])
+    else:
+        state["planner"] = {
+            "status": "disabled", "configured": False, "mode": "fixed",
+            "calls": 0, "message": "固定分拣不构造规划会话，不调用 GPT；使用仿真真值，不使用视觉。",
+        }
     return state
 
 
@@ -91,7 +98,8 @@ async def stop_failed_runtime(app: web.Application) -> None:
     app[CONTROLS].paused = True
     LOGGER.exception("Physics execution stopped; restart the local server to recover")
     try:
-        await app[PLANNING].close()
+        if PLANNING in app:
+            await app[PLANNING].close()
     except Exception:
         LOGGER.exception("Could not stop planner after fatal simulation failure")
     for client in tuple(app[CLIENTS]):
@@ -106,7 +114,8 @@ async def physics_loop(app: web.Application) -> None:
             allow_execution = bool(app[CLIENTS]) and not app[CONTROLS].paused
             if allow_execution:
                 app[SIMULATION].step(FRAME_PERIOD)
-            app[PLANNING].advance(allow_execution=allow_execution)
+            if PLANNING in app:
+                app[PLANNING].advance(allow_execution=allow_execution)
             await broadcast(app)
             await asyncio.sleep(max(0, FRAME_PERIOD - (time.monotonic() - started)))
     except asyncio.CancelledError:
@@ -116,8 +125,13 @@ async def physics_loop(app: web.Application) -> None:
 
 
 async def lifecycle(app: web.Application):
-    app[SIMULATION] = Simulation(app[SCENE_CASE])
-    app[PLANNING] = PlanningSession(ROOT, app[SIMULATION])
+    if app[SCENE] == "sorting":
+        from sorting import SortingSimulation
+
+        app[SIMULATION] = SortingSimulation()
+    else:
+        app[SIMULATION] = Simulation(app[SCENE_CASE])
+        app[PLANNING] = PlanningSession(ROOT, app[SIMULATION])
     task = asyncio.create_task(physics_loop(app), name="mujoco-physics")
     try:
         yield
@@ -128,7 +142,8 @@ async def lifecycle(app: web.Application):
                 await task
         finally:
             try:
-                await app[PLANNING].close()
+                if PLANNING in app:
+                    await app[PLANNING].close()
             finally:
                 try:
                     for client in tuple(app[CLIENTS]):
@@ -174,7 +189,10 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                 if not isinstance(command, dict):
                     raise ValueError("命令必须是 JSON 对象")
                 action = command.get("action")
-                planner = app[PLANNING]
+                sorting = app[SCENE] == "sorting"
+                if sorting and action not in ("sort", "pause", "play", "reset", "step", "camera"):
+                    raise ValueError("固定分拣场景不支持 GPT、抓取、收纳或独立技能命令；请使用 sort")
+                planner = app.get(PLANNING)
                 if action in ("grasp", "store", "skill") and planner.state()["locks_scene"]:
                     raise ValueError("GPT 决策循环已锁定场景；请先停止后续决策并等待当前技能结束，或重置")
                 if action == "pause":
@@ -182,9 +200,15 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                 elif action == "play":
                     app[CONTROLS].paused = False
                 elif action == "reset":
-                    planner.reset()
+                    if planner is not None:
+                        planner.reset()
                     app[SIMULATION].reset()
                     app[CONTROLS].paused = True
+                elif action == "sort":
+                    if not sorting:
+                        raise ValueError("sort 仅适用于固定分拣场景")
+                    app[SIMULATION].start_sorting()
+                    app[CONTROLS].paused = False
                 elif action in ("grasp", "store"):
                     parameters = command.get("parameters", {})
                     if not isinstance(parameters, dict):
@@ -211,7 +235,8 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     if not app[CONTROLS].paused:
                         raise ValueError("请先暂停，再单步推进")
                     app[SIMULATION].step(0.02)
-                    planner.advance(allow_execution=False)
+                    if planner is not None:
+                        planner.advance(allow_execution=False)
                 elif action == "plan":
                     try:
                         report = load_experiment_report()
@@ -299,11 +324,14 @@ async def asset(request: web.Request) -> web.FileResponse:
     return web.FileResponse(ROOT / "web" / name, headers={"Cache-Control": "no-cache"})
 
 
-def create_app(case: SceneCase = DEFAULT_CASE) -> web.Application:
+def create_app(case: SceneCase = DEFAULT_CASE, *, scene: str = "storage") -> web.Application:
+    if scene not in ("storage", "sorting"):
+        raise ValueError("scene 必须是 storage 或 sorting")
     app = web.Application(middlewares=[local_only])
     app[CLIENTS] = set()
     app[CONTROLS] = Controls()
     app[SCENE_CASE] = case
+    app[SCENE] = scene
     app.cleanup_ctx.append(lifecycle)
     app.router.add_get("/ws", websocket)
     app.router.add_get("/api/state", state)
@@ -318,9 +346,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--target", choices=tuple(TARGETS), default="bowl")
+    parser.add_argument("--scene", choices=("storage", "sorting"), default="storage")
     args = parser.parse_args()
     case = SceneCase(f"{args.target}.nominal", args.target, "nominal", 0, (0.0, 0.0), 0.0)
-    web.run_app(create_app(case), host="127.0.0.1", port=args.port, access_log=None)
+    web.run_app(create_app(case, scene=args.scene), host="127.0.0.1", port=args.port, access_log=None)
 
 
 if __name__ == "__main__":

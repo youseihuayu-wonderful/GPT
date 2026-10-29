@@ -10,10 +10,15 @@
 </head>
 <body>
   <main class="viewer">
-    <header class="page-header">
+    <header class="page-header" data-storage-only>
       <div class="eyebrow">实时决策 <span>GPT + LIVE PHYSICS</span></div>
       <h1>GPT 单技能决策 <span>· 观察、执行、反馈</span></h1>
       <p class="scope">每次只选一项技能 <span aria-hidden="true">/</span> 明确授权 · 真实接触执行 · 本地目标检查</p>
+    </header>
+    <header class="page-header" data-sorting-only hidden>
+      <div class="eyebrow">固定规划基线 <span>FIXED PLAN + LIVE PHYSICS</span></div>
+      <h1>彩色碗杯分拣 <span>· 六物体真实接触执行</span></h1>
+      <p class="scope">仿真真值 · 无视觉识别 · 不调用 GPT <span aria-hidden="true">/</span> 固定全队列 · 失败即停止</p>
     </header>
 
     <section class="scene-panel" aria-label="实时物理仿真">
@@ -43,8 +48,34 @@
       <div id="reconnect-panel" class="reconnect-panel" hidden><span>不会自动重连；连接恢复后以仿真器状态为准。</span><button id="reconnect" type="button">重新连接</button></div>
     </section>
 
-    <aside class="right-pane" aria-label="抓取任务与仿真状态">
-      <section id="planner-panel" class="planner-panel" aria-labelledby="planner-title" data-status="waiting">
+    <aside class="right-pane" aria-label="任务与仿真状态">
+      <section id="sorting-panel" class="sorting-panel" aria-labelledby="sorting-title" data-sorting-only hidden>
+        <div class="section-heading"><h2 id="sorting-title">固定分拣 · 全队列</h2><span id="sorting-status" role="status">等待状态</span></div>
+        <ul class="sorting-rules" aria-label="按颜色分区规则">
+          <li data-color="red">红色 → A 区</li><li data-color="blue">蓝色 → B 区</li><li data-color="yellow">黄色 → C 区</li>
+        </ul>
+        <p class="skill-criteria">每色一只碗、一只无把手空心杯；每区两个独立落点。色区是桌面标记，不是容器。身份、颜色与位姿直接来自仿真真值，无视觉识别，不构造 GPT 规划会话。</p>
+        <button id="sort-start" class="primary" type="button" disabled aria-describedby="sorting-hint">开始固定分拣</button>
+        <p id="sorting-hint" class="skill-hint" role="status">等待后端启动条件。</p>
+        <p class="skill-phase">当前物体：<strong id="sorting-current">—</strong></p>
+        <p class="skill-phase">物理阶段：<strong id="sorting-phase">—</strong></p>
+        <p id="sorting-message" class="skill-message"></p>
+        <p id="sorting-failure" class="skill-failure" role="alert" hidden></p>
+        <label class="sorting-progress-label" for="sorting-progress">实测完成 <output id="sorting-count">—</output></label>
+        <progress id="sorting-progress" max="6" value="0" aria-label="后端实测已分拣物体数"></progress>
+        <dl class="metadata skill-metrics">
+          <div><dt>本次执行 · 仿真秒，非墙钟耗时</dt><dd><output id="sorting-elapsed">—</output> <small>s</small></dd></div>
+          <div><dt>归位后整批最终保持 · 目标 5 仿真秒</dt><dd><output id="sorting-hold">—</output> <small>/ 5 s</small></dd></div>
+        </dl>
+        <p class="skill-criteria">每个物体依次抓取、抬升保持、转移、放置释放、撤离；全队列后归位并验证 5 仿真秒。不自动重试，不跳过失败；完成或失败后须显式重置。</p>
+        <h3 class="postconditions-title">既定队列 · 状态由后端报告</h3>
+        <ol id="sorting-queue" class="sorting-queue" aria-label="固定物体处理顺序"></ol>
+        <h3 class="postconditions-title">整批目标 · 当前物理检查</h3>
+        <dl id="sorting-checks" class="metadata storage-metrics"></dl>
+        <h3 class="postconditions-title">逐物体实测 · 不由动画推断</h3>
+        <div id="sorting-objects" class="sorting-objects"></div>
+      </section>
+      <section id="planner-panel" class="planner-panel" aria-labelledby="planner-title" data-status="waiting" data-storage-only>
         <div class="section-heading"><h2 id="planner-title">GPT 订阅 · 实时决策循环</h2><span id="planner-status" role="status">等待状态</span></div>
         <p id="planner-scope" class="planner-note">GPT 依据当前物理观测从五个独立技能中选择一项；每次执行结果会进入下一次请求，不预编整段动作。支持抓取保持、黑碗收纳归位、关柜归位或直接归位；不能打开抽屉、编写动作代码或切换已授权目标。无需重置已成功的夹持状态。</p>
         <label class="task-label" for="planner-task">任务描述 <span>最多 1000 字符</span></label>
@@ -83,7 +114,7 @@
         <p id="planner-history-empty" class="planner-note">尚无请求记录；不展示预设步骤或替代结果。</p>
         <ol id="planner-history" class="planner-history" aria-label="真实决策与执行反馈记录"></ol>
       </section>
-      <section id="skill-panel" class="skill-panel" aria-labelledby="skill-title" data-status="waiting">
+      <section id="skill-panel" class="skill-panel" aria-labelledby="skill-title" data-status="waiting" data-storage-only>
         <div class="section-heading"><h2 id="skill-title">物理执行与手动对照</h2><span id="skill-result" role="status">等待状态</span></div>
         <div class="manual-skills" aria-labelledby="manual-skills-title">
           <h3 id="manual-skills-title">独立本地技能 · 手动单次调用</h3>
@@ -152,7 +183,7 @@
         </div>
         <details class="phase-details"><summary>各阶段耗时 <span>仿真秒</span></summary><dl id="phase-times" class="phase-times"><dt>等待后端状态</dt></dl></details>
       </section>
-      <section class="experiments" aria-labelledby="experiments-title">
+      <section class="experiments" aria-labelledby="experiments-title" data-storage-only>
         <div class="section-heading"><h2 id="experiments-title">已存储实验 · 非实时</h2><button id="experiments-refresh" type="button">刷新报告</button></div>
         <p class="experiment-note">固定场景参数对照：每组仅运行一次、相同重置初态。不是统计成功率证据；与上方当前任务独立。</p>
         <p id="experiments-status" class="experiment-note" role="status">正在读取实验报告…</p>
@@ -168,7 +199,7 @@
           </div>
         </div>
       </section>
-      <section id="planning-comparison" class="experiments planning-comparison" aria-labelledby="comparison-title">
+      <section id="planning-comparison" class="experiments planning-comparison" aria-labelledby="comparison-title" data-storage-only>
         <div class="section-heading"><h2 id="comparison-title">闭环规划配对对照 · 已存储证据</h2><button id="comparison-refresh" type="button">刷新报告</button></div>
         <label class="comparison-batch-label" for="comparison-batch">实验批次
           <select id="comparison-batch" aria-describedby="comparison-batch-note">
@@ -237,7 +268,8 @@
       <p class="source">场景来源 <span id="source">—</span></p>
     </section>
     </aside>
-    <footer>GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，每次只选择一个已定义技能；首项决策须人工授权。后续决策依据真实物理反馈，逐项或有界持续执行。实时画面与任务成败来自 MuJoCo，不是视频回放或模型自报成功。碗与抽屉保持原尺寸，抽屉初态使用原滑轨的完整开度。</footer>
+    <footer data-storage-only>GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，每次只选择一个已定义技能；首项决策须人工授权。后续决策依据真实物理反馈，逐项或有界持续执行。实时画面与任务成败来自 MuJoCo，不是视频回放或模型自报成功。碗与抽屉保持原尺寸，抽屉初态使用原滑轨的完整开度。</footer>
+    <footer data-sorting-only hidden>固定规划基线：启动前确定完整队列与颜色落区，执行不调用 GPT、不使用视觉。实时画面来自 MuJoCo 渲染；物体运动、支撑、稳定与成败均以真实物理状态为准，不播放替代动画。进度不是成功率；此固定场景单次结果不代表泛化能力。</footer>
   </main>
 </body>
 </html>

@@ -74,6 +74,21 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(message.type, WSMsgType.CLOSE)
         self.assertEqual(ws.close_code, 1011)
 
+    async def test_sort_rejected_in_storage_without_mutation(self) -> None:
+        ws = await self.connect()
+        before = (
+            self.sim.data.time, self.sim.data.qpos.tolist(),
+            self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
+        )
+        await ws.send_json({"action": "sort"})
+        self.assertIn("仅适用于固定分拣", (await self.receive_error(ws))["error"])
+        self.assertTrue(self.app[server.CONTROLS].paused)
+        self.assertEqual(before, (
+            self.sim.data.time, self.sim.data.qpos.tolist(),
+            self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
+        ))
+        self.provider.assert_not_awaited()
+
     async def test_paused_single_step_numerical_failure_stops_runtime(self) -> None:
         ws = await self.connect()
         self.sim.data.warning[int(mujoco.mjtWarning.mjWARN_BADQPOS)].number = 1
@@ -518,6 +533,145 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
             )
             self.assertEqual(response.status, 400)
         self.provider.assert_not_awaited()
+
+
+class SortingServerTests(unittest.IsolatedAsyncioTestCase):
+    connect = ServerTests.connect
+    receive_error = ServerTests.receive_error
+    receive_state = ServerTests.receive_state
+    assert_fatal_close = ServerTests.assert_fatal_close
+
+    async def asyncSetUp(self) -> None:
+        for target in ("server.PlanningSession", "planning.PlannerConfig.load"):
+            forbidden = patch(target, side_effect=AssertionError("sorting must not construct a planner"))
+            forbidden.start()
+            self.addCleanup(forbidden.stop)
+        provider = patch("planning.request_decision", new_callable=AsyncMock)
+        self.provider = provider.start()
+        self.addCleanup(provider.stop)
+        render = patch("sorting.SortingSimulation.render", return_value="test-image")
+        self.render = render.start()
+        self.addCleanup(render.stop)
+        self.app = server.create_app(scene="sorting")
+        self.app[server.CONTROLS].paused = True
+        self.client = TestClient(TestServer(self.app))
+        self.addAsyncCleanup(self.client.close)
+        await self.client.start_server()
+        self.sim = self.app[server.SIMULATION]
+
+    def physical_state(self):
+        return (
+            self.sim.data.time, self.sim.data.qpos.tolist(),
+            self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
+        )
+
+    async def test_sorting_state_does_not_require_legacy_skill_or_planner(self) -> None:
+        observed = self.sim.state()
+        observed.pop("skill", None)
+        with patch.object(self.sim, "state", return_value=observed):
+            response = await self.client.get("/api/state")
+            self.assertEqual(response.status, 200)
+            state = await response.json()
+        self.assertEqual(state["sorting"]["mode"], "fixed")
+        self.assertEqual(state["sorting"]["object_count"], 6)
+        self.assertEqual(len(state["sorting"]["plan"]), 6)
+        self.assertEqual(state["planner"]["status"], "disabled")
+        self.assertFalse(state["planner"]["configured"])
+        self.assertEqual(state["planner"]["calls"], 0)
+        self.assertNotIn(server.PLANNING, self.app)
+        self.provider.assert_not_awaited()
+
+    async def test_incompatible_commands_reject_before_mutating_sorting_scene(self) -> None:
+        ws = await self.connect()
+        before = self.physical_state()
+        before_sorting = self.sim.state()["sorting"]
+        for command in (
+            {"action": "grasp"}, {"action": "store"},
+            {"action": "skill", "skill": "return_home"},
+            {"action": "plan", "task": "sort objects"},
+            {"action": "execute_decision", "decision_id": 1},
+            {"action": "plan_next"}, {"action": "cancel_plan"},
+        ):
+            with self.subTest(command=command):
+                await ws.send_json(command)
+                self.assertIn("固定分拣场景不支持", (await self.receive_error(ws))["error"])
+                self.assertEqual(self.physical_state(), before)
+                self.assertEqual(self.sim.state()["sorting"], before_sorting)
+                self.assertTrue(self.app[server.CONTROLS].paused)
+        self.provider.assert_not_awaited()
+
+    async def test_sort_starts_unpaused_and_repeated_request_preserves_paused_state(self) -> None:
+        self.sim.step(1.0)
+        self.assertTrue(self.sim.state()["sorting"]["can_start"])
+        ws = await self.connect()
+        await ws.send_json({"action": "sort"})
+        started = await self.receive_state(ws, lambda state: state["sorting"]["status"] == "running")
+        self.assertFalse(started["paused"])
+        await ws.send_json({"action": "pause"})
+        await self.receive_state(ws, lambda state: state["paused"])
+        before = self.physical_state()
+        await ws.send_json({"action": "sort"})
+        self.assertTrue((await self.receive_error(ws))["error"])
+        self.assertTrue(self.app[server.CONTROLS].paused)
+        self.assertEqual(self.physical_state(), before)
+        await ws.send_json({"action": "reset"})
+        reset = await self.receive_state(ws, lambda state: state["sorting"]["status"] == "idle")
+        self.assertTrue(reset["paused"])
+        self.assertEqual(reset["sorting"]["sorted_count"], 0)
+        self.provider.assert_not_awaited()
+
+    async def test_pause_step_camera_and_reset_keep_existing_transport(self) -> None:
+        ws = await self.connect()
+        before = float(self.sim.data.time)
+        await ws.send_json({"action": "step"})
+        stepped = await self.receive_state(ws, lambda state: state["time_s"] > before)
+        self.assertTrue(stepped["paused"])
+        self.assertAlmostEqual(stepped["time_s"] - before, 0.02, places=5)
+        await ws.send_json({"action": "camera", "view": "top"})
+        async with asyncio.timeout(2):
+            while self.app[server.CONTROLS].view != "top":
+                await ws.receive_json()
+        self.render.assert_called_with("top")
+        unchanged = self.physical_state()
+        await ws.send_json({"action": "camera", "view": "invalid"})
+        self.assertIn("未知视角", (await self.receive_error(ws))["error"])
+        self.assertEqual(self.physical_state(), unchanged)
+        self.assertEqual(self.app[server.CONTROLS].view, "top")
+        await ws.send_json({"action": "play"})
+        await self.receive_state(ws, lambda state: not state["paused"])
+        await ws.send_json({"action": "pause"})
+        paused = await self.receive_state(ws, lambda state: state["paused"])
+        await ws.send_json({"action": "reset"})
+        reset = await self.receive_state(ws, lambda state: state["scene_revision"] != paused["scene_revision"])
+        self.assertTrue(reset["paused"])
+        self.provider.assert_not_awaited()
+
+    async def test_sort_rejection_does_not_unpause_or_mutate(self) -> None:
+        ws = await self.connect()
+        before = self.physical_state()
+        with patch.object(self.sim, "start_sorting", side_effect=ValueError("objects not stable")):
+            await ws.send_json({"action": "sort"})
+            self.assertEqual((await self.receive_error(ws))["error"], "objects not stable")
+        self.assertEqual(self.physical_state(), before)
+        self.assertTrue(self.app[server.CONTROLS].paused)
+        self.provider.assert_not_awaited()
+
+    async def test_sorting_runtime_failure_latches_without_planner(self) -> None:
+        ws = await self.connect()
+        with (
+            patch.object(self.sim, "step", side_effect=RuntimeError("sorting numerical failure")),
+            self.assertLogs("server", level="ERROR"),
+        ):
+            await ws.send_json({"action": "step"})
+            await self.assert_fatal_close(ws)
+        self.assertTrue(self.app[server.CONTROLS].paused)
+        self.assertEqual((await self.client.get("/api/state")).status, 503)
+        await self.client.close()
+        self.provider.assert_not_awaited()
+
+    async def test_unknown_scene_rejected_by_factory(self) -> None:
+        with self.assertRaises(ValueError):
+            server.create_app(scene="unknown")
 
 
 if __name__ == "__main__":

@@ -53,6 +53,14 @@ const ui = {
   currentSkill: byId("current-skill"), skillInvocation: byId("skill-invocation"),
   skillPostconditions: byId("skill-postconditions"),
   storeHandClear: byId("store-hand-clear"), storePushContact: byId("store-push-contact"),
+  sortingPanel: byId("sorting-panel"), sortStart: byId("sort-start"),
+  sortingStatus: byId("sorting-status"), sortingHint: byId("sorting-hint"),
+  sortingCurrent: byId("sorting-current"), sortingPhase: byId("sorting-phase"),
+  sortingMessage: byId("sorting-message"), sortingFailure: byId("sorting-failure"),
+  sortingCount: byId("sorting-count"), sortingProgress: byId("sorting-progress"),
+  sortingElapsed: byId("sorting-elapsed"), sortingHold: byId("sorting-hold"),
+  sortingQueue: byId("sorting-queue"), sortingChecks: byId("sorting-checks"),
+  sortingObjects: byId("sorting-objects"),
 };
 let socket = null;
 let state = null;
@@ -66,6 +74,26 @@ let plannerHistoryKey = null;
 let displayedPhaseOrder = "";
 let manualContractKey = null;
 let fatalRuntimeError = null;
+let sceneMode = null;
+let lastSorting = null;
+let storageReportsLoaded = false;
+let sortingQueueKey = null;
+let sortingObjectsKey = null;
+const storageElements = document.querySelectorAll("[data-storage-only]");
+const sortingElements = document.querySelectorAll("[data-sorting-only]");
+const colorLabels = { red: "红色", blue: "蓝色", yellow: "黄色" };
+const kindLabels = { bowl: "碗", cup: "杯" };
+const sortingPhaseLabels = {
+  idle: "待开始", prepare: "准备", approach: "接近", descend: "下降",
+  close: "双侧接触夹持", lift: "抬升", hold: "稳定保持",
+  transfer: "转移至目标色区", place: "放置", release: "释放与放稳",
+  withdraw: "撤离物体", return_home: "机械臂归位", verify: "整批稳定保持验证",
+  verify_sorting: "整批稳定保持验证", done: "完成", failed: "失败",
+};
+const sortingCheckLabels = {
+  all_correct: "全部进入正确色区", all_supported: "全部受到桌面支撑",
+  all_stable: "全部物体稳定", hand_empty: "夹爪为空", home_reached: "机械臂已归位",
+};
 const plannerLabels = {
   unconfigured: "未找到 Codex CLI", idle: "待请求决策", planning: "正在请求 GPT",
   ready: "单项决策已校验 · 待授权", unsupported: "任务不受支持", failed: "失败",
@@ -941,6 +969,104 @@ function renderSkill(ready) {
     ui.phaseTimes.append(label, value);
   });
 }
+function renderSortingChecks(element, checks, labels) {
+  element.replaceChildren(...Object.entries(labels).map(([key, text]) => {
+    const row = document.createElement("div");
+    const label = document.createElement("dt");
+    const value = document.createElement("dd");
+    label.textContent = text;
+    value.textContent = yesNo(checks?.[key]);
+    value.dataset.passed = typeof checks?.[key] === "boolean" ? String(checks[key]) : "unknown";
+    row.append(label, value);
+    return row;
+  }));
+}
+
+function renderSorting(ready) {
+  const sorting = ready ? state.sorting : lastSorting;
+  ui.sortStart.disabled = !ready || sorting?.can_start !== true;
+  ui.sortingPanel.dataset.status = ready ? sorting.status : "stale";
+  ui.sortingStatus.textContent = `${skillLabels[sorting?.status] || "等待状态"}${!ready ? " · 最后状态" : state.paused ? " · 已暂停" : ""}`;
+  ui.sortingHint.textContent = !ready ? "连接或状态不可用；以下仅为最后状态，不能确认当前结果。"
+    : sorting.status === "running" ? "固定队列执行中；可暂停或单步，不接受其他任务，不自动重试。"
+    : ["failed", "succeeded"].includes(sorting.status) ? "本次运行已结束；再次运行必须先显式重置。"
+    : sorting.can_start ? "当前物理条件允许开始；点击后按既定全队列执行并自动恢复物理时钟。"
+    : `暂不可开始：${sorting.start_error || "后端尚未确认物体稳定支撑。"}`;
+  const current = sorting?.plan?.find((item) => item.index === sorting.current_index);
+  const phase = sortingPhaseLabels[sorting?.phase] || sorting?.phase || "未报告";
+  ui.sortingCurrent.textContent = current ? `#${current.index + 1} ${current.label} → ${current.destination} 区` : "无当前物体";
+  ui.sortingPhase.textContent = phase;
+  ui.sortingMessage.textContent = sorting?.message || "等待后端阶段说明，不推断进度。";
+  ui.sortingFailure.textContent = sorting?.failure_reason ? `失败原因：${sorting.failure_reason}`
+    : sorting?.status === "failed" ? "后端报告失败，但未提供失败原因。" : "";
+  ui.sortingFailure.hidden = !ui.sortingFailure.textContent;
+  ui.sortingCount.textContent = `${number(sorting?.sorted_count, 0)} / ${number(sorting?.object_count, 0)}`;
+  if (Number.isFinite(sorting?.object_count) && sorting.object_count > 0) ui.sortingProgress.max = sorting.object_count;
+  if (Number.isFinite(sorting?.sorted_count)) ui.sortingProgress.value = sorting.sorted_count;
+  else ui.sortingProgress.removeAttribute("value");
+  ui.sortingElapsed.textContent = number(sorting?.elapsed_s, 2);
+  ui.sortingHold.textContent = number(sorting?.validation_hold_s, 2);
+  ui.taskOverlay.hidden = !ready || sorting.status === "idle";
+  ui.overlayTask.textContent = `固定分拣 · ${ui.sortingCount.textContent}${current ? ` · ${current.label}` : ""}`;
+  ui.overlayPhase.textContent = `${skillLabels[sorting?.status] || "未报告"} · ${phase}`;
+  const queueKey = JSON.stringify([sorting?.plan, sorting?.current_index]);
+  if (queueKey !== sortingQueueKey) {
+    sortingQueueKey = queueKey;
+    const labels = { pending: "待处理", active: "正在处理", sorted: "实测已分拣", failed: "失败" };
+    ui.sortingQueue.replaceChildren(...(sorting?.plan || []).map((entry) => {
+      const item = document.createElement("li");
+      item.dataset.color = entry.color;
+      item.dataset.status = entry.status;
+      if (entry.index === sorting.current_index) item.setAttribute("aria-current", "step");
+      const title = document.createElement("strong");
+      const detail = document.createElement("span");
+      title.textContent = `${entry.label} · ${colorLabels[entry.color] || entry.color}${kindLabels[entry.kind] || entry.kind} → ${entry.destination} 区`;
+      detail.textContent = `${labels[entry.status] || entry.status} · 落点 XY (${(entry.slot_xy_m || []).map((value) => number(value, 3)).join(", ")}) m`;
+      item.append(title, detail);
+      return item;
+    }));
+  }
+  renderSortingChecks(ui.sortingChecks, sorting?.goal_checks, sortingCheckLabels);
+  const objectsKey = JSON.stringify(sorting?.objects?.map((object) => [
+    object.id, object.label, object.color, object.kind, object.correct_region,
+    object.supported, object.stable, object.detached, object.sorted,
+  ]));
+  if (objectsKey !== sortingObjectsKey) {
+    sortingObjectsKey = objectsKey;
+    ui.sortingObjects.replaceChildren(...(sorting?.objects || []).map((object) => {
+      const card = document.createElement("article");
+      card.className = "object";
+      card.dataset.color = object.color;
+      const title = document.createElement("h3");
+      title.textContent = `${object.label} · ${colorLabels[object.color] || object.color}${kindLabels[object.kind] || object.kind}`;
+      const checks = document.createElement("dl");
+      checks.className = "metadata storage-metrics";
+      renderSortingChecks(checks, object, {
+        correct_region: "正确色区", supported: "实际支撑", stable: "物体稳定",
+        detached: "已与夹爪分离", sorted: "实测已分拣",
+      });
+      card.append(title, checks);
+      return card;
+    }));
+  }
+}
+
+function updateSceneMode() {
+  if (!state) return;
+  const nextMode = state.sorting ? "sorting" : "storage";
+  if (nextMode === sceneMode) return;
+  sceneMode = nextMode;
+  const sorting = sceneMode === "sorting";
+  storageElements.forEach((element) => { element.hidden = sorting; });
+  sortingElements.forEach((element) => { element.hidden = !sorting; });
+  document.title = sorting ? "固定规划 · 彩色碗杯物理分拣" : "GPT 实时单技能决策 · 物理执行与反馈";
+  if (!sorting && !storageReportsLoaded) {
+    storageReportsLoaded = true;
+    loadExperiments();
+    loadPlanningComparison();
+  }
+}
+
 
 function number(value, decimals = 4) {
   return Number.isFinite(value) ? value.toFixed(decimals) : "—";
@@ -958,8 +1084,13 @@ function updateControls() {
   ui.camera.disabled = !ready;
   ui.step.disabled = !ready || !state.paused;
   ui.toggle.textContent = state && !state.paused ? "暂停" : "开始运行";
-  renderSkill(ready);
-  renderPlanner(ready);
+  updateSceneMode();
+  if (sceneMode === "sorting") {
+    renderSorting(ready);
+  } else {
+    renderSkill(ready);
+    renderPlanner(ready);
+  }
 }
 
 function showError(message) {
@@ -1036,6 +1167,7 @@ function renderState(next) {
   state = next;
   if (state.skill) lastSkill = state.skill;
   if (state.planner) lastPlanner = state.planner;
+  if (state.sorting) lastSorting = state.sorting;
   ui.time.textContent = number(state.time_s, 3);
   ui.scene.textContent = state.scene_name;
   ui.robot.textContent = state.robot_name;
@@ -1161,6 +1293,9 @@ ui.step.addEventListener("click", () => {
   if (!ui.step.disabled && state?.paused) send({ action: "step" });
 });
 ui.reset.addEventListener("click", () => send({ action: "reset" }));
+ui.sortStart.addEventListener("click", () => {
+  if (!ui.sortStart.disabled && state?.sorting?.can_start === true) send({ action: "sort" });
+});
 ui.grasp.addEventListener("click", () => {
   if (!ui.grasp.disabled && state?.skill?.status === "idle") send({ action: "grasp" });
 });
@@ -1221,8 +1356,6 @@ ui.planCancel.addEventListener("click", () => {
 ui.camera.addEventListener("change", () => send({ action: "camera", view: ui.camera.value }));
 ui.reconnect.addEventListener("click", connect);
 ui.experimentsRefresh.addEventListener("click", loadExperiments);
-loadExperiments();
 comparisonUi.refresh.addEventListener("click", loadPlanningComparison);
 comparisonUi.batch.addEventListener("change", loadPlanningComparison);
-loadPlanningComparison();
 connect();

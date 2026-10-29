@@ -1,0 +1,691 @@
+{
+  "kind": "fixed_sorting_browser_demo",
+  "recording": {
+    "path": "media/fixed-sorting-demo.mp4",
+    "duration_s": 303.133333,
+    "width": 1440,
+    "height": 1080,
+    "codec": "h264"
+  },
+  "scope": "Single known-layout browser run; video includes UI operations and terminal hold, not a throughput benchmark",
+  "final_state": {
+    "time_s": 386.8000000011188,
+    "timestep_s": 0.002,
+    "scene_revision": 1,
+    "scene_name": "Panda fixed color sorting · six bowls/cups",
+    "robot_name": "Franka Panda · 7 joints · bilateral gripper",
+    "source": "Menagerie Panda + recolored LIBERO bowls + hollow physical cups; ground-truth fixed planning; no vision/GPT",
+    "objects": [
+      {
+        "name": "red_bowl_object",
+        "position_m": [
+          0.2984958123414003,
+          0.09902184276747393,
+          0.7184049917753887
+        ],
+        "quaternion_wxyz": [
+          0.9996337187547896,
+          -0.00000879539610588759,
+          0.000005158359211206078,
+          0.027063411176413612
+        ]
+      },
+      {
+        "name": "red_cup_object",
+        "position_m": [
+          0.30301372232880974,
+          0.28960178979887796,
+          0.7549916864645533
+        ],
+        "quaternion_wxyz": [
+          0.9999998404950188,
+          2.0278922131632122e-17,
+          -6.704651044969757e-20,
+          -0.0005648096455054253
+        ]
+      },
+      {
+        "name": "blue_bowl_object",
+        "position_m": [
+          0.4690544522712671,
+          0.09953345888921952,
+          0.7184049917753869
+        ],
+        "quaternion_wxyz": [
+          0.9999324598855266,
+          -0.00000871468332858238,
+          0.000005293576946882631,
+          0.011622201311029057
+        ]
+      },
+      {
+        "name": "blue_cup_object",
+        "position_m": [
+          0.469790711914257,
+          0.28993825035170234,
+          0.7549916864645534
+        ],
+        "quaternion_wxyz": [
+          0.9999999964729922,
+          1.9731060709077392e-17,
+          -1.7828863718536164e-19,
+          -0.00008398818537098818
+        ]
+      },
+      {
+        "name": "yellow_bowl_object",
+        "position_m": [
+          0.6392650091105241,
+          0.09948992710453806,
+          0.7184049917753869
+        ],
+        "quaternion_wxyz": [
+          0.9999519611869027,
+          -0.000008705031885357541,
+          0.000005309433329995258,
+          0.009801796493560246
+        ]
+      },
+      {
+        "name": "yellow_cup_object",
+        "position_m": [
+          0.6398755220178556,
+          0.28991576008680925,
+          0.7549916864645534
+        ],
+        "quaternion_wxyz": [
+          0.9999999852712872,
+          2.0432737740980912e-17,
+          2.7602931693645426e-19,
+          0.00017163165845886764
+        ]
+      }
+    ],
+    "joint_positions_rad": [
+      -1.9753628000120283e-21,
+      -0.4999999999999988,
+      6.157075158134631e-21,
+      -2.19999999999999,
+      -4.5311963398157205e-20,
+      1.8000000000000052,
+      0.7853981634000028
+    ],
+    "gripper_opening_m": 0.0799999999999882,
+    "warnings": [],
+    "contacts": 96,
+    "collisions": {
+      "episodes": 0,
+      "duration_s": 0,
+      "peak_force_n": 0,
+      "pairs": [],
+      "force_threshold_n": 0.1
+    },
+    "sorting": {
+      "status": "succeeded",
+      "mode": "fixed",
+      "can_start": false,
+      "start_error": "A sorting run was already started; reset before another run",
+      "current_index": 5,
+      "phase": "done",
+      "message": "All six objects physically sorted; home and empty hand verified",
+      "failure_reason": null,
+      "elapsed_s": 183.3560000008755,
+      "sorted_count": 6,
+      "object_count": 6,
+      "validation_hold_s": 4.999999999999671,
+      "goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "plan": [
+        {
+          "index": 0,
+          "object_id": "red_bowl",
+          "label": "red bowl",
+          "color": "red",
+          "kind": "bowl",
+          "destination": "A",
+          "slot_xy_m": [
+            0.3,
+            0.1
+          ],
+          "status": "sorted"
+        },
+        {
+          "index": 1,
+          "object_id": "red_cup",
+          "label": "red cup",
+          "color": "red",
+          "kind": "cup",
+          "destination": "A",
+          "slot_xy_m": [
+            0.3,
+            0.29
+          ],
+          "status": "sorted"
+        },
+        {
+          "index": 2,
+          "object_id": "blue_bowl",
+          "label": "blue bowl",
+          "color": "blue",
+          "kind": "bowl",
+          "destination": "B",
+          "slot_xy_m": [
+            0.47,
+            0.1
+          ],
+          "status": "sorted"
+        },
+        {
+          "index": 3,
+          "object_id": "blue_cup",
+          "label": "blue cup",
+          "color": "blue",
+          "kind": "cup",
+          "destination": "B",
+          "slot_xy_m": [
+            0.47,
+            0.29
+          ],
+          "status": "sorted"
+        },
+        {
+          "index": 4,
+          "object_id": "yellow_bowl",
+          "label": "yellow bowl",
+          "color": "yellow",
+          "kind": "bowl",
+          "destination": "C",
+          "slot_xy_m": [
+            0.64,
+            0.1
+          ],
+          "status": "sorted"
+        },
+        {
+          "index": 5,
+          "object_id": "yellow_cup",
+          "label": "yellow cup",
+          "color": "yellow",
+          "kind": "cup",
+          "destination": "C",
+          "slot_xy_m": [
+            0.64,
+            0.29
+          ],
+          "status": "sorted"
+        }
+      ],
+      "objects": [
+        {
+          "id": "red_bowl",
+          "body_name": "red_bowl_object",
+          "label": "red bowl",
+          "kind": "bowl",
+          "color": "red",
+          "position_m": [
+            0.2984958123414003,
+            0.09902184276747393,
+            0.7184049917753887
+          ],
+          "correct_region": true,
+          "supported": true,
+          "stable": true,
+          "detached": true,
+          "sorted": true,
+          "contained": true,
+          "slot_aligned": true,
+          "upright": true,
+          "bounds_min_m": [
+            0.24501282064101623,
+            0.045085812153047106,
+            0.7199944312390738
+          ],
+          "bounds_max_m": [
+            0.3522269496844116,
+            0.1525584375576104,
+            0.7705377815047676
+          ],
+          "support_force_n": 0.4502768581034029,
+          "finger_forces_n": {
+            "robot_left_finger": 0,
+            "robot_right_finger": 0
+          },
+          "linear_speed_m_s": 2.089050393742834e-14,
+          "angular_speed_rad_s": 5.920070871316097e-16
+        },
+        {
+          "id": "red_cup",
+          "body_name": "red_cup_object",
+          "label": "red cup",
+          "kind": "cup",
+          "color": "red",
+          "position_m": [
+            0.30301372232880974,
+            0.28960178979887796,
+            0.7549916864645533
+          ],
+          "correct_region": true,
+          "supported": true,
+          "stable": true,
+          "detached": true,
+          "sorted": true,
+          "contained": true,
+          "slot_aligned": true,
+          "upright": true,
+          "bounds_min_m": [
+            0.2670086620115264,
+            0.2535967294815946,
+            0.7199916864645534
+          ],
+          "bounds_max_m": [
+            0.3390187826460931,
+            0.3256068501161613,
+            0.7899916864645532
+          ],
+          "support_force_n": 0.6749123040000005,
+          "finger_forces_n": {
+            "robot_left_finger": 0,
+            "robot_right_finger": 0
+          },
+          "linear_speed_m_s": 2.3553869535383695e-14,
+          "angular_speed_rad_s": 1.0379852393996274e-15
+        },
+        {
+          "id": "blue_bowl",
+          "body_name": "blue_bowl_object",
+          "label": "blue bowl",
+          "kind": "bowl",
+          "color": "blue",
+          "position_m": [
+            0.4690544522712671,
+            0.09953345888921952,
+            0.7184049917753869
+          ],
+          "correct_region": true,
+          "supported": true,
+          "stable": true,
+          "detached": true,
+          "sorted": true,
+          "contained": true,
+          "slot_aligned": true,
+          "upright": true,
+          "bounds_min_m": [
+            0.4153808093112755,
+            0.045603344970710266,
+            0.7199944312390719
+          ],
+          "bounds_max_m": [
+            0.5226253412419363,
+            0.15284830774224012,
+            0.7705377815047658
+          ],
+          "support_force_n": 0.450276858103399,
+          "finger_forces_n": {
+            "robot_left_finger": 0,
+            "robot_right_finger": 0
+          },
+          "linear_speed_m_s": 2.289140417224001e-14,
+          "angular_speed_rad_s": 1.8671305503735512e-15
+        },
+        {
+          "id": "blue_cup",
+          "body_name": "blue_cup_object",
+          "label": "blue cup",
+          "kind": "cup",
+          "color": "blue",
+          "position_m": [
+            0.469790711914257,
+            0.28993825035170234,
+            0.7549916864645534
+          ],
+          "correct_region": true,
+          "supported": true,
+          "stable": true,
+          "detached": true,
+          "sorted": true,
+          "contained": true,
+          "slot_aligned": true,
+          "upright": true,
+          "bounds_min_m": [
+            0.4337899565284804,
+            0.25393749496592577,
+            0.7199916864645535
+          ],
+          "bounds_max_m": [
+            0.5057914673000335,
+            0.3259390057374789,
+            0.7899916864645534
+          ],
+          "support_force_n": 0.6749123040000002,
+          "finger_forces_n": {
+            "robot_left_finger": 0,
+            "robot_right_finger": 0
+          },
+          "linear_speed_m_s": 2.1036737559290904e-14,
+          "angular_speed_rad_s": 1.0124262594929504e-15
+        },
+        {
+          "id": "yellow_bowl",
+          "body_name": "yellow_bowl_object",
+          "label": "yellow bowl",
+          "kind": "bowl",
+          "color": "yellow",
+          "position_m": [
+            0.6392650091105241,
+            0.09948992710453806,
+            0.7184049917753869
+          ],
+          "correct_region": true,
+          "supported": true,
+          "stable": true,
+          "detached": true,
+          "sorted": true,
+          "contained": true,
+          "slot_aligned": true,
+          "upright": true,
+          "bounds_min_m": [
+            0.585572263613704,
+            0.04556390108558771,
+            0.7199944312390719
+          ],
+          "bounds_max_m": [
+            0.6928136378833364,
+            0.152775281621068,
+            0.7705377815047658
+          ],
+          "support_force_n": 0.4502768581034037,
+          "finger_forces_n": {
+            "robot_left_finger": 0,
+            "robot_right_finger": 0
+          },
+          "linear_speed_m_s": 2.287509008303354e-14,
+          "angular_speed_rad_s": 8.738426756999862e-16
+        },
+        {
+          "id": "yellow_cup",
+          "body_name": "yellow_cup_object",
+          "label": "yellow cup",
+          "kind": "cup",
+          "color": "yellow",
+          "position_m": [
+            0.6398755220178556,
+            0.28991576008680925,
+            0.7549916864645534
+          ],
+          "correct_region": true,
+          "supported": true,
+          "stable": true,
+          "detached": true,
+          "sorted": true,
+          "contained": true,
+          "slot_aligned": true,
+          "upright": true,
+          "bounds_min_m": [
+            0.6038739794538869,
+            0.25391421752284055,
+            0.7199916864645534
+          ],
+          "bounds_max_m": [
+            0.6758770645818243,
+            0.32591730265077795,
+            0.7899916864645534
+          ],
+          "support_force_n": 0.6749123040000002,
+          "finger_forces_n": {
+            "robot_left_finger": 0,
+            "robot_right_finger": 0
+          },
+          "linear_speed_m_s": 2.1103310172840355e-14,
+          "angular_speed_rad_s": 1.0479657536876708e-15
+        }
+      ],
+      "zones": [
+        {
+          "id": "A",
+          "label": "A · red",
+          "color": "red",
+          "center_xy_m": [
+            0.3,
+            0.195
+          ],
+          "half_size_xy_m": [
+            0.075,
+            0.16
+          ],
+          "slots_xy_m": [
+            [
+              0.3,
+              0.1
+            ],
+            [
+              0.3,
+              0.29
+            ]
+          ]
+        },
+        {
+          "id": "B",
+          "label": "B · blue",
+          "color": "blue",
+          "center_xy_m": [
+            0.47,
+            0.195
+          ],
+          "half_size_xy_m": [
+            0.075,
+            0.16
+          ],
+          "slots_xy_m": [
+            [
+              0.47,
+              0.1
+            ],
+            [
+              0.47,
+              0.29
+            ]
+          ]
+        },
+        {
+          "id": "C",
+          "label": "C · yellow",
+          "color": "yellow",
+          "center_xy_m": [
+            0.64,
+            0.195
+          ],
+          "half_size_xy_m": [
+            0.075,
+            0.16
+          ],
+          "slots_xy_m": [
+            [
+              0.64,
+              0.1
+            ],
+            [
+              0.64,
+              0.29
+            ]
+          ]
+        }
+      ],
+      "phase_times_s": {
+        "0:prepare": 0.06000000000028649,
+        "0:approach": 5.900000000028172,
+        "0:descend": 3.3780000000161294,
+        "0:close": 0.22800000000108867,
+        "0:lift": 3.3740000000161103,
+        "0:hold": 1.0000000000047748,
+        "0:transfer": 3.580000000017094,
+        "0:place": 3.0580000000146015,
+        "0:release": 0.524000000002502,
+        "1:withdraw": 3.37600000001612,
+        "1:prepare": 0.06000000000028649,
+        "1:approach": 6.446000000030779,
+        "1:descend": 3.37600000001612,
+        "1:close": 0.12400000000059208,
+        "1:lift": 3.3740000000161103,
+        "1:hold": 1.0000000000047748,
+        "1:transfer": 10.686000000051024,
+        "1:place": 3.344000000015967,
+        "1:release": 0.3500000000016712,
+        "2:withdraw": 3.37600000001612,
+        "2:prepare": 0.06000000000028649,
+        "2:approach": 8.448000000040338,
+        "2:descend": 3.3740000000161103,
+        "2:close": 0.22800000000108867,
+        "2:lift": 3.37600000001612,
+        "2:hold": 1.0000000000047748,
+        "2:transfer": 3.5860000000171226,
+        "2:place": 3.162000000015098,
+        "2:release": 0.4920000000023492,
+        "3:withdraw": 3.37600000001612,
+        "3:prepare": 0.06000000000028649,
+        "3:approach": 6.452000000030807,
+        "3:descend": 3.37600000001612,
+        "3:close": 0.12400000000059208,
+        "3:lift": 3.3740000000161103,
+        "3:hold": 1.0000000000047748,
+        "3:transfer": 10.688000000051034,
+        "3:place": 3.3460000000159766,
+        "3:release": 0.342000000001633,
+        "4:withdraw": 3.37600000001612,
+        "4:prepare": 0.06000000000028649,
+        "4:approach": 8.456000000040376,
+        "4:descend": 3.37600000001612,
+        "4:close": 0.22800000000108867,
+        "4:lift": 3.37600000001612,
+        "4:hold": 1.0000000000047748,
+        "4:transfer": 3.5860000000171226,
+        "4:place": 3.140000000014993,
+        "4:release": 0.4860000000023206,
+        "5:withdraw": 6.75200000003224,
+        "5:prepare": 0.06000000000028649,
+        "5:approach": 6.450000000030798,
+        "5:descend": 3.37600000001612,
+        "5:close": 0.12400000000059208,
+        "5:lift": 3.3740000000161103,
+        "5:hold": 1.0000000000047748,
+        "5:transfer": 10.688000000051034,
+        "5:place": 3.348000000015986,
+        "5:release": 0.32000000000152795,
+        "5:return_home": 3.3020000000157665,
+        "5:verify_sorting": 5.000000000023874
+      },
+      "item_results": [
+        {
+          "index": 0,
+          "object_id": "red_bowl",
+          "status": "sorted",
+          "time_s": 182.37800000014272,
+          "position_m": [
+            0.29849581234139994,
+            0.09902184276747387,
+            0.7184049917753869
+          ],
+          "hold_s": 1.0000000000000007
+        },
+        {
+          "index": 1,
+          "object_id": "red_cup",
+          "status": "sorted",
+          "time_s": 214.51400000029616,
+          "position_m": [
+            0.30301372232880974,
+            0.28960178979887796,
+            0.7549916864645533
+          ],
+          "hold_s": 1.0000000000000007
+        },
+        {
+          "index": 2,
+          "object_id": "blue_bowl",
+          "status": "sorted",
+          "time_s": 241.61600000042557,
+          "position_m": [
+            0.4690544522712671,
+            0.0995334588892195,
+            0.7184049917753869
+          ],
+          "hold_s": 1.0000000000000007
+        },
+        {
+          "index": 3,
+          "object_id": "blue_cup",
+          "status": "sorted",
+          "time_s": 273.754000000579,
+          "position_m": [
+            0.469790711914257,
+            0.28993825035170234,
+            0.7549916864645533
+          ],
+          "hold_s": 1.0000000000000007
+        },
+        {
+          "index": 4,
+          "object_id": "yellow_bowl",
+          "status": "sorted",
+          "time_s": 300.83800000070835,
+          "position_m": [
+            0.6392650091105241,
+            0.09948992710453806,
+            0.7184049917753869
+          ],
+          "hold_s": 1.0000000000000007
+        },
+        {
+          "index": 5,
+          "object_id": "yellow_cup",
+          "status": "sorted",
+          "time_s": 332.9540000008617,
+          "position_m": [
+            0.6398755220178556,
+            0.28991576008680925,
+            0.7549916864645534
+          ],
+          "hold_s": 1.0000000000000007
+        }
+      ],
+      "diagnostics": {
+        "object_id": "yellow_cup",
+        "bilateral_grip": false,
+        "finger_forces_n": {
+          "robot_left_finger": 0,
+          "robot_right_finger": 0
+        },
+        "support_force_n": 0.6749123040000004,
+        "lowest_collision_z_m": 0.7199916864645534,
+        "lift_m": -1.887379141862766e-15,
+        "tcp_position_m": [
+          0.6396261804614666,
+          0.2898998589205311,
+          0.9600136207921908
+        ],
+        "motion_target_m": [
+          0.6396507070401655,
+          0.289910248907877,
+          0.960187477003497
+        ],
+        "motion_duration_s": 3.374999999999999,
+        "phase_elapsed_s": 3.37600000001612,
+        "relative_drift_m": 0.1799256739302919
+      },
+      "gpt_called": false
+    },
+    "paused": true,
+    "runtime_error": null,
+    "planner": {
+      "status": "disabled",
+      "configured": false,
+      "mode": "fixed",
+      "calls": 0,
+      "message": "固定分拣不构造规划会话，不调用 GPT；使用仿真真值，不使用视觉。"
+    }
+  }
+}
