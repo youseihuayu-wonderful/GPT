@@ -264,6 +264,18 @@ async def experiments(request: web.Request) -> web.Response:
     return web.json_response(report, headers={"Cache-Control": "no-store"})
 
 
+async def planning_comparison(request: web.Request) -> web.Response:
+    try:
+        report = json.loads((ROOT / "results" / "planning_comparison.json").read_text(encoding="utf-8"))
+        if not isinstance(report, dict) or report.get("kind") != "paired_closed_loop_comparison":
+            raise ValueError("不是闭环规划对照报告")
+    except FileNotFoundError as exc:
+        raise web.HTTPNotFound(text="尚无闭环对照结果；请先运行 compare_planning.py") from exc
+    except (OSError, ValueError) as exc:
+        raise web.HTTPInternalServerError(text=f"读取闭环对照结果失败：{exc}") from exc
+    return web.json_response(report, headers={"Cache-Control": "no-store"})
+
+
 async def asset(request: web.Request) -> web.FileResponse:
     name = request.match_info.get("name", "index.html")
     if name not in ("index.html", "app.js", "style.css"):
@@ -280,6 +292,7 @@ def create_app(case: SceneCase = DEFAULT_CASE) -> web.Application:
     app.router.add_get("/ws", websocket)
     app.router.add_get("/api/state", state)
     app.router.add_get("/api/experiments", experiments)
+    app.router.add_get("/api/planning-comparison", planning_comparison)
     app.router.add_get("/", asset)
     app.router.add_get("/{name}", asset)
     return app

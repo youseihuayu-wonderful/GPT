@@ -254,6 +254,156 @@ async function loadExperiments() {
   }
 }
 
+const comparisonMethods = { rule: "状态感知规则（主要对照）", gpt: "GPT（真实订阅）", fixed: "固定序列（参考）" };
+const comparisonCases = ["table", "table_right", "held", "placed", "complete", "closed_empty", "disturbed"];
+const comparisonUi = Object.fromEntries(
+  ["refresh", "status", "error", "report", "meta", "summary", "runs"].map((key) => [key, byId(`comparison-${key}`)]),
+);
+
+function validateComparison(report) {
+  const count = (value) => Number.isSafeInteger(value) && value >= 0;
+  const seconds = (value) => typeof value === "number" && Number.isFinite(value) && value >= 0;
+  const nullableSeconds = (value) => value === null || seconds(value);
+  const validError = (value) => value === undefined || value === null || typeof value === "string"
+    || (typeof value === "object" && !Array.isArray(value) && typeof value.message === "string"
+      && ["type", "stage"].every((key) => value[key] === undefined || typeof value[key] === "string"));
+  const selection = (values, allowed) => Array.isArray(values) && values.length > 0
+    && new Set(values).size === values.length && values.every((value) => allowed.includes(value));
+  const invalid = () => { throw new Error("闭环报告字段缺失、数值无效或汇总与原始记录不一致；不显示可能误导的成功率。请查看原始 JSON。"); };
+  if (!report || report.kind !== "paired_closed_loop_comparison"
+      || !["running", "completed", "failed"].includes(report.status)
+      || typeof report.generated_at !== "string" || !Number.isFinite(Date.parse(report.generated_at))
+      || !selection(report.protocol?.methods, Object.keys(comparisonMethods))
+      || !selection(report.protocol?.cases, comparisonCases)
+      || !Array.isArray(report.runs) || !Array.isArray(report.summary)
+      || !validError(report.error)) invalid();
+  const pairs = new Set();
+  for (const run of report.runs) {
+    if (!run || !report.protocol.methods.includes(run.method) || !report.protocol.cases.includes(run.case_id)
+        || typeof run.label !== "string" || !run.label.trim()
+        || typeof run.status !== "string" || !run.status.trim()
+        || !["success", "safe_stop"].includes(run.expected_outcome)
+        || run.expected_outcome !== (["closed_empty", "disturbed"].includes(run.case_id) ? "safe_stop" : "success")
+        || typeof run.success !== "boolean"
+        || (run.expected_outcome === "success" ? run.safety_pass !== null : typeof run.safety_pass !== "boolean" && run.safety_pass !== null)
+        || (run.expected_outcome === "safe_stop" && run.success)
+        || (run.success && run.status !== "succeeded")
+        || !["executed_skill_count", "decision_count", "gpt_request_count"].every((key) => count(run[key]))
+        || !["execution_sim_s", "gpt_latency_s", "validation_sim_s"].every((key) => seconds(run[key]))
+        || !["evaluation_sim_s", "end_to_end_wall_s"].every((key) => nullableSeconds(run[key]))
+        || (run.failure_reason !== null && typeof run.failure_reason !== "string")
+        || (run.method !== "gpt" && (run.gpt_request_count !== 0 || run.gpt_latency_s !== 0))) invalid();
+    if (!Array.isArray(run.infrastructure_errors) || !run.infrastructure_errors.every((error) => error && validError(error))
+        || !Array.isArray(run.history) || !run.history.every((item) => item && nullableSeconds(item.latency_s))
+        || (run.method === "gpt" && run.gpt_request_count !== run.history.length)) invalid();
+    const pair = `${run.method}:${run.case_id}`;
+    if (pairs.has(pair)) invalid();
+    pairs.add(pair);
+  }
+  if (report.status === "completed" && pairs.size !== report.protocol.methods.length * report.protocol.cases.length) invalid();
+  if (report.summary.length !== report.protocol.methods.length
+      || new Set(report.summary.map((item) => item?.method)).size !== report.summary.length) invalid();
+  for (const summary of report.summary) {
+    if (!summary || !report.protocol.methods.includes(summary.method)) invalid();
+    const runs = report.runs.filter((run) => run.method === summary.method);
+    const measured = runs.filter((run) => run.infrastructure_errors.length === 0 && !["setting_up", "running"].includes(run.status));
+    const goals = measured.filter((run) => run.expected_outcome === "success");
+    const safety = measured.filter((run) => run.expected_outcome === "safe_stop");
+    const expected = {
+      goal_attempts: goals.length, goal_successes: goals.filter((run) => run.success).length,
+      safety_attempts: safety.length, safety_passes: safety.filter((run) => run.safety_pass === true).length,
+      executed_skill_count: runs.reduce((sum, run) => sum + run.executed_skill_count, 0),
+      gpt_request_count: runs.reduce((sum, run) => sum + run.gpt_request_count, 0),
+      infrastructure_failures: runs.filter((run) => run.infrastructure_errors.length > 0).length,
+      pending_runs: runs.filter((run) => run.infrastructure_errors.length === 0 && ["setting_up", "running"].includes(run.status)).length,
+      timed_goal_attempts: goals.filter((run) => run.end_to_end_wall_s !== null).length,
+      timed_successes: goals.filter((run) => run.success && run.end_to_end_wall_s !== null).length,
+      timed_gpt_requests: runs.filter((run) => run.method === "gpt").reduce((sum, run) => sum + run.history.filter((item) => item.latency_s !== null).length, 0),
+    };
+    if (!Object.entries(expected).every(([key, value]) => count(summary[key]) && summary[key] === value)
+        || (goals.length === 0 ? summary.goal_success_rate !== null
+          : !seconds(summary.goal_success_rate) || Math.abs(summary.goal_success_rate - expected.goal_successes / goals.length) > 0.000001)
+        || !nullableSeconds(summary.mean_success_end_to_end_wall_s)
+        || !nullableSeconds(summary.mean_end_to_end_wall_s)
+        || !nullableSeconds(summary.mean_gpt_latency_s)
+        || (summary.collision_runs !== null && (!count(summary.collision_runs) || summary.collision_runs > runs.length))
+        || (expected.goal_successes === 0 && summary.mean_success_end_to_end_wall_s !== null)
+        || (expected.goal_attempts === 0 && summary.mean_end_to_end_wall_s !== null)
+        || (expected.gpt_request_count === 0 && summary.mean_gpt_latency_s !== null)) invalid();
+  }
+}
+
+function comparisonRow(texts) {
+  const row = document.createElement("tr");
+  for (const text of texts) {
+    const cell = document.createElement("td");
+    cell.textContent = text;
+    row.append(cell);
+  }
+  return row;
+}
+
+async function loadPlanningComparison() {
+  comparisonUi.refresh.disabled = true;
+  comparisonUi.status.textContent = "正在读取已存储闭环报告；不会启动运行…";
+  comparisonUi.error.hidden = true;
+  comparisonUi.report.hidden = true;
+  comparisonUi.summary.replaceChildren();
+  comparisonUi.runs.replaceChildren();
+  const time = (value) => value === null ? "未测量" : number(value, 3);
+  try {
+    const response = await fetch("/api/planning-comparison", { cache: "no-store" });
+    if (response.status === 404) throw new Error("尚无闭环对照报告（HTTP 404）；未使用替代数据。");
+    if (!response.ok) throw new Error(`闭环对照报告读取失败（HTTP ${response.status}）；未使用替代数据。`);
+    const report = await response.json();
+    validateComparison(report);
+    const total = report.protocol.methods.length * report.protocol.cases.length;
+    const subset = report.protocol.methods.length !== 3 || report.protocol.cases.length !== comparisonCases.length;
+    comparisonUi.status.textContent = `${{ running: "未完成 · 运行中", failed: "未完成 / 执行失败 · 保留原始记录", completed: "所选矩阵已完成（不代表全部成功）" }[report.status]}：已记录 ${report.runs.length} / ${total} 对。${subset ? "仅为诊断子集，不是完整协议矩阵。" : ""}${report.runs.length === 0 ? "暂无运行记录，不能计算成功率。" : ""}`;
+    comparisonUi.meta.textContent = `生成时间：${report.generated_at}。案例：${report.protocol.cases.join("、")}。目标：store_and_home。安全例不计入正例完成率。`;
+    comparisonUi.summary.replaceChildren(...["rule", "gpt", "fixed"]
+      .filter((method) => report.protocol.methods.includes(method))
+      .map((method) => {
+        const item = report.summary.find((summary) => summary.method === method);
+        const safetyUnknown = report.runs.filter((run) => run.method === method && run.expected_outcome === "safe_stop" && run.infrastructure_errors.length === 0 && !["setting_up", "running"].includes(run.status) && run.safety_pass === null).length;
+        return comparisonRow([
+          `${comparisonMethods[method]}\n基础设施无效：${item.infrastructure_failures}；进行中：${item.pending_runs}（不计分母）`,
+          item.goal_attempts ? `${item.goal_successes} / ${item.goal_attempts}（${number(item.goal_success_rate * 100, 1)}%）` : "无有效已结束正例 · 不计算",
+          item.safety_attempts ? `${item.safety_passes} / ${item.safety_attempts}${safetyUnknown ? `\n其中 ${safetyUnknown} 例未测量` : ""}` : "无有效已结束安全例 · 不计算",
+          `${item.executed_skill_count} / ${item.gpt_request_count}`,
+          `${time(item.mean_end_to_end_wall_s)}（已计时 ${item.timed_goal_attempts}/${item.goal_attempts}）\n${time(item.mean_success_end_to_end_wall_s)}（已计时 ${item.timed_successes}/${item.goal_successes}）`,
+          `${time(item.mean_gpt_latency_s)}（已计时 ${item.timed_gpt_requests}/${item.gpt_request_count}）`,
+        ]);
+      }));
+    comparisonUi.runs.replaceChildren(...report.runs.map((run) => comparisonRow([
+      `${run.label} (${run.case_id})\n${comparisonMethods[run.method]}\n预期：${run.expected_outcome === "success" ? "完成任务" : "安全停止（不算任务成功）"}`,
+      `${run.status}${run.infrastructure_errors.length ? "\n基础设施失败，不计完成率" : ["setting_up", "running"].includes(run.status) ? "\n尚未结束，不计完成率" : ""}\n任务完成：${run.success ? "是（物理验证）" : "否"}\n安全验收：${run.expected_outcome === "success" ? "不适用（正例）" : run.safety_pass === null ? "未测量" : run.safety_pass ? "通过" : "未通过"}`,
+      `${run.executed_skill_count} / ${run.decision_count} / ${run.gpt_request_count}`,
+      `${time(run.execution_sim_s)} / ${time(run.evaluation_sim_s)} / ${time(run.validation_sim_s)}`,
+      `${time(run.end_to_end_wall_s)} / ${time(run.gpt_latency_s)}`,
+      run.failure_reason || "未报告失败原因",
+    ])));
+    comparisonUi.report.hidden = false;
+    const providerFailures = report.runs.filter((run) => run.method === "gpt" && run.stop_kind === "provider_failure");
+    if (report.error) {
+      const errorText = typeof report.error === "string" ? report.error
+        : [report.error.type, report.error.stage, report.error.message].filter(Boolean).join(" · ");
+      comparisonUi.error.textContent = `报告错误：${errorText}`;
+      comparisonUi.error.hidden = false;
+    } else if (providerFailures.length) {
+      const reasons = [...new Set(providerFailures.map((run) => run.failure_reason).filter(Boolean))].join("；");
+      comparisonUi.error.textContent = `${providerFailures.length} 个 GPT 场景出现提供方失败：${reasons} 本表完成率包含服务可用性影响，不是模型推理能力排名；安全例未验收不能当作模型不安全的证据。`;
+      comparisonUi.error.hidden = false;
+    }
+  } catch (error) {
+    comparisonUi.status.textContent = "闭环对照数据不可用；实时仿真不受影响。";
+    comparisonUi.error.textContent = error.message;
+    comparisonUi.error.hidden = false;
+  } finally {
+    comparisonUi.refresh.disabled = false;
+  }
+}
+
 function plannerLocksScene() {
   return pendingPlannerAction !== null || state?.planner?.locks_scene === true;
 }
@@ -828,4 +978,6 @@ ui.camera.addEventListener("change", () => send({ action: "camera", view: ui.cam
 ui.reconnect.addEventListener("click", connect);
 ui.experimentsRefresh.addEventListener("click", loadExperiments);
 loadExperiments();
+comparisonUi.refresh.addEventListener("click", loadPlanningComparison);
+loadPlanningComparison();
 connect();

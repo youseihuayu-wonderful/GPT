@@ -132,6 +132,13 @@ button span { font-size: 10px; margin-left: 2px; }
 .experiment-table tr[data-status="failed"] td:nth-child(2) { color: #ffb9b3; }
 .experiment-table tr[data-status="succeeded"] td:nth-child(2) { color: var(--accent); }
 .experiment-table button { white-space: nowrap; }
+.planning-comparison a { color: var(--accent); font-size: 11px; overflow-wrap: anywhere; }
+.planning-comparison .experiment-scroll + .experiment-scroll { margin-top: 12px; }
+.planning-comparison .experiment-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.planning-comparison .comparison-summary { min-width: 800px; }
+.planning-comparison .comparison-runs { min-width: 1000px; }
+.planning-comparison .experiment-table td:first-child { min-width: 160px; max-width: 220px; }
+.planning-comparison .comparison-runs td:last-child { min-width: 180px; max-width: 320px; }
 .skill-hint, .skill-message, .skill-criteria { font-size: 11px; color: var(--muted); line-height: 1.6; margin: 8px 0; overflow-wrap: anywhere; }
 .skill-stages { display: grid; grid-template-columns: repeat(auto-fit, minmax(65px, 1fr)); list-style: none; padding: 0; margin: 12px 0; gap: 7px 4px; }
 .skill-stages li { border-top: 3px solid #364454; padding-top: 6px; font-size: 10px; color: var(--muted); text-align: center; }
