@@ -6,6 +6,7 @@ from copy import deepcopy
 import json
 import os
 from pathlib import Path
+import signal
 import sys
 import tempfile
 import unittest
@@ -14,7 +15,7 @@ from unittest.mock import AsyncMock, patch
 from grasp import GraspParameters
 from planner import (
     PlannerConfig, PlannerError, _run_cli, _subscription_environment,
-    request_decision, scene_matches, validate_context, validate_decision,
+    request_decision, request_structured, scene_matches, validate_context, validate_decision,
 )
 from task_specs import GOALS, SKILLS
 
@@ -365,6 +366,51 @@ class PlannerRequestTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(RuntimeError):
                 await self.request()
 
+    async def test_shared_transport_preserves_arbitrary_structured_payload_and_evidence(self):
+        payload = {"decision": "unsupported", "summary": "Fixture", "reason": "Fixture", "steps": []}
+        self.response = json.dumps(payload).encode()
+        result = await request_structured(
+            self.config, instructions="No tools. Structured data only.",
+            schema={"type": "object"}, payload={"task": "test-only domain"},
+        )
+        self.assertEqual(result.payload, payload)
+        self.assertEqual(result.model, self.config.model)
+        self.assertEqual(result.thread_id, "test-completed-thread")
+        self.assertGreaterEqual(result.latency_s, 0)
+        self.assertEqual(result.diagnostic_count, 0)
+
+    async def test_shared_transport_keeps_read_only_subscription_sandbox_and_exact_prompt(self):
+        observed = {}
+
+        async def capture(command, directory, environment, input_data=None, timeout=90):
+            if command[1] == "exec":
+                observed.update(
+                    command=command, environment=environment, payload=json.loads(input_data),
+                    schema=json.loads((directory / "schema.json").read_text()),
+                    instructions=(directory / "instructions.txt").read_text(),
+                )
+            return await self.run_cli(command, directory, environment, input_data, timeout)
+
+        schema = {"type": "object", "additionalProperties": False}
+        with patch("planner._run_cli", side_effect=capture), patch.dict(
+            os.environ, {"OPENAI_API_KEY": "test-private", "CODEX_API_KEY": "test-private"},
+        ):
+            await request_structured(
+                self.config, instructions="No tools.", schema=schema, payload={"task": "exact"},
+            )
+        self.assertEqual(observed["payload"], {"task": "exact"})
+        self.assertEqual(observed["schema"], schema)
+        self.assertEqual(observed["instructions"], "No tools.")
+        self.assertNotIn("OPENAI_API_KEY", observed["environment"])
+        self.assertNotIn("CODEX_API_KEY", observed["environment"])
+        command = observed["command"]
+        for flag in ("--ignore-user-config", "--strict-config", "--ephemeral", "--skip-git-repo-check"):
+            self.assertIn(flag, command)
+        self.assertEqual(command[command.index("--sandbox") + 1], "read-only")
+        self.assertIn('model_provider="openai"', command)
+        self.assertIn('approval_policy="never"', command)
+        self.assertIn("shell_tool", command)
+
 
 class CliProcessTests(unittest.IsolatedAsyncioTestCase):
     async def test_real_child_cannot_receive_api_billing_credentials(self) -> None:
@@ -428,6 +474,62 @@ class CliProcessTests(unittest.IsolatedAsyncioTestCase):
                                 task.cancel()
                             with suppress(asyncio.CancelledError, TimeoutError):
                                 await task
+
+    async def test_cancellation_during_termination_cannot_interrupt_reaping(self) -> None:
+        for initial_cancel in (True, False):
+            with self.subTest(initial_cancel=initial_cancel):
+                ready, stopped, term_sent = asyncio.Event(), asyncio.Event(), asyncio.Event()
+                pids = []
+
+                async def connection(reader, writer):
+                    pids.append(int(await reader.readline()))
+                    ready.set()
+                    await reader.read()
+                    stopped.set()
+                    writer.close()
+                    await writer.wait_closed()
+
+                server = await asyncio.start_server(connection, "127.0.0.1", 0)
+                port = server.sockets[0].getsockname()[1]
+                program = (
+                    "import os,signal,socket\n"
+                    "signal.signal(signal.SIGTERM,signal.SIG_IGN)\n"
+                    f"s=socket.create_connection(('127.0.0.1',{port}))\n"
+                    "s.sendall((str(os.getpid())+'\\n').encode())\n"
+                    "while True: signal.pause()\n"
+                )
+                kill_group = os.killpg
+
+                def observe_signal(pid, sig):
+                    kill_group(pid, sig)
+                    if sig == signal.SIGTERM:
+                        term_sent.set()
+
+                async with server:
+                    with tempfile.TemporaryDirectory() as directory, patch("planner.os.killpg", side_effect=observe_signal):
+                        task = asyncio.create_task(_run_cli(
+                            [sys.executable, "-c", program], Path(directory), os.environ.copy(),
+                            timeout=30 if initial_cancel else 1,
+                        ))
+                        try:
+                            await asyncio.wait_for(ready.wait(), 5)
+                            if initial_cancel:
+                                task.cancel()
+                            await asyncio.wait_for(term_sent.wait(), 5)
+                            task.cancel()  # Arrives inside the SIGTERM grace interval.
+                            with self.assertRaises(asyncio.CancelledError if initial_cancel else TimeoutError):
+                                await task
+                            await asyncio.wait_for(stopped.wait(), 1)
+                        finally:
+                            for pid in pids:
+                                with suppress(ProcessLookupError):
+                                    kill_group(pid, signal.SIGKILL)
+                            if not task.done():
+                                task.cancel()
+                            with suppress(asyncio.CancelledError, TimeoutError):
+                                await task
+                            if pids:
+                                await asyncio.wait_for(stopped.wait(), 2)
 
 
 

@@ -1,11 +1,10 @@
-"""Fixed ground-truth color sorting using force-driven Panda grasping only.
+"""Ground-truth color sorting using force-driven Panda grasping only.
 
-The six-item queue is immutable; physical observations gate every handoff.
-No drawer observer, language model, attachment, or execution-time model edits
-are involved. Reset alone initializes poses, then settles them through MuJoCo.
+Complete bounded plans select the queue and destinations; physical observations
+gate every handoff. This executor never calls a language model or attaches an
+object. Reset alone initializes poses, then settles them through MuJoCo.
 """
 
-from dataclasses import dataclass
 import math
 
 import mujoco
@@ -14,48 +13,7 @@ import numpy as np
 from collisions import CollisionTracker
 from grasp import GraspParameters, GraspSkill
 from simulation import ARM_HOME, ROOT, Simulation
-
-
-TABLE_Z = 0.72
-COLORS = {"red": (0.85, 0.12, 0.10, 1.0),
-          "blue": (0.10, 0.32, 0.90, 1.0),
-          "yellow": (0.98, 0.75, 0.06, 1.0)}
-
-
-@dataclass(frozen=True)
-class SortingObject:
-    id: str
-    color: str
-    kind: str
-    destination: str
-    source_xy_m: tuple[float, float]
-    slot_xy_m: tuple[float, float]
-
-    @property
-    def body_name(self):
-        return f"{self.id}_object"
-
-    @property
-    def label(self):
-        return f"{self.color} {self.kind}"
-
-    @property
-    def grasp_offset_m(self):
-        return (0.0, -0.047, 0.042) if self.kind == "bowl" else (0.0, 0.0, 0.025)
-
-
-OBJECTS = tuple(
-    SortingObject(f"{color}_{kind}", color, kind, destination,
-                  (x, -0.08 if kind == "bowl" else -0.28),
-                  (x, 0.10 if kind == "bowl" else 0.29))
-    for color, destination, x in zip(COLORS, "ABC", (0.30, 0.47, 0.64))
-    for kind in ("bowl", "cup")
-)
-ZONES = tuple({"id": destination, "label": f"{destination} · {color}",
-               "color": color, "center_xy_m": [x, 0.195],
-               "half_size_xy_m": [0.075, 0.16],
-               "slots_xy_m": [[x, 0.10], [x, 0.29]]}
-              for color, destination, x in zip(COLORS, "ABC", (0.30, 0.47, 0.64)))
+import sorting_contract as contract
 
 
 def _cup_spec(color):
@@ -65,7 +23,7 @@ def _cup_spec(color):
     outer radius. A non-colliding cylinder supplies the circular base visual.
     The base has fixed 13.2 g mass; wall density gives about 69 g total mass.
     """
-    rgba = " ".join(map(str, COLORS[color]))
+    rgba = " ".join(map(str, contract.COLORS[color]))
     walls = []
     for index in range(24):
         angle = index * 2 * math.pi / 24
@@ -149,6 +107,9 @@ class SortingSkill(GraspSkill):
     """Reuse the existing IK/quintic/force servo, not its storage state machine."""
 
     REQUIRED_VALIDATION = 5.0
+    SUPPORT_SEARCH_SPEED_M_S = 0.002
+    SUPPORT_SEARCH_LIMIT_M = 0.003
+    SUPPORT_SEARCH_TIMEOUT_S = 2.0
     MESSAGES = {
         "idle": "Ready for the fixed red→A, blue→B, yellow→C queue",
         "prepare": "Checking stable source support and opening the gripper",
@@ -185,11 +146,13 @@ class SortingSkill(GraspSkill):
     def reset(self):
         self.status = self.phase = "idle"
         self.current_index = None
+        self.current_step_index = None
+        self.mode = "fixed"
         self.started_at = self.phase_started_at = float(self.data.time)
         self.finished_at = self.failure_reason = None
         self.phase_times = {}
         self.results = []
-        self.plan_status = ["pending"] * len(OBJECTS)
+        self.plan_status = ["pending"] * len(contract.OBJECTS)
         self.arm_target = self.data.qpos[self.sim.arm_qpos].copy()
         self.gripper_closed = False
         self.opening_target = 0.08
@@ -201,6 +164,8 @@ class SortingSkill(GraspSkill):
         self.reference_z = self.hold_relative = self.grasp_position = None
         self.motion_start = self.motion_target = self.target_position = None
         self.motion_duration = 0.0
+        self.support_search_started_at = self.support_search_origin = None
+        self.support_search_m = 0.0
         self.last_diagnostics = {}
 
     def _enter(self, phase):
@@ -229,54 +194,66 @@ class SortingSkill(GraspSkill):
                              "time_s": self.finished_at, "reason": str(reason),
                              "diagnostics": dict(self.last_diagnostics)})
 
-    def precondition_error(self):
+    def precondition_error(self, plan: contract.SortingPlan | None = None):
+        prospective = contract.FIXED_PLAN if plan is None else plan
+        if type(prospective) is not contract.SortingPlan:
+            return "Sorting requires a complete immutable SortingPlan"
+        try:
+            contract.SortingPlan(prospective.steps)
+        except (ValueError, AttributeError) as exc:
+            return str(exc)
         if self.status != "idle":
             return "A sorting run was already started; reset before another run"
         error = self.sim.numerical_error()
         if error:
             return error
-        facts = self.sim.object_checks()
+        facts = self.sim.object_checks(prospective)
         if not all(obj["supported"] and obj["stable"] and obj["detached"] for obj in facts):
             return "All six source objects must be stably table-supported and detached"
         if not self.sim.hand_empty():
             return "Sorting requires an empty hand"
         if not self.sim.home_reached():
             return "Sorting requires the robot at home"
-        for index in range(len(OBJECTS)):
-            error = self.sim.slot_error(index)
+        for index in range(len(contract.OBJECTS)):
+            error = self.sim.slot_error(index, plan=prospective)
             if error:
                 return error
         return None
 
-    def start(self):
-        error = self.precondition_error()
+    def start(self, plan: contract.SortingPlan | None = None):
+        error = self.precondition_error(plan)
         if error:
             raise ValueError(error)
         # Acceptance mutates controller bookkeeping only, never physics state.
+        self.sim.plan = contract.FIXED_PLAN if plan is None else plan
+        self.mode = "fixed" if plan is None else "planned"
         self.started_at = float(self.data.time)
         self.status = "running"
-        self.current_index = 0
+        self.current_step_index = 0
         self._begin_item()
 
     def _begin_item(self):
+        self._enter("prepare")
+        self.current_index = self.sim.plan.steps[self.current_step_index].object_index
         self.plan_status[self.current_index] = "active"
         self.gripper_closed = False
         self.opening_target = 0.08
         self.cleared_table = False
         self.hold_elapsed = self.lost_contact_elapsed = 0.0
-        self._enter("prepare")
+        self.support_search_started_at = self.support_search_origin = None
+        self.support_search_m = 0.0
 
     def placement_aligned(self):
         if self.current_index is None:
             return False
         return bool(np.linalg.norm(self.data.xpos[self.target_body, :2]
-                                   - OBJECTS[self.current_index].slot_xy_m) < 0.012)
+                                   - self.sim.assignment(self.current_index).slot_xy_m) < 0.012)
 
     def _grip_facts(self):
         contact = self.sim.contact_facts()[self.target_body]
         position = self.data.xpos[self.target_body]
         lower, _ = self.sim.object_bounds(self.current_index)
-        if lower[2] > TABLE_Z + 0.003:
+        if lower[2] > contract.TABLE_Z + 0.003:
             self.cleared_table = True
         return contact, position, lower
 
@@ -297,13 +274,13 @@ class SortingSkill(GraspSkill):
         dt = float(self.model.opt.timestep)
         elapsed = float(self.data.time) - self.phase_started_at
         if self.data.time - self.started_at > 240.0:
-            self.fail("Fixed sorting execution exceeded 240 simulated seconds")
+            self.fail("Sorting execution exceeded 240 simulated seconds")
             return
         facts = self.sim.object_checks()
         for index, fact in enumerate(facts):
             if self.plan_status[index] == "sorted" and not fact["sorted"]:
                 self.plan_status[index] = "failed"
-                self.fail(f"Previously sorted object disturbed: {OBJECTS[index].id}")
+                self.fail(f"Previously sorted object disturbed: {contract.OBJECTS[index].id}")
                 return
         if self.phase in ("return_home", "verify_sorting"):
             self._finish_batch(elapsed, dt)
@@ -312,7 +289,7 @@ class SortingSkill(GraspSkill):
         bilateral = contact["bilateral"]
         relative = position - self.data.site_xpos[self.tcp]
         self.last_diagnostics = {
-            "object_id": OBJECTS[self.current_index].id,
+            "object_id": contract.OBJECTS[self.current_index].id,
             "bilateral_grip": bilateral, "finger_forces_n": contact["finger_forces_n"],
             "support_force_n": contact["support_force_n"],
             "lowest_collision_z_m": float(lower[2]),
@@ -321,6 +298,7 @@ class SortingSkill(GraspSkill):
             "motion_target_m": None if self.target_position is None else self.target_position.tolist(),
             "motion_duration_s": self.motion_duration,
             "phase_elapsed_s": elapsed,
+            "support_search_m": self.support_search_m,
             "relative_drift_m": None if self.hold_relative is None else float(np.linalg.norm(relative - self.hold_relative)),
         }
         if self.phase in ("lift", "hold", "transfer", "place"):
@@ -340,7 +318,7 @@ class SortingSkill(GraspSkill):
             if self.stable_elapsed >= 0.06:
                 self.reference_z = float(position[2])
                 rotation = self.data.xmat[self.target_body].reshape(3, 3)
-                self.grasp_position = position + rotation @ OBJECTS[self.current_index].grasp_offset_m
+                self.grasp_position = position + rotation @ contract.OBJECTS[self.current_index].grasp_offset_m
                 self._move("approach", self.grasp_position + [0, 0, 0.18])
             elif elapsed > 2.0:
                 self.fail("Source did not settle or gripper did not open")
@@ -362,7 +340,7 @@ class SortingSkill(GraspSkill):
                     self.fail(error)
                     return
                 target = self.data.site_xpos[self.tcp].copy()
-                target[2] -= lower[2] - TABLE_Z + 0.0005
+                target[2] -= lower[2] - contract.TABLE_Z + 0.0005
                 self._move("place", target)
             else:
                 self._complete_item(facts[self.current_index])
@@ -374,7 +352,7 @@ class SortingSkill(GraspSkill):
                 self.fail("Gripper failed to establish stable bilateral contacts")
         elif self.phase == "hold":
             valid = (bilateral and contact["support_force_n"] <= 0.01
-                     and lower[2] > TABLE_Z + 0.08
+                     and lower[2] > contract.TABLE_Z + 0.08
                      and position[2] - self.reference_z >= self.TARGET_LIFT)
             if not valid:
                 self.fail("Lift/hold failed: no bilateral grip, clearance, or required lift height")
@@ -382,7 +360,7 @@ class SortingSkill(GraspSkill):
             self.hold_elapsed += dt
             if self.hold_elapsed + 1e-9 >= self.REQUIRED_HOLD:
                 target = self.data.site_xpos[self.tcp].copy()
-                target[:2] += np.array(OBJECTS[self.current_index].slot_xy_m) - position[:2]
+                target[:2] += np.array(self.sim.assignment(self.current_index).slot_xy_m) - position[:2]
                 self._move("transfer", target)
         elif self.phase == "place":
             error = self.sim.slot_error(self.current_index, exclude_current=True)
@@ -402,9 +380,13 @@ class SortingSkill(GraspSkill):
                     self._enter("release")
             else:
                 self.stable_elapsed = 0.0
-                self._motion_done(elapsed)
-                if self.status == "running" and elapsed > self.motion_duration + 1.0:
-                    self.fail("Placement trajectory ended without positive table support")
+                if self.support_search_started_at is not None:
+                    self._seek_table_support(dt)
+                elif self._motion_done(elapsed):
+                    # Grasp tilt and servo error can leave a small real air gap.
+                    # Continue bounded contact-seeking, never infer support from height.
+                    self.support_search_started_at = float(self.data.time)
+                    self.support_search_origin = self.data.site_xpos[self.tcp].copy()
         elif self.phase == "release":
             fact = facts[self.current_index]
             ready = all(fact[key] for key in ("correct_region", "supported", "stable", "detached"))
@@ -415,16 +397,33 @@ class SortingSkill(GraspSkill):
             elif elapsed > 3.0:
                 self.fail("Released object did not settle detached inside its assigned region")
 
+    def _seek_table_support(self, dt):
+        elapsed = float(self.data.time) - self.support_search_started_at
+        if elapsed > self.SUPPORT_SEARCH_TIMEOUT_S:
+            self.fail("Bounded placement search ended without positive table support")
+            return
+        self.support_search_m = min(
+            self.SUPPORT_SEARCH_LIMIT_M, self.SUPPORT_SEARCH_SPEED_M_S * elapsed)
+        target = self.support_search_origin.copy()
+        target[2] -= self.support_search_m
+        try:
+            joints = self._inverse_kinematics(target)
+        except ValueError as exc:
+            self.fail(str(exc))
+            return
+        self.target_position = target
+        self.arm_target += np.clip(joints - self.arm_target, -0.8 * dt, 0.8 * dt)
+
     def _complete_item(self, fact):
         if not all(fact[key] for key in ("correct_region", "supported", "stable", "detached")):
             self.fail("Object lost valid placement while the hand withdrew")
             return
         self.plan_status[self.current_index] = "sorted"
-        self.results.append({"index": self.current_index, "object_id": OBJECTS[self.current_index].id,
+        self.results.append({"index": self.current_index, "object_id": contract.OBJECTS[self.current_index].id,
                              "status": "sorted", "time_s": float(self.data.time),
                              "position_m": fact["position_m"], "hold_s": self.hold_elapsed})
-        if self.current_index + 1 < len(OBJECTS):
-            self.current_index += 1
+        if self.current_step_index + 1 < len(self.sim.plan.steps):
+            self.current_step_index += 1
             self._begin_item()
         else:
             self.motion_start = self.data.qpos[self.sim.arm_qpos].copy()
@@ -458,23 +457,29 @@ class SortingSkill(GraspSkill):
         error = self.precondition_error()
         end = float(self.data.time) if self.finished_at is None else self.finished_at
         return {
-            "status": self.status, "mode": "fixed", "can_start": error is None,
+            "status": self.status, "mode": self.mode, "can_start": error is None,
             "start_error": error, "current_index": self.current_index, "phase": self.phase,
+            "current_object_id": (None if self.current_index is None
+                                  else contract.OBJECTS[self.current_index].id),
+            "current_step_index": self.current_step_index,
             "message": self.failure_reason or self.MESSAGES[self.phase],
             "failure_reason": self.failure_reason,
             "elapsed_s": 0.0 if self.status == "idle" else end - self.started_at,
-            "sorted_count": sum(obj["sorted"] for obj in objects), "object_count": len(OBJECTS),
+            "sorted_count": sum(obj["sorted"] for obj in objects), "object_count": len(contract.OBJECTS),
             "validation_hold_s": self.validation_hold_s, "goal_checks": self.sim.goal_checks(),
-            "plan": [{"index": i, "object_id": obj.id, "label": obj.label, "color": obj.color,
-                      "kind": obj.kind, "destination": obj.destination,
-                      "slot_xy_m": list(obj.slot_xy_m), "status": self.plan_status[i]}
-                     for i, obj in enumerate(OBJECTS)],
+            "plan": [{"index": i, "object_index": step.object_index,
+                      "object_id": step.object_id, "label": objects[step.object_index]["label"],
+                      "color": objects[step.object_index]["color"],
+                      "kind": objects[step.object_index]["kind"], "destination": step.destination,
+                      "slot_xy_m": list(step.slot_xy_m),
+                      "status": self.plan_status[step.object_index]}
+                     for i, step in enumerate(self.sim.plan.steps)],
             "objects": objects,
             "zones": [{**zone, "center_xy_m": list(zone["center_xy_m"]),
                        "half_size_xy_m": list(zone["half_size_xy_m"]),
-                       "slots_xy_m": [list(slot) for slot in zone["slots_xy_m"]]} for zone in ZONES],
+                       "slots_xy_m": [list(slot) for slot in zone["slots_xy_m"]]} for zone in contract.ZONES],
             "phase_times_s": dict(self.phase_times), "item_results": list(self.results),
-            "diagnostics": dict(self.last_diagnostics), "gpt_called": False,
+            "diagnostics": dict(self.last_diagnostics),
         }
 
 
@@ -496,19 +501,19 @@ class SortingSimulation(Simulation):
         gripper.biasprm[:] = 0
         gripper.ctrlrange[:] = [-100, 100]
         scene.attach(robot, frame=scene.frame("robot_mount"), prefix="robot_")
-        for zone in ZONES:
-            rgba = list(COLORS[zone["color"]])
+        for zone in contract.ZONES:
+            rgba = list(contract.COLORS[zone["color"]])
             rgba[3] = 0.28
             scene.worldbody.add_geom(name=f"zone_{zone['id']}", type=mujoco.mjtGeom.mjGEOM_BOX,
-                                     pos=[*zone["center_xy_m"], TABLE_Z + 0.0002],
+                                     pos=[*zone["center_xy_m"], contract.TABLE_Z + 0.0002],
                                      size=[*zone["half_size_xy_m"], 0.0001],
                                      rgba=rgba, contype=0, conaffinity=0, group=2)
             for index, slot in enumerate(zone["slots_xy_m"]):
                 scene.worldbody.add_site(name=f"slot_{zone['id']}_{index}",
                                          type=mujoco.mjtGeom.mjGEOM_CYLINDER,
-                                         pos=[*slot, TABLE_Z + 0.0004], size=[0.008, 0.0001, 0.0001],
-                                         rgba=COLORS[zone["color"]])
-        for obj in OBJECTS:
+                                         pos=[*slot, contract.TABLE_Z + 0.0004], size=[0.008, 0.0001, 0.0001],
+                                         rgba=contract.COLORS[zone["color"]])
+        for obj in contract.OBJECTS:
             if obj.kind == "bowl":
                 part = mujoco.MjSpec.from_file(str(
                     ROOT / "vendor/libero/stable_scanned_objects/akita_black_bowl/akita_black_bowl.xml"))
@@ -519,11 +524,11 @@ class SortingSimulation(Simulation):
                 for geom in part.geoms:
                     if geom.group == 1:
                         geom.material = ""
-                        geom.rgba[:] = COLORS[obj.color]
+                        geom.rgba[:] = contract.COLORS[obj.color]
                 height = 0.73
             else:
                 part = _cup_spec(obj.color)
-                height = TABLE_Z + 0.04
+                height = contract.TABLE_Z + 0.04
             frame = scene.worldbody.add_frame(name=f"{obj.id}_mount", pos=[*obj.source_xy_m, height])
             scene.attach(part, frame=frame, prefix=f"{obj.id}_")
         self.model = scene.compile()
@@ -533,10 +538,10 @@ class SortingSimulation(Simulation):
         self.finger_qpos = np.array([self.model.joint(f"robot_finger_joint{i}").qposadr[0] for i in (1, 2)])
         self.gripper_actuator = self.model.actuator("robot_actuator8").id
         self.arm_home = ARM_HOME.copy()
-        self.object_names = tuple(obj.body_name for obj in OBJECTS)
+        self.object_names = tuple(obj.body_name for obj in contract.OBJECTS)
         self.body_ids = tuple(self.model.body(name).id for name in self.object_names)
         self.object_bodies = frozenset(self.body_ids)
-        self.object_dofs = tuple(int(self.model.joint(f"{obj.id}_free").dofadr[0]) for obj in OBJECTS)
+        self.object_dofs = tuple(int(self.model.joint(f"{obj.id}_free").dofadr[0]) for obj in contract.OBJECTS)
         collidable = (self.model.geom_contype | self.model.geom_conaffinity) != 0
         self.object_geoms = tuple(np.flatnonzero((self.model.geom_bodyid == body) & collidable)
                                   for body in self.body_ids)
@@ -547,17 +552,19 @@ class SortingSimulation(Simulation):
         self.options.geomgroup[0] = 0
         self.options.geomgroup[3] = 0
         # Cups use the actual visible collision solids; bowls retain their mesh.
-        for obj in OBJECTS:
+        for obj in contract.OBJECTS:
             if obj.kind == "cup":
-                for geom in self.object_geoms[OBJECTS.index(obj)]:
+                for geom in self.object_geoms[contract.OBJECTS.index(obj)]:
                     self.model.geom_group[geom] = 2
         self._force = np.zeros(6)
         self._numerical_failure = None
+        self.plan = contract.FIXED_PLAN
         self.skill = SortingSkill(self)
         self.collisions = SortingCollisions(self)
         self.reset()
 
     def reset(self):
+        self.plan = contract.FIXED_PLAN
         mujoco.mj_resetData(self.model, self.data)
         self.data.qpos[self.arm_qpos] = self.arm_home
         self.data.qpos[self.finger_qpos] = 0.04
@@ -572,8 +579,12 @@ class SortingSimulation(Simulation):
         self.skill.reset()
         self.collisions.reset()
 
-    def start_sorting(self):
-        self.skill.start()
+    def start_sorting(self, plan: contract.SortingPlan | None = None):
+        self.skill.start(plan)
+
+    def assignment(self, index, plan: contract.SortingPlan | None = None):
+        active = self.plan if plan is None else plan
+        return active.assignment(contract.OBJECTS[index].id)
 
     def step(self, duration_s=0.02):
         if not math.isfinite(duration_s):
@@ -641,26 +652,29 @@ class SortingSimulation(Simulation):
             fact["bilateral"] = all(force > 0.01 for force in fact["finger_forces_n"].values())
         return result
 
-    def object_checks(self):
+    def object_checks(self, plan: contract.SortingPlan | None = None):
         contacts = self.contact_facts()
         result = []
-        for index, obj in enumerate(OBJECTS):
+        for index, obj in enumerate(contract.OBJECTS):
             body, dof = self.body_ids[index], self.object_dofs[index]
             lower, upper = self.object_bounds(index)
-            zone = ZONES["ABC".index(obj.destination)]
+            assignment = self.assignment(index, plan)
+            zone = contract.ZONES["ABC".index(assignment.destination)]
             center, half = np.array(zone["center_xy_m"]), np.array(zone["half_size_xy_m"])
             contained = bool(np.all(lower[:2] >= center - half) and np.all(upper[:2] <= center + half))
             # Slots are distinct within a color zone, not interchangeable stacks.
-            slot_aligned = bool(np.linalg.norm(self.data.xpos[body, :2] - obj.slot_xy_m) < 0.025)
+            slot_aligned = bool(np.linalg.norm(self.data.xpos[body, :2] - assignment.slot_xy_m) < 0.025)
             upright = bool(self.data.xmat[body].reshape(3, 3)[2, 2] > 0.95)
             supported = bool(contacts[body]["support_force_n"] > 0.01
-                             and TABLE_Z - 0.003 <= lower[2] <= TABLE_Z + 0.003)
+                             and contract.TABLE_Z - 0.003 <= lower[2] <= contract.TABLE_Z + 0.003)
             velocity = self.data.qvel[dof:dof + 6]
             stable = bool(np.linalg.norm(velocity[:3]) < 0.01 and np.linalg.norm(velocity[3:]) < 0.1)
             detached = not contacts[body]["finger_contact"]
             correct = contained and slot_aligned and upright
             result.append({"id": obj.id, "body_name": obj.body_name, "label": obj.label,
                            "kind": obj.kind, "color": obj.color,
+                           "destination": assignment.destination,
+                           "slot_xy_m": list(assignment.slot_xy_m),
                            "position_m": self.data.xpos[body].tolist(),
                            "correct_region": correct, "supported": supported, "stable": stable,
                            "detached": detached,
@@ -673,15 +687,15 @@ class SortingSimulation(Simulation):
                            "angular_speed_rad_s": float(np.linalg.norm(velocity[3:]))})
         return result
 
-    def slot_error(self, index, *, exclude_current=False):
-        slot = np.array(OBJECTS[index].slot_xy_m)
-        radius = 0.057 if OBJECTS[index].kind == "bowl" else 0.039
-        for other, obj in enumerate(OBJECTS):
+    def slot_error(self, index, *, exclude_current=False, plan: contract.SortingPlan | None = None):
+        slot = np.array(self.assignment(index, plan).slot_xy_m)
+        radius = 0.057 if contract.OBJECTS[index].kind == "bowl" else 0.039
+        for other, obj in enumerate(contract.OBJECTS):
             if exclude_current and other == index:
                 continue
             lower, upper = self.object_bounds(other)
             if np.all(upper[:2] > slot - radius) and np.all(lower[:2] < slot + radius):
-                return f"Reserved slot for {OBJECTS[index].id} is occupied by {obj.id}"
+                return f"Reserved slot for {contract.OBJECTS[index].id} is occupied by {obj.id}"
         return None
 
     def hand_empty(self):
@@ -713,9 +727,9 @@ class SortingSimulation(Simulation):
         sorting = self.skill.state()
         return {"time_s": float(self.data.time), "timestep_s": float(self.model.opt.timestep),
                 "scene_revision": self.scene_revision,
-                "scene_name": "Panda fixed color sorting · six bowls/cups",
+                "scene_name": "Panda color sorting · six bowls/cups",
                 "robot_name": "Franka Panda · 7 joints · bilateral gripper",
-                "source": "Menagerie Panda + recolored LIBERO bowls + hollow physical cups; ground-truth fixed planning; no vision/GPT",
+                "source": "Menagerie Panda + recolored LIBERO bowls + hollow physical cups; ground-truth bounded sorting; no vision",
                 "objects": [self.get_object_pose(name) for name in self.object_names],
                 "joint_positions_rad": self.data.qpos[self.arm_qpos].tolist(),
                 "gripper_opening_m": float(self.data.qpos[self.finger_qpos].sum()),

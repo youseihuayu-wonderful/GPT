@@ -1,17 +1,19 @@
 """Consumer-visible sorting transitions exercised with real MuJoCo physics."""
 
 from copy import deepcopy
+from itertools import permutations
 import unittest
 
 import mujoco
 import numpy as np
 
 from sorting import SortingSimulation
+from sorting_contract import FIXED_PLAN, OBJECTS, SortStep, SortingPlan, validate_plan
 from verify_skills import model_fingerprint, physics_snapshot
 from verify_sorting import free_joint, independent_complete, observe_sorting
 
 
-class FixedSortingTests(unittest.TestCase):
+class SortingTests(unittest.TestCase):
     def make_sim(self):
         sim = SortingSimulation()
         self.addCleanup(sim.close)
@@ -149,6 +151,140 @@ class FixedSortingTests(unittest.TestCase):
         sim.step(0.5)
         sim.start_sorting()
         self.assertEqual(sim.skill.status, "running")
+
+    def test_prospective_plan_does_not_change_assignments_or_controller(self):
+        sim = self.make_sim()
+        mapping = {"red": "C", "blue": "A", "yellow": "B"}
+        plan = validate_plan([{"object_id": obj.id, "destination": mapping[obj.color]}
+                              for obj in reversed(OBJECTS)])
+        before = deepcopy(sim.state())
+        physics = physics_snapshot(sim)
+        model = model_fingerprint(sim)
+        self.assertIsNone(sim.skill.precondition_error(plan))
+        prospective = sim.object_checks(plan)
+        self.assertEqual({obj["color"]: obj["destination"] for obj in prospective}, mapping)
+        self.assertEqual(sim.state(), before)
+        self.assertEqual(physics_snapshot(sim), physics)
+        self.assertEqual(model_fingerprint(sim), model)
+        self.assertIs(sim.plan, FIXED_PLAN)
+        sim.start_sorting(plan)
+        self.assertEqual(physics_snapshot(sim), physics)
+        self.assertEqual(model_fingerprint(sim), model)
+        state = sim.state()["sorting"]
+        self.assertEqual(state["mode"], "planned")
+        self.assertEqual(state["current_index"], 5)
+        self.assertEqual(state["current_step_index"], 0)
+        self.assertEqual(state["current_object_id"], "yellow_cup")
+        self.assertEqual([item["object_index"] for item in state["plan"]], [5, 4, 3, 2, 1, 0])
+        self.assertEqual([item["index"] for item in state["plan"]], list(range(6)))
+        self.assertEqual(sim.skill.plan_status, ["pending"] * 5 + ["active"])
+        self.assertNotIn("gpt_called", state)
+        running = deepcopy(sim.state())
+        with self.assertRaises(ValueError):
+            sim.start_sorting(FIXED_PLAN)
+        self.assertEqual(sim.state(), running)
+        self.assertIs(sim.plan, plan)
+        sim.reset()
+        self.assertIs(sim.plan, FIXED_PLAN)
+        self.assertEqual(sim.state()["sorting"]["mode"], "fixed")
+        self.assertIsNone(sim.skill.current_step_index)
+        sim.start_sorting()
+        self.assertEqual(sim.skill.current_index, 0)
+        self.assertEqual(sim.skill.mode, "fixed")
+
+    def test_invalid_plans_cannot_mutate_physics_or_controller(self):
+        sim = self.make_sim()
+        incomplete = object.__new__(SortingPlan)
+        object.__setattr__(incomplete, "steps", FIXED_PLAN.steps[:-1])
+        mutable = object.__new__(SortingPlan)
+        object.__setattr__(mutable, "steps", list(FIXED_PLAN.steps))
+        invalid_step = object.__new__(SortStep)
+        object.__setattr__(invalid_step, "object_id", "red_bowl")
+        object.__setattr__(invalid_step, "destination", "D")
+        corrupt = object.__new__(SortingPlan)
+        object.__setattr__(corrupt, "steps", (invalid_step,) + FIXED_PLAN.steps[1:])
+        for plan in (False, {}, FIXED_PLAN.to_list(), incomplete, mutable, corrupt):
+            with self.subTest(plan=plan):
+                before = deepcopy(sim.state())
+                physics = physics_snapshot(sim)
+                model = model_fingerprint(sim)
+                self.assertIsNotNone(sim.skill.precondition_error(plan))
+                with self.assertRaises(ValueError):
+                    sim.start_sorting(plan)
+                self.assertEqual(sim.state(), before)
+                self.assertEqual(physics_snapshot(sim), physics)
+                self.assertEqual(model_fingerprint(sim), model)
+                self.assertIs(sim.plan, FIXED_PLAN)
+
+    def test_occupied_prospective_destination_rejects_without_applying_plan(self):
+        sim = self.make_sim()
+        plan = validate_plan([
+            {"object_id": obj.id, "destination": {"red": "C", "blue": "A", "yellow": "B"}[obj.color]}
+            for obj in reversed(OBJECTS)
+        ])
+        body = sim.model.body("blue_cup_object").id
+        joint = free_joint(sim.model, body)
+        qpos = int(sim.model.jnt_qposadr[joint])
+        # Deliberate scene fault at red's proposed slot, not its fixed slot.
+        sim.data.qpos[qpos:qpos + 2] += np.asarray((0.64, 0.10)) - sim.data.xpos[body, :2]
+        mujoco.mj_forward(sim.model, sim.data)
+        sim.step(0.5)
+        before = deepcopy(sim.state())
+        physics = physics_snapshot(sim)
+        self.assertIn("Reserved slot for red_bowl", sim.skill.precondition_error(plan))
+        with self.assertRaisesRegex(ValueError, "Reserved slot for red_bowl"):
+            sim.start_sorting(plan)
+        self.assertEqual(sim.state(), before)
+        self.assertEqual(physics_snapshot(sim), physics)
+        self.assertIs(sim.plan, FIXED_PLAN)
+
+    def test_all_destination_permutations_execute_reordered_real_contact_batches(self):
+        orders = (
+            ("yellow_cup", "blue_cup", "red_cup", "yellow_bowl", "blue_bowl", "red_bowl"),
+            ("blue_cup", "yellow_bowl", "red_cup", "blue_bowl", "yellow_cup", "red_bowl"),
+            ("yellow_bowl", "red_bowl", "blue_bowl", "red_cup", "yellow_cup", "blue_cup"),
+        )
+        sim = self.make_sim()
+        for run, destinations in enumerate(permutations("ABC")):
+            with self.subTest(destinations=destinations):
+                if run:
+                    sim.reset()
+                    sim.step(0.5)
+                expected = dict(zip(("red", "blue", "yellow"), destinations))
+                ordered_ids = orders[run % len(orders)]
+                plan = validate_plan([
+                    {"object_id": identity, "destination": expected[identity.split("_")[0]]}
+                    for identity in ordered_ids
+                ])
+                # Expectations are chosen independently before controller dispatch.
+                specification = sim.state()["sorting"]
+                initial = observe_sorting(sim, specification, expected)
+                initial_z = {obj["id"]: obj["position_m"][2] for obj in initial["objects"]}
+                lifted = set()
+                model = model_fingerprint(sim)
+                before = physics_snapshot(sim)
+                sim.start_sorting(plan)
+                self.assertEqual(physics_snapshot(sim), before)
+                for _ in range(3000):
+                    if sim.skill.status != "running":
+                        break
+                    sim.step(0.1)
+                    for obj in observe_sorting(sim, specification, expected)["objects"]:
+                        if (obj["bilateral_grip"] and not obj["supported"]
+                                and obj["position_m"][2] - initial_z[obj["id"]] >= 0.10):
+                            lifted.add(obj["id"])
+                state = sim.state()["sorting"]
+                self.assertEqual(sim.skill.status, "succeeded", state)
+                self.assertEqual(lifted, set(ordered_ids))
+                self.assertEqual([item["object_id"] for item in state["item_results"]], list(ordered_ids))
+                self.assertEqual([item["object_id"] for item in state["plan"]], list(ordered_ids))
+                self.assertEqual({obj["color"]: obj["destination"] for obj in state["objects"]}, expected)
+                self.assertTrue(independent_complete(observe_sorting(sim, specification, expected)))
+                self.assertGreaterEqual(state["validation_hold_s"] + 1e-8, 5.0)
+                self.assertEqual(sim.collisions.state()["episodes"], 0)
+                self.assertEqual(model_fingerprint(sim), model)
+                sim.step(0.5)
+                self.assertTrue(independent_complete(observe_sorting(sim, specification, expected)))
 
 
 if __name__ == "__main__":

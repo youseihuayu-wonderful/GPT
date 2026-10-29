@@ -16,9 +16,9 @@
       <p class="scope">每次只选一项技能 <span aria-hidden="true">/</span> 明确授权 · 真实接触执行 · 本地目标检查</p>
     </header>
     <header class="page-header" data-sorting-only hidden>
-      <div class="eyebrow">固定规划基线 <span>FIXED PLAN + LIVE PHYSICS</span></div>
+      <div class="eyebrow">分拣规划对照 <span>GPT / FIXED PLAN + LIVE PHYSICS</span></div>
       <h1>彩色碗杯分拣 <span>· 六物体真实接触执行</span></h1>
-      <p class="scope">仿真真值 · 无视觉识别 · 不调用 GPT <span aria-hidden="true">/</span> 固定全队列 · 失败即停止</p>
+      <p class="scope">仿真真值 · 无视觉识别 <span aria-hidden="true">/</span> GPT 完整提案须批准 · 固定队列可对照 · 失败即停止</p>
     </header>
 
     <section class="scene-panel" aria-label="实时物理仿真">
@@ -49,13 +49,44 @@
     </section>
 
     <aside class="right-pane" aria-label="任务与仿真状态">
+      <section id="sort-planner-panel" class="planner-panel" aria-labelledby="sort-planner-title" data-sorting-only hidden>
+        <div class="section-heading"><h2 id="sort-planner-title">GPT 订阅 · 分拣提案与批准</h2><span id="sort-planner-status" role="status">等待状态</span></div>
+        <p id="sort-planner-scope" class="planner-note">仅限当前六只碗杯与 A/B/C 三个区。GPT 可选择六物体顺序与颜色分区；同色碗杯同区、每色独占一区。落点与所有运动由本地控制器确定，不接收模型坐标或电机指令。</p>
+        <label class="task-label" for="sort-planner-task">分拣任务 <span>最多 1000 字符</span></label>
+        <textarea id="sort-planner-task" rows="3" maxlength="1000" required disabled aria-describedby="sort-planner-scope sort-planner-hint">请将红色物体放到 A 区、蓝色物体放到 B 区、黄色物体放到 C 区；先处理全部三个杯子，再处理全部三个碗。</textarea>
+        <div class="planner-actions">
+          <button id="sort-plan-generate" class="primary" type="button" disabled>请求 GPT 完整提案</button>
+          <button id="sort-plan-execute" type="button" disabled>批准所示提案并执行</button>
+          <button id="sort-plan-cancel" type="button" disabled>取消请求 / 提案</button>
+        </div>
+        <p class="planner-note">生成不会移动机器人。本地仅校验计划的结构、安全边界与物理条件，不能证明自然语言意图已被正确理解；请核对实际颜色映射和顺序，再批准该编号提案。批准后自动恢复物理时钟。执行中请使用暂停或重置，不可取消整批动作。</p>
+        <p id="sort-planner-hint" class="planner-note" role="status"></p>
+        <p id="sort-planner-setup" class="planner-setup" hidden>请安装官方 Codex CLI，并运行 codex login 使用 ChatGPT 订阅登录。无需 API 密钥；可在本机 .env 设置 CODEX_MODEL。不要上传登录凭证。</p>
+        <p id="sort-planner-error" class="skill-failure" role="alert" hidden></p>
+        <dl class="metadata planner-metadata">
+          <div><dt>Codex 请求模型标识 · 非服务快照证明</dt><dd id="sort-planner-model">—</dd></div>
+          <div><dt>已记录请求数</dt><dd id="sort-planner-calls">—</dd></div>
+          <div><dt>最近 GPT 延迟 · 墙钟秒</dt><dd id="sort-planner-latency">—</dd></div>
+          <div><dt>累计 GPT 延迟 · 墙钟秒</dt><dd id="sort-planner-total-latency">—</dd></div>
+        </dl>
+        <p id="sort-planner-response" class="planner-note"></p>
+        <p id="sort-planner-submitted" class="planner-note"></p>
+        <div id="sort-plan-preview" class="plan-preview" hidden>
+          <h3 id="sort-plan-preview-title"></h3>
+          <p id="sort-plan-summary" class="planner-note"></p>
+          <p id="sort-plan-reason" class="planner-note"></p>
+          <ul id="sort-plan-mapping" class="sorting-rules" aria-label="GPT 实际提案的颜色映射"></ul>
+          <ol id="sort-plan-queue" class="sorting-queue" aria-label="GPT 实际提案的处理顺序"></ol>
+        </div>
+        <h3 class="postconditions-title">真实请求与执行反馈</h3>
+        <p id="sort-planner-history-empty" class="planner-note">尚无请求记录；固定对照不会调用模型。</p>
+        <ol id="sort-planner-history" class="planner-history" aria-label="分拣提案与实测结果记录"></ol>
+      </section>
       <section id="sorting-panel" class="sorting-panel" aria-labelledby="sorting-title" data-sorting-only hidden>
-        <div class="section-heading"><h2 id="sorting-title">固定分拣 · 全队列</h2><span id="sorting-status" role="status">等待状态</span></div>
-        <ul class="sorting-rules" aria-label="按颜色分区规则">
-          <li data-color="red">红色 → A 区</li><li data-color="blue">蓝色 → B 区</li><li data-color="yellow">黄色 → C 区</li>
-        </ul>
-        <p class="skill-criteria">每色一只碗、一只无把手空心杯；每区两个独立落点。色区是桌面标记，不是容器。身份、颜色与位姿直接来自仿真真值，无视觉识别，不构造 GPT 规划会话。</p>
-        <button id="sort-start" class="primary" type="button" disabled aria-describedby="sorting-hint">开始固定分拣</button>
+        <div class="section-heading"><h2 id="sorting-title">分拣 · 实时物理执行</h2><span id="sorting-status" role="status">等待状态</span></div>
+        <p class="skill-criteria">固定对照规则：红色 → A 区、蓝色 → B 区、黄色 → C 区；使用既定物体顺序，不调用模型。GPT 提案可改变此映射与顺序，实际执行队列如下。</p>
+        <p class="skill-criteria">每色一只碗、一只无把手空心杯；每区两个独立落点。色区是桌面标记，不是容器。身份、颜色与位姿直接来自仿真真值，无视觉识别。</p>
+        <button id="sort-start" type="button" disabled aria-describedby="sorting-hint">运行固定分拣对照（不调用 GPT）</button>
         <p id="sorting-hint" class="skill-hint" role="status">等待后端启动条件。</p>
         <p class="skill-phase">当前物体：<strong id="sorting-current">—</strong></p>
         <p class="skill-phase">物理阶段：<strong id="sorting-phase">—</strong></p>
@@ -68,8 +99,8 @@
           <div><dt>归位后整批最终保持 · 目标 5 仿真秒</dt><dd><output id="sorting-hold">—</output> <small>/ 5 s</small></dd></div>
         </dl>
         <p class="skill-criteria">每个物体依次抓取、抬升保持、转移、放置释放、撤离；全队列后归位并验证 5 仿真秒。不自动重试，不跳过失败；完成或失败后须显式重置。</p>
-        <h3 class="postconditions-title">既定队列 · 状态由后端报告</h3>
-        <ol id="sorting-queue" class="sorting-queue" aria-label="固定物体处理顺序"></ol>
+        <h3 class="postconditions-title">当前执行队列 · 状态由后端报告</h3>
+        <ol id="sorting-queue" class="sorting-queue" aria-label="当前物体处理顺序"></ol>
         <h3 class="postconditions-title">整批目标 · 当前物理检查</h3>
         <dl id="sorting-checks" class="metadata storage-metrics"></dl>
         <h3 class="postconditions-title">逐物体实测 · 不由动画推断</h3>
@@ -269,7 +300,7 @@
     </section>
     </aside>
     <footer data-storage-only>GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，每次只选择一个已定义技能；首项决策须人工授权。后续决策依据真实物理反馈，逐项或有界持续执行。实时画面与任务成败来自 MuJoCo，不是视频回放或模型自报成功。碗与抽屉保持原尺寸，抽屉初态使用原滑轨的完整开度。</footer>
-    <footer data-sorting-only hidden>固定规划基线：启动前确定完整队列与颜色落区，执行不调用 GPT、不使用视觉。实时画面来自 MuJoCo 渲染；物体运动、支撑、稳定与成败均以真实物理状态为准，不播放替代动画。进度不是成功率；此固定场景单次结果不代表泛化能力。</footer>
+    <footer data-sorting-only hidden>GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，一次提出完整顺序与颜色映射，批准后交给同一个物理控制器执行；固定对照不调用模型。无视觉识别、无闭环重规划、无自动重试。实时画面来自 MuJoCo；支撑、稳定与成败均由物理状态检查，不由模型文字宣告。进度不是成功率；当前六物体场景不代表任意物体泛化能力。</footer>
   </main>
 </body>
 </html>

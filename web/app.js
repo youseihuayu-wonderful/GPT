@@ -79,6 +79,20 @@ let lastSorting = null;
 let storageReportsLoaded = false;
 let sortingQueueKey = null;
 let sortingObjectsKey = null;
+let sortProposalKey = null;
+let sortHistoryKey = null;
+const sortUi = Object.fromEntries([
+  "planner-panel", "planner-status", "planner-task", "planner-hint", "planner-setup",
+  "planner-error", "planner-model", "planner-calls", "planner-latency", "planner-total-latency",
+  "planner-response", "planner-submitted", "planner-history", "planner-history-empty",
+  "plan-generate", "plan-execute", "plan-cancel", "plan-preview", "plan-preview-title",
+  "plan-summary", "plan-reason", "plan-mapping", "plan-queue",
+].map((key) => [key, byId(`sort-${key}`)]));
+const sortPlannerLabels = {
+  unconfigured: "未配置订阅工具", idle: "待请求提案", planning: "正在请求 GPT",
+  ready: "完整提案待批准", unsupported: "模型报告不支持", executing: "已批准 · 物理执行中",
+  succeeded: "整批物理检查通过", failed: "请求或执行失败", cancelled: "请求 / 提案已取消",
+};
 const storageElements = document.querySelectorAll("[data-storage-only]");
 const sortingElements = document.querySelectorAll("[data-sorting-only]");
 const colorLabels = { red: "红色", blue: "蓝色", yellow: "黄色" };
@@ -982,17 +996,113 @@ function renderSortingChecks(element, checks, labels) {
   }));
 }
 
+function renderSortPlanner(ready) {
+  const planner = ready ? state.planner : lastPlanner;
+  const known = planner?.mode === "sorting";
+  const pending = pendingPlannerAction !== null;
+  const canGenerate = ready && known && planner.configured && planner.status === "idle"
+    && state.sorting?.can_start === true && !pending;
+  sortUi["planner-task"].disabled = !canGenerate;
+  const task = sortUi["planner-task"].value.trim();
+  sortUi["plan-generate"].disabled = !canGenerate || !task || task.length > 1000;
+  sortUi["plan-execute"].disabled = !ready || !known || pending || planner.status !== "ready"
+    || planner.decision?.decision !== "plan" || !Number.isInteger(planner.decision_id);
+  sortUi["plan-cancel"].disabled = !ready || !known || pending || planner.can_cancel !== true;
+  sortUi["planner-panel"].dataset.status = !ready ? "stale" : planner?.status || "waiting";
+  sortUi["planner-status"].textContent = `${sortPlannerLabels[planner?.status] || "等待状态"}${!ready ? " · 最后状态" : state.paused ? " · 物理已暂停" : ""}`;
+  sortUi["planner-hint"].textContent = !ready ? "连接不可用；仅显示最后记录，不能批准或确认当前结果。"
+    : pending ? "操作已发送，等待后端确认；不会重复提交。"
+    : planner?.status === "planning" ? "真实订阅请求进行中；只生成完整提案，不派发物理动作。"
+    : planner?.status === "ready" ? "请核对下方实际映射与完整顺序。批准仅限所示编号；场景漂移会拒绝，不会静默修补。"
+    : planner?.status === "executing" ? "已批准队列执行中；可暂停、单步或重置。取消按钮不可停止正在执行的机器人。"
+    : planner?.status === "succeeded" ? "本地整批物理检查通过；后续目标丢失仍会撤销成功。模型摘要不是成功证据。"
+    : ["failed", "unsupported", "cancelled"].includes(planner?.status) ? "没有自动重试或固定动作回退。请查看记录；再次尝试或固定对照须先重置。"
+    : !planner?.configured ? "订阅工具未配置；固定对照仍可独立运行，不会调用模型。"
+    : !canGenerate ? "物理启动条件尚未满足；须稳定支撑、空手归位且无正在执行的队列。"
+    : "请求使用当前仿真真值与 ChatGPT 订阅。生成不执行，批准后执行完整六物体队列。";
+  sortUi["planner-setup"].hidden = !known || planner.configured;
+  sortUi["planner-error"].textContent = planner?.error || "";
+  sortUi["planner-error"].hidden = !planner?.error;
+  sortUi["planner-model"].textContent = planner?.model || "—";
+  sortUi["planner-calls"].textContent = Number.isInteger(planner?.calls) ? String(planner.calls) : "—";
+  sortUi["planner-latency"].textContent = number(planner?.latency_s, 2);
+  sortUi["planner-total-latency"].textContent = number(planner?.total_latency_s, 2);
+  sortUi["planner-response"].textContent = planner?.thread_id
+    ? `Codex 会话 ID：${planner.thread_id} · 非致命诊断 ${planner.diagnostic_count ?? 0} 条` : "";
+  sortUi["planner-submitted"].textContent = planner?.task ? `后端本次任务（所有客户端共享）：${planner.task}` : "";
+  const decision = planner?.decision;
+  sortUi["plan-preview"].hidden = !decision;
+  sortUi["plan-preview-title"].textContent = decision?.decision === "unsupported" ? "无可执行提案"
+    : `提案 #${planner?.decision_id} · ${planner?.status === "ready" ? "尚未批准执行" : "状态见真实记录"}`;
+  sortUi["plan-summary"].textContent = decision ? `模型摘要（非成功证据）：${decision.summary}` : "";
+  sortUi["plan-reason"].textContent = decision ? `模型依据：${decision.reason}` : "";
+  const objects = (ready ? state.sorting : lastSorting)?.plan || [];
+  const proposalKey = JSON.stringify([decision?.steps, objects.map(({ object_id, label, color }) => [object_id, label, color])]);
+  if (proposalKey !== sortProposalKey) {
+    sortProposalKey = proposalKey;
+    const mapping = new Map();
+    sortUi["plan-queue"].replaceChildren(...(decision?.steps || []).map((step) => {
+      const object = objects.find((entry) => entry.object_id === step.object_id);
+      const item = document.createElement("li");
+      if (object) {
+        item.dataset.color = object.color;
+        mapping.set(object.color, step.destination);
+      }
+      item.textContent = `${object?.label || step.object_id} [${step.object_id}] → ${step.destination} 区`;
+      return item;
+    }));
+    sortUi["plan-mapping"].replaceChildren(...Array.from(mapping, ([color, destination]) => {
+      const item = document.createElement("li");
+      item.dataset.color = color;
+      item.textContent = `${colorLabels[color] || color} → ${destination} 区`;
+      return item;
+    }));
+  }
+  const history = planner?.history || [];
+  const historyKey = JSON.stringify(history);
+  if (historyKey !== sortHistoryKey) {
+    sortHistoryKey = historyKey;
+    sortUi["planner-history-empty"].hidden = history.length > 0;
+    sortUi["planner-history"].replaceChildren(...history.map((record) => {
+      const item = document.createElement("li");
+      item.dataset.status = record.status;
+      const title = document.createElement("strong");
+      title.textContent = `提案 #${record.decision_id} · ${sortPlannerLabels[record.status] || record.status}`;
+      const timing = document.createElement("p");
+      timing.textContent = `GPT ${number(record.latency_s, 2)} 墙钟秒 · 执行 ${number(record.execution_sim_s, 3)} 仿真秒 / ${number(record.execution_wall_s, 2)} 墙钟秒`;
+      const outcome = document.createElement("p");
+      const observed = record.result_observation?.sorting;
+      outcome.textContent = record.error ? `错误：${record.error}`
+        : observed ? `实测反馈：${skillLabels[observed.status] || observed.status} · ${observed.message || ""}${observed.failure_reason ? ` · ${observed.failure_reason}` : ""}`
+        : "尚无执行反馈；模型回复不是物理成功证据。";
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = "完整提案、请求观测与最终物理反馈";
+      const payload = document.createElement("pre");
+      payload.textContent = JSON.stringify(record, null, 2);
+      details.append(summary, payload);
+      item.append(title, timing, outcome, details);
+      return item;
+    }));
+  }
+}
+
 function renderSorting(ready) {
   const sorting = ready ? state.sorting : lastSorting;
-  ui.sortStart.disabled = !ready || sorting?.can_start !== true;
+  const planner = ready ? state.planner : lastPlanner;
+  const attempted = Boolean(planner?.task || planner?.calls || planner?.history?.length);
+  const mode = sorting?.mode === "planned" ? "已批准计划" : "固定对照";
+  ui.sortStart.disabled = !ready || sorting?.can_start !== true || plannerLocksScene() || attempted;
   ui.sortingPanel.dataset.status = ready ? sorting.status : "stale";
   ui.sortingStatus.textContent = `${skillLabels[sorting?.status] || "等待状态"}${!ready ? " · 最后状态" : state.paused ? " · 已暂停" : ""}`;
   ui.sortingHint.textContent = !ready ? "连接或状态不可用；以下仅为最后状态，不能确认当前结果。"
-    : sorting.status === "running" ? "固定队列执行中；可暂停或单步，不接受其他任务，不自动重试。"
+    : sorting.status === "running" ? `${mode}队列执行中；可暂停或单步，不接受其他任务，不自动重试。`
     : ["failed", "succeeded"].includes(sorting.status) ? "本次运行已结束；再次运行必须先显式重置。"
+    : attempted || plannerLocksScene() ? "GPT 请求 / 提案与固定对照互斥；固定对照须先重置，不能隐藏本次请求历史。"
     : sorting.can_start ? "当前物理条件允许开始；点击后按既定全队列执行并自动恢复物理时钟。"
     : `暂不可开始：${sorting.start_error || "后端尚未确认物体稳定支撑。"}`;
-  const current = sorting?.plan?.find((item) => item.index === sorting.current_index);
+  const current = sorting?.plan?.find((item) => item.object_id === sorting.current_object_id
+    && item.index === sorting.current_step_index);
   const phase = sortingPhaseLabels[sorting?.phase] || sorting?.phase || "未报告";
   ui.sortingCurrent.textContent = current ? `#${current.index + 1} ${current.label} → ${current.destination} 区` : "无当前物体";
   ui.sortingPhase.textContent = phase;
@@ -1007,9 +1117,9 @@ function renderSorting(ready) {
   ui.sortingElapsed.textContent = number(sorting?.elapsed_s, 2);
   ui.sortingHold.textContent = number(sorting?.validation_hold_s, 2);
   ui.taskOverlay.hidden = !ready || sorting.status === "idle";
-  ui.overlayTask.textContent = `固定分拣 · ${ui.sortingCount.textContent}${current ? ` · ${current.label}` : ""}`;
+  ui.overlayTask.textContent = `${mode} · ${ui.sortingCount.textContent}${current ? ` · ${current.label}` : ""}`;
   ui.overlayPhase.textContent = `${skillLabels[sorting?.status] || "未报告"} · ${phase}`;
-  const queueKey = JSON.stringify([sorting?.plan, sorting?.current_index]);
+  const queueKey = JSON.stringify([sorting?.plan, sorting?.current_object_id, sorting?.current_step_index]);
   if (queueKey !== sortingQueueKey) {
     sortingQueueKey = queueKey;
     const labels = { pending: "待处理", active: "正在处理", sorted: "实测已分拣", failed: "失败" };
@@ -1017,7 +1127,7 @@ function renderSorting(ready) {
       const item = document.createElement("li");
       item.dataset.color = entry.color;
       item.dataset.status = entry.status;
-      if (entry.index === sorting.current_index) item.setAttribute("aria-current", "step");
+      if (entry.object_id === sorting.current_object_id && entry.index === sorting.current_step_index) item.setAttribute("aria-current", "step");
       const title = document.createElement("strong");
       const detail = document.createElement("span");
       title.textContent = `${entry.label} · ${colorLabels[entry.color] || entry.color}${kindLabels[entry.kind] || entry.kind} → ${entry.destination} 区`;
@@ -1059,7 +1169,7 @@ function updateSceneMode() {
   const sorting = sceneMode === "sorting";
   storageElements.forEach((element) => { element.hidden = sorting; });
   sortingElements.forEach((element) => { element.hidden = !sorting; });
-  document.title = sorting ? "固定规划 · 彩色碗杯物理分拣" : "GPT 实时单技能决策 · 物理执行与反馈";
+  document.title = sorting ? "GPT / 固定规划 · 彩色碗杯物理分拣" : "GPT 实时单技能决策 · 物理执行与反馈";
   if (!sorting && !storageReportsLoaded) {
     storageReportsLoaded = true;
     loadExperiments();
@@ -1087,6 +1197,7 @@ function updateControls() {
   updateSceneMode();
   if (sceneMode === "sorting") {
     renderSorting(ready);
+    renderSortPlanner(ready);
   } else {
     renderSkill(ready);
     renderPlanner(ready);
@@ -1295,6 +1406,16 @@ ui.step.addEventListener("click", () => {
 ui.reset.addEventListener("click", () => send({ action: "reset" }));
 ui.sortStart.addEventListener("click", () => {
   if (!ui.sortStart.disabled && state?.sorting?.can_start === true) send({ action: "sort" });
+});
+sortUi["planner-task"].addEventListener("input", updateControls);
+sortUi["plan-generate"].addEventListener("click", () => {
+  if (!sortUi["plan-generate"].disabled) sendPlanner({ action: "sort_plan", task: sortUi["planner-task"].value.trim() });
+});
+sortUi["plan-execute"].addEventListener("click", () => {
+  if (!sortUi["plan-execute"].disabled) sendPlanner({ action: "sort_execute", decision_id: state.planner.decision_id });
+});
+sortUi["plan-cancel"].addEventListener("click", () => {
+  if (!sortUi["plan-cancel"].disabled) sendPlanner({ action: "sort_cancel" });
 });
 ui.grasp.addEventListener("click", () => {
   if (!ui.grasp.disabled && state?.skill?.status === "idle") send({ action: "grasp" });

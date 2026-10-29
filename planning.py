@@ -78,7 +78,8 @@ class PlanningSession:
         if self._request_started_wall is not None:
             self._set_latency(time.monotonic() - self._request_started_wall)
         if self._pending is not None:
-            self._pending.cancel()
+            if not self._pending.cancelling():
+                self._pending.cancel()
             self._pending = None
 
     def _record_execution(self, scene: dict) -> None:
@@ -348,7 +349,8 @@ class PlanningSession:
             self._continuous = False
         tasks = tuple(self._tasks)
         for task in tasks:
-            task.cancel()
+            if not task.cancelling():
+                task.cancel()
         for task in tasks:
             with suppress(asyncio.CancelledError):
                 await task

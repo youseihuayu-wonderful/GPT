@@ -14,6 +14,7 @@ from aiohttp import WSMsgType, web
 from grasp import GraspParameters
 from planner import PlannerError
 from planning import PlanningSession
+from sorting_planning import SortingPlanningSession
 from scenarios import DEFAULT_CASE, TARGETS, SceneCase
 from simulation import Simulation
 
@@ -35,7 +36,7 @@ COMPARISON_REPORTS = {
 SIMULATION = web.AppKey("simulation", Simulation)
 CLIENTS = web.AppKey("clients", set)
 CONTROLS = web.AppKey("controls", Controls)
-PLANNING = web.AppKey("planning", PlanningSession)
+PLANNING = web.AppKey[PlanningSession | SortingPlanningSession]("planning")
 SCENE_CASE = web.AppKey("scene_case", SceneCase)
 SCENE = web.AppKey("scene", str)
 FRAME_PERIOD = 0.05
@@ -50,13 +51,9 @@ def public_state(app: web.Application) -> dict:
     state = app[SIMULATION].state()
     state["paused"] = app[CONTROLS].paused
     state["runtime_error"] = None
-    if PLANNING in app:
-        state["planner"] = app[PLANNING].state(state["skill"])
-    else:
-        state["planner"] = {
-            "status": "disabled", "configured": False, "mode": "fixed",
-            "calls": 0, "message": "固定分拣不构造规划会话，不调用 GPT；使用仿真真值，不使用视觉。",
-        }
+    state["planner"] = app[PLANNING].state(
+        state["sorting"] if app[SCENE] == "sorting" else state["skill"]
+    )
     return state
 
 
@@ -129,6 +126,7 @@ async def lifecycle(app: web.Application):
         from sorting import SortingSimulation
 
         app[SIMULATION] = SortingSimulation()
+        app[PLANNING] = SortingPlanningSession(ROOT, app[SIMULATION])
     else:
         app[SIMULATION] = Simulation(app[SCENE_CASE])
         app[PLANNING] = PlanningSession(ROOT, app[SIMULATION])
@@ -190,8 +188,13 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     raise ValueError("命令必须是 JSON 对象")
                 action = command.get("action")
                 sorting = app[SCENE] == "sorting"
-                if sorting and action not in ("sort", "pause", "play", "reset", "step", "camera"):
-                    raise ValueError("固定分拣场景不支持 GPT、抓取、收纳或独立技能命令；请使用 sort")
+                if sorting and action not in (
+                    "sort", "sort_plan", "sort_execute", "sort_cancel",
+                    "pause", "play", "reset", "step", "camera",
+                ):
+                    raise ValueError("分拣场景不支持收纳规划、抓取或独立技能命令")
+                if not sorting and action in ("sort", "sort_plan", "sort_execute", "sort_cancel"):
+                    raise ValueError("分拣命令仅适用于分拣场景")
                 planner = app.get(PLANNING)
                 if action in ("grasp", "store", "skill") and planner.state()["locks_scene"]:
                     raise ValueError("GPT 决策循环已锁定场景；请先停止后续决策并等待当前技能结束，或重置")
@@ -205,10 +208,26 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     app[SIMULATION].reset()
                     app[CONTROLS].paused = True
                 elif action == "sort":
-                    if not sorting:
-                        raise ValueError("sort 仅适用于固定分拣场景")
+                    planning_state = planner.state()
+                    if planning_state["locks_scene"]:
+                        raise ValueError("GPT 分拣提案已锁定场景；请取消或重置")
+                    if planning_state["task"] or planning_state["history"] or planning_state["calls"]:
+                        raise ValueError("GPT 分拣尝试后须先重置，才能开始固定对照；历史不会自动清除")
                     app[SIMULATION].start_sorting()
                     app[CONTROLS].paused = False
+                elif action == "sort_plan":
+                    task = command.get("task")
+                    if not isinstance(task, str):
+                        raise ValueError("分拣任务必须是字符串")
+                    planner.start(task)
+                elif action == "sort_execute":
+                    decision_id = command.get("decision_id")
+                    if type(decision_id) is not int:
+                        raise ValueError("decision_id 必须是整数提案编号")
+                    planner.execute(decision_id)
+                    app[CONTROLS].paused = False
+                elif action == "sort_cancel":
+                    planner.cancel()
                 elif action in ("grasp", "store"):
                     parameters = command.get("parameters", {})
                     if not isinstance(parameters, dict):

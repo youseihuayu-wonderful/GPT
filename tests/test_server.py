@@ -13,6 +13,8 @@ from aiohttp.test_utils import TestClient, TestServer
 
 from grasp import GraspParameters
 from planner import DecisionResult, PlannerConfig, PlannerError, SkillDecision
+from sorting_contract import FIXED_PLAN, SortStep, SortingPlan
+from sorting_planning import SortingDecision, SortingDecisionResult
 import server
 
 
@@ -74,19 +76,23 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(message.type, WSMsgType.CLOSE)
         self.assertEqual(ws.close_code, 1011)
 
-    async def test_sort_rejected_in_storage_without_mutation(self) -> None:
+    async def test_sorting_commands_rejected_in_storage_without_mutation(self) -> None:
         ws = await self.connect()
         before = (
             self.sim.data.time, self.sim.data.qpos.tolist(),
             self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
         )
-        await ws.send_json({"action": "sort"})
-        self.assertIn("仅适用于固定分拣", (await self.receive_error(ws))["error"])
-        self.assertTrue(self.app[server.CONTROLS].paused)
-        self.assertEqual(before, (
-            self.sim.data.time, self.sim.data.qpos.tolist(),
-            self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
-        ))
+        for command in (
+            {"action": "sort"}, {"action": "sort_plan", "task": "sort"},
+            {"action": "sort_execute", "decision_id": 1}, {"action": "sort_cancel"},
+        ):
+            await ws.send_json(command)
+            self.assertIn("仅适用于分拣", (await self.receive_error(ws))["error"])
+            self.assertTrue(self.app[server.CONTROLS].paused)
+            self.assertEqual(before, (
+                self.sim.data.time, self.sim.data.qpos.tolist(),
+                self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
+            ))
         self.provider.assert_not_awaited()
 
     async def test_paused_single_step_numerical_failure_stops_runtime(self) -> None:
@@ -542,13 +548,28 @@ class SortingServerTests(unittest.IsolatedAsyncioTestCase):
     assert_fatal_close = ServerTests.assert_fatal_close
 
     async def asyncSetUp(self) -> None:
-        for target in ("server.PlanningSession", "planning.PlannerConfig.load"):
-            forbidden = patch(target, side_effect=AssertionError("sorting must not construct a planner"))
-            forbidden.start()
-            self.addCleanup(forbidden.stop)
-        provider = patch("planning.request_decision", new_callable=AsyncMock)
+        forbidden = patch("server.PlanningSession", side_effect=AssertionError("no storage session in sorting"))
+        forbidden.start()
+        self.addCleanup(forbidden.stop)
+        config = patch("sorting_planning.PlannerConfig.load", return_value=PlannerConfig("/fixture/codex"))
+        config.start()
+        self.addCleanup(config.stop)
+        legacy_provider = patch("planning.request_decision", new_callable=AsyncMock)
+        self.legacy_provider = legacy_provider.start()
+        self.addCleanup(legacy_provider.stop)
+        self.addCleanup(self.legacy_provider.assert_not_awaited)
+        provider = patch("sorting_planning.request_sorting_plan", new_callable=AsyncMock)
         self.provider = provider.start()
         self.addCleanup(provider.stop)
+        # Deliberately different mapping and queue, not model or benchmark evidence.
+        destinations = {"A": "C", "B": "A", "C": "B"}
+        self.plan = SortingPlan(tuple(
+            SortStep(step.object_id, destinations[step.destination])
+            for step in reversed(FIXED_PLAN.steps)
+        ))
+        self.decision = SortingDecision("plan", "Fixture proposal", "Explicit test fixture", self.plan)
+        self.result = SortingDecisionResult(self.decision, "fixture-model", "fixture-thread", 0.25)
+        self.provider.return_value = self.result
         render = patch("sorting.SortingSimulation.render", return_value="test-image")
         self.render = render.start()
         self.addCleanup(render.stop)
@@ -558,6 +579,7 @@ class SortingServerTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.client.close)
         await self.client.start_server()
         self.sim = self.app[server.SIMULATION]
+        self.planner = self.app[server.PLANNING]
 
     def physical_state(self):
         return (
@@ -565,7 +587,7 @@ class SortingServerTests(unittest.IsolatedAsyncioTestCase):
             self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
         )
 
-    async def test_sorting_state_does_not_require_legacy_skill_or_planner(self) -> None:
+    async def test_sorting_state_uses_own_session_without_legacy_skill(self) -> None:
         observed = self.sim.state()
         observed.pop("skill", None)
         with patch.object(self.sim, "state", return_value=observed):
@@ -575,10 +597,11 @@ class SortingServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(state["sorting"]["mode"], "fixed")
         self.assertEqual(state["sorting"]["object_count"], 6)
         self.assertEqual(len(state["sorting"]["plan"]), 6)
-        self.assertEqual(state["planner"]["status"], "disabled")
-        self.assertFalse(state["planner"]["configured"])
+        self.assertEqual(state["planner"]["status"], "idle")
+        self.assertEqual(state["planner"]["mode"], "sorting")
+        self.assertTrue(state["planner"]["configured"])
         self.assertEqual(state["planner"]["calls"], 0)
-        self.assertNotIn(server.PLANNING, self.app)
+        self.assertEqual(state["planner"]["history"], [])
         self.provider.assert_not_awaited()
 
     async def test_incompatible_commands_reject_before_mutating_sorting_scene(self) -> None:
@@ -594,7 +617,7 @@ class SortingServerTests(unittest.IsolatedAsyncioTestCase):
         ):
             with self.subTest(command=command):
                 await ws.send_json(command)
-                self.assertIn("固定分拣场景不支持", (await self.receive_error(ws))["error"])
+                self.assertIn("分拣场景不支持", (await self.receive_error(ws))["error"])
                 self.assertEqual(self.physical_state(), before)
                 self.assertEqual(self.sim.state()["sorting"], before_sorting)
                 self.assertTrue(self.app[server.CONTROLS].paused)
@@ -656,7 +679,7 @@ class SortingServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(self.app[server.CONTROLS].paused)
         self.provider.assert_not_awaited()
 
-    async def test_sorting_runtime_failure_latches_without_planner(self) -> None:
+    async def test_sorting_runtime_failure_latches_and_closes_session(self) -> None:
         ws = await self.connect()
         with (
             patch.object(self.sim, "step", side_effect=RuntimeError("sorting numerical failure")),
@@ -668,6 +691,249 @@ class SortingServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.client.get("/api/state")).status, 503)
         await self.client.close()
         self.provider.assert_not_awaited()
+
+    async def test_dispatch_failure_after_real_acceptance_latches_runtime(self) -> None:
+        ws = await self.connect()
+        preview = await self.preview(ws)
+        start = self.sim.start_sorting
+
+        def partially_accept(plan):
+            start(plan)
+            raise RuntimeError("Injected failure after physical controller acceptance")
+
+        with patch.object(self.sim, "start_sorting", side_effect=partially_accept), \
+                self.assertLogs(level="ERROR"):
+            await ws.send_json({"action": "sort_execute", "decision_id": preview["planner"]["decision_id"]})
+            failure = await self.receive_error(ws)
+        self.assertTrue(failure.get("fatal"), failure)
+        self.assertTrue(self.app[server.CONTROLS].paused)
+        frozen = self.physical_state()
+        self.assertEqual((await self.client.get("/api/state")).status, 503)
+        await self.client.close()
+        self.assertEqual(self.physical_state(), frozen)
+
+    async def preview(self, ws) -> dict:
+        self.sim.step(1.0)
+        await ws.send_json({"action": "sort_plan", "task": "Fixture reordered sorting task"})
+        return await self.receive_state(ws, lambda state: state["planner"]["status"] == "ready")
+
+    async def test_proposal_is_preview_only_with_real_result_metadata(self) -> None:
+        ws = await self.connect()
+        self.sim.step(1.0)
+        before = self.physical_state()
+        await ws.send_json({"action": "sort_plan", "task": "Fixture sorting task"})
+        preview = await self.receive_state(ws, lambda state: state["planner"]["status"] == "ready")
+        self.assertEqual(self.physical_state(), before)
+        self.assertEqual(preview["sorting"]["status"], "idle")
+        self.assertEqual(preview["sorting"]["mode"], "fixed")
+        self.assertTrue(preview["paused"])
+        self.assertTrue(preview["planner"]["locks_scene"])
+        self.assertEqual(preview["planner"]["decision"]["steps"], self.plan.to_list())
+        self.assertEqual(preview["planner"]["latency_s"], 0.25)
+        self.assertEqual(preview["planner"]["thread_id"], "fixture-thread")
+        self.assertEqual(preview["planner"]["history"][0]["decision"], self.decision.to_dict())
+        self.provider.assert_awaited_once()
+
+    async def test_approval_rejects_bad_ids_and_executes_exact_proposal_once(self) -> None:
+        ws = await self.connect()
+        preview = await self.preview(ws)
+        decision_id = preview["planner"]["decision_id"]
+        before = self.physical_state()
+        for invalid_id in (None, True, str(decision_id), decision_id + 1):
+            await ws.send_json({"action": "sort_execute", "decision_id": invalid_id})
+            self.assertNotIn("fatal", await self.receive_error(ws))
+            self.assertEqual(self.physical_state(), before)
+            self.assertTrue(self.app[server.CONTROLS].paused)
+            self.assertEqual(self.sim.skill.status, "idle")
+        with patch.object(self.sim, "start_sorting", wraps=self.sim.start_sorting) as start:
+            await ws.send_json({"action": "sort_execute", "decision_id": decision_id})
+            executing = await self.receive_state(ws, lambda state: state["planner"]["status"] == "executing")
+            self.assertFalse(executing["paused"])
+            self.assertEqual(executing["sorting"]["mode"], "planned")
+            self.assertEqual(self.sim.plan, self.plan)
+            self.assertEqual(executing["sorting"]["current_object_id"], self.plan.steps[0].object_id)
+            self.assertEqual(executing["sorting"]["current_step_index"], 0)
+            self.assertFalse(executing["planner"]["can_cancel"])
+            await ws.send_json({"action": "pause"})
+            await self.receive_state(ws, lambda state: state["paused"])
+            for action in ("sort_execute", "sort_cancel", "sort"):
+                await ws.send_json({"action": action, "decision_id": decision_id})
+                self.assertNotIn("fatal", await self.receive_error(ws))
+                self.assertTrue(self.app[server.CONTROLS].paused)
+            start.assert_called_once_with(self.plan)
+        self.provider.assert_awaited_once()
+
+    async def test_scene_drift_rejects_approval_without_actuation(self) -> None:
+        ws = await self.connect()
+        preview = await self.preview(ws)
+        # Change the robot's live joint position after the observation.
+        self.sim.data.qpos[self.sim.arm_qpos[0]] += 0.1
+        mujoco.mj_forward(self.sim.model, self.sim.data)
+        before = self.physical_state()
+        await ws.send_json({"action": "sort_execute", "decision_id": preview["planner"]["decision_id"]})
+        self.assertNotIn("fatal", await self.receive_error(ws))
+        self.assertEqual(self.physical_state(), before)
+        self.assertEqual(self.sim.skill.status, "idle")
+        self.assertTrue(self.app[server.CONTROLS].paused)
+        self.assertNotEqual(self.planner.state()["status"], "ready")
+
+    async def test_cancel_keeps_history_and_requires_reset_for_fixed_comparison(self) -> None:
+        ws = await self.connect()
+        preview = await self.preview(ws)
+        before = self.physical_state()
+        await ws.send_json({"action": "sort"})
+        self.assertIn("锁定", (await self.receive_error(ws))["error"])
+        await ws.send_json({"action": "sort_cancel"})
+        cancelled = await self.receive_state(ws, lambda state: state["planner"]["status"] == "cancelled")
+        self.assertEqual(self.physical_state(), before)
+        self.assertEqual(len(cancelled["planner"]["history"]), 1)
+        for command in (
+            {"action": "sort"},
+            {"action": "sort_execute", "decision_id": preview["planner"]["decision_id"]},
+        ):
+            await ws.send_json(command)
+            self.assertNotIn("fatal", await self.receive_error(ws))
+            self.assertEqual(self.physical_state(), before)
+        await ws.send_json({"action": "reset"})
+        reset = await self.receive_state(ws, lambda state: state["scene_revision"] != preview["scene_revision"])
+        self.assertEqual(reset["planner"]["history"], [])
+        self.assertEqual(reset["sorting"]["mode"], "fixed")
+        self.sim.step(1.0)
+        await ws.send_json({"action": "sort"})
+        fixed = await self.receive_state(ws, lambda state: state["sorting"]["status"] == "running")
+        self.assertEqual(fixed["sorting"]["mode"], "fixed")
+        self.assertEqual(fixed["planner"]["calls"], 0)
+        self.provider.assert_awaited_once()
+
+    async def test_provider_failure_never_falls_back_or_discards_evidence(self) -> None:
+        self.provider.side_effect = PlannerError("fixture subscription failure")
+        ws = await self.connect()
+        self.sim.step(1.0)
+        before = self.physical_state()
+        await ws.send_json({"action": "sort_plan", "task": "Fixture task"})
+        failed = await self.receive_state(ws, lambda state: state["planner"]["status"] == "failed")
+        self.assertIn("fixture subscription failure", failed["planner"]["error"])
+        self.assertEqual(failed["planner"]["history"][0]["status"], "failed")
+        self.assertEqual(self.physical_state(), before)
+        await ws.send_json({"action": "sort"})
+        self.assertIn("重置", (await self.receive_error(ws))["error"])
+        self.assertEqual(self.sim.skill.status, "idle")
+        self.provider.assert_awaited_once()
+
+    async def test_unsupported_reply_is_not_executable_or_successful(self) -> None:
+        self.provider.return_value = SortingDecisionResult(
+            SortingDecision("unsupported", "Fixture unsupported", "Outside bounded task", None),
+            "fixture-model", "fixture-thread", 0.3,
+        )
+        ws = await self.connect()
+        self.sim.step(1.0)
+        await ws.send_json({"action": "sort_plan", "task": "Fixture unsupported task"})
+        unsupported = await self.receive_state(ws, lambda state: state["planner"]["status"] == "unsupported")
+        self.assertEqual(unsupported["planner"]["decision"]["steps"], [])
+        before = self.physical_state()
+        await ws.send_json({"action": "sort_execute", "decision_id": unsupported["planner"]["decision_id"]})
+        self.assertNotIn("fatal", await self.receive_error(ws))
+        self.assertEqual(self.physical_state(), before)
+        self.assertEqual(self.sim.skill.status, "idle")
+
+    async def test_pending_request_reset_discards_late_provider_reply(self) -> None:
+        requested = asyncio.Event()
+
+        async def late_result(*args, **kwargs):
+            requested.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                return self.result
+
+        self.provider.side_effect = late_result
+        ws = await self.connect()
+        self.sim.step(1.0)
+        revision = self.sim.state()["scene_revision"]
+        await ws.send_json({"action": "sort_plan", "task": "Fixture pending task"})
+        await asyncio.wait_for(requested.wait(), 2)
+        await ws.send_json({"action": "sort"})
+        self.assertIn("锁定", (await self.receive_error(ws))["error"])
+        await ws.send_json({"action": "reset"})
+        reset = await self.receive_state(ws, lambda state: state["scene_revision"] != revision)
+        self.assertTrue(reset["paused"])
+        for _ in range(2):
+            current = await self.receive_state(ws, lambda state: True)
+            self.assertEqual(current["planner"]["status"], "idle")
+            self.assertEqual(current["planner"]["history"], [])
+            self.assertIsNone(current["planner"]["decision"])
+            self.assertEqual(current["sorting"]["status"], "idle")
+
+    async def test_fixed_execution_rejects_gpt_request_without_provider_call(self) -> None:
+        ws = await self.connect()
+        self.sim.step(1.0)
+        await ws.send_json({"action": "sort"})
+        await self.receive_state(ws, lambda state: state["sorting"]["status"] == "running")
+        await ws.send_json({"action": "pause"})
+        await self.receive_state(ws, lambda state: state["paused"])
+        before = self.physical_state()
+        await ws.send_json({"action": "sort_plan", "task": "Fixture task"})
+        self.assertNotIn("fatal", await self.receive_error(ws))
+        self.assertEqual(self.physical_state(), before)
+        self.assertEqual(self.sim.plan, FIXED_PLAN)
+        self.provider.assert_not_awaited()
+
+    async def test_ready_preview_allows_step_camera_without_authorizing(self) -> None:
+        ws = await self.connect()
+        preview = await self.preview(ws)
+        await ws.send_json({"action": "step"})
+        stepped = await self.receive_state(ws, lambda state: state["time_s"] > preview["time_s"])
+        self.assertTrue(stepped["paused"])
+        self.assertEqual(stepped["planner"]["status"], "ready")
+        self.assertEqual(stepped["sorting"]["status"], "idle")
+        await ws.send_json({"action": "camera", "view": "front"})
+        async with asyncio.timeout(2):
+            while self.app[server.CONTROLS].view != "front":
+                await ws.receive_json()
+        self.render.assert_called_with("front")
+        self.assertEqual(self.planner.state()["decision_id"], preview["planner"]["decision_id"])
+        self.provider.assert_awaited_once()
+
+    async def test_pending_cancel_discards_late_result_without_unlocking_fixed_path(self) -> None:
+        requested = asyncio.Event()
+
+        async def late_result(*args, **kwargs):
+            requested.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                return self.result
+
+        self.provider.side_effect = late_result
+        ws = await self.connect()
+        self.sim.step(1.0)
+        before = self.physical_state()
+        await ws.send_json({"action": "sort_plan", "task": "Fixture pending task"})
+        await asyncio.wait_for(requested.wait(), 2)
+        await ws.send_json({"action": "sort_cancel"})
+        await self.receive_state(ws, lambda state: state["planner"]["status"] == "cancelled")
+        for _ in range(2):
+            current = await self.receive_state(ws, lambda state: True)
+            self.assertEqual(current["planner"]["status"], "cancelled")
+            self.assertEqual(current["sorting"]["status"], "idle")
+            self.assertEqual(self.physical_state(), before)
+        await ws.send_json({"action": "sort"})
+        self.assertIn("重置", (await self.receive_error(ws))["error"])
+        self.provider.assert_awaited_once()
+
+    async def test_reset_replaces_approval_id_and_rejects_old_client_authorization(self) -> None:
+        ws = await self.connect()
+        first = await self.preview(ws)
+        await ws.send_json({"action": "reset"})
+        await self.receive_state(ws, lambda state: state["scene_revision"] != first["scene_revision"])
+        second = await self.preview(ws)
+        self.assertNotEqual(first["planner"]["decision_id"], second["planner"]["decision_id"])
+        before = self.physical_state()
+        await ws.send_json({"action": "sort_execute", "decision_id": first["planner"]["decision_id"]})
+        self.assertNotIn("fatal", await self.receive_error(ws))
+        self.assertEqual(self.physical_state(), before)
+        self.assertEqual(self.planner.state()["status"], "ready")
+        self.assertTrue(self.app[server.CONTROLS].paused)
 
     async def test_unknown_scene_rejected_by_factory(self) -> None:
         with self.assertRaises(ValueError):

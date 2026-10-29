@@ -87,6 +87,15 @@ class DecisionResult:
     diagnostic_count: int = 0
 
 
+@dataclass(frozen=True)
+class StructuredResult:
+    payload: object
+    model: str
+    thread_id: str
+    latency_s: float
+    diagnostic_count: int = 0
+
+
 
 def _bounded_text(value: object, maximum: int) -> bool:
     return isinstance(value, str) and bool(value.strip()) and len(value) <= maximum
@@ -309,14 +318,24 @@ async def _run_cli(
     try:
         stdout, stderr = await asyncio.wait_for(asyncio.shield(communication), timeout)
     except (asyncio.CancelledError, TimeoutError):
-        with suppress(ProcessLookupError):
-            os.killpg(process.pid, signal.SIGTERM)
-        try:
-            await asyncio.wait_for(asyncio.shield(communication), 2)
-        except TimeoutError:
+        async def terminate_and_reap():
             with suppress(ProcessLookupError):
-                os.killpg(process.pid, signal.SIGKILL)
-            await communication
+                os.killpg(process.pid, signal.SIGTERM)
+            try:
+                await asyncio.wait_for(asyncio.shield(communication), 2)
+            except TimeoutError:
+                with suppress(ProcessLookupError):
+                    os.killpg(process.pid, signal.SIGKILL)
+                await communication
+
+        cleanup = asyncio.create_task(terminate_and_reap())
+        while not cleanup.done():
+            try:
+                await asyncio.shield(cleanup)
+            except asyncio.CancelledError:
+                # Reset/close can overlap timeout cleanup; reap before propagating.
+                continue
+        cleanup.result()
         raise
     return process.returncode, stdout, stderr
 
@@ -381,23 +400,15 @@ def _completed_thread(raw: bytes) -> tuple[str, int]:
     return thread_id, diagnostic_count
 
 
-async def request_decision(
-    config: PlannerConfig, task: str, scene: dict, experiments: dict,
-    *, goal: str | None = None, history: list[dict] | None = None,
-) -> DecisionResult:
-    """Use cached ChatGPT login through the official CLI, never through raw tokens."""
+async def request_structured(
+    config: PlannerConfig, *, instructions: str, schema: dict, payload: dict,
+) -> StructuredResult:
+    """Request bounded JSON via the hardened, subscription-only Codex transport."""
     if not config.configured:
         raise PlannerError("未找到官方 Codex CLI，请安装后运行 codex login 使用 ChatGPT 订阅登录。")
-    target = scene.get("target_object")
-    goals = _scene_goals(target)
     started = time.monotonic()
     environment = _subscription_environment()
-    prompt = json.dumps(
-        {"task": task, "scene": {key: value for key, value in scene.items() if key != "available_tasks"},
-         "experiments": experiments, "established_goal": goal,
-         "history": history or [], "goal_specs": {name: spec.to_dict() for name, spec in goals.items()}},
-        ensure_ascii=False, allow_nan=False,
-    ).encode("utf-8")
+    prompt = json.dumps(payload, ensure_ascii=False, allow_nan=False).encode("utf-8")
     try:
         with tempfile.TemporaryDirectory(prefix="gpt-plan-") as temporary:
             directory = Path(temporary)
@@ -407,8 +418,8 @@ async def request_decision(
             login = (stdout + b"\n" + stderr).decode("utf-8", errors="replace").lower()
             if code or "logged in using chatgpt" not in login:
                 raise PlannerError("当前 Codex 不是有效的 ChatGPT 订阅登录；请运行 codex login，不使用 API 密钥。")
-            (directory / "schema.json").write_text(json.dumps(_decision_schema(target)), encoding="utf-8")
-            (directory / "instructions.txt").write_text(_INSTRUCTIONS, encoding="utf-8")
+            (directory / "schema.json").write_text(json.dumps(schema), encoding="utf-8")
+            (directory / "instructions.txt").write_text(instructions, encoding="utf-8")
             code, stdout, stderr = await _run_cli(
                 _codex_command(config, directory), directory, environment, prompt,
             )
@@ -419,10 +430,31 @@ async def request_decision(
                 raw_plan = (directory / "plan.json").read_bytes()
             except OSError:
                 raise PlannerError("Codex 未写出完整决策，本次决策未执行动作。") from None
-            decision = validate_decision(_parse_json(raw_plan, "Codex 决策不是有效 JSON，未执行本次动作。"))
-            validate_context(decision, scene, goal)
+            structured = _parse_json(raw_plan, "Codex 决策不是有效 JSON，未执行本次动作。")
     except TimeoutError:
         raise PlannerError("Codex 调用超时，已停止本地请求进程；本次决策未执行动作。") from None
     except OSError:
         raise PlannerError("无法启动 Codex 或创建临时规划文件，请检查安装与本机权限。") from None
-    return DecisionResult(decision, config.model, thread_id, time.monotonic() - started, diagnostic_count)
+    return StructuredResult(structured, config.model, thread_id, time.monotonic() - started, diagnostic_count)
+
+
+async def request_decision(
+    config: PlannerConfig, task: str, scene: dict, experiments: dict,
+    *, goal: str | None = None, history: list[dict] | None = None,
+) -> DecisionResult:
+    """Use cached ChatGPT login through the official CLI, never through raw tokens."""
+    if not config.configured:
+        raise PlannerError("未找到官方 Codex CLI，请安装后运行 codex login 使用 ChatGPT 订阅登录。")
+    target = scene.get("target_object")
+    goals = _scene_goals(target)
+    result = await request_structured(
+        config, instructions=_INSTRUCTIONS, schema=_decision_schema(target),
+        payload={
+            "task": task, "scene": {key: value for key, value in scene.items() if key != "available_tasks"},
+            "experiments": experiments, "established_goal": goal,
+            "history": history or [], "goal_specs": {name: spec.to_dict() for name, spec in goals.items()},
+        },
+    )
+    decision = validate_decision(result.payload)
+    validate_context(decision, scene, goal)
+    return DecisionResult(decision, result.model, result.thread_id, result.latency_s, result.diagnostic_count)

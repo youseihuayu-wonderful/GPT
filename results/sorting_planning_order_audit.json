@@ -1,0 +1,201 @@
+{
+  "kind": "independent_sorting_order_audit",
+  "source": "results/sorting_planning_comparison.json",
+  "source_sha256": "e9d5d05bab9c5890ebfdf9f9cf60a42f4aacf4a770decd680391e4e9a1eaa134",
+  "scope": "Post-run audit of measured 100 ms/phase-boundary samples; no order inferred from controller phase, index or logs; not a new execution",
+  "passed": true,
+  "runs": [
+    {
+      "case_id": "standard",
+      "method": "fixed_rule",
+      "approved_plan": [
+        {
+          "object_id": "red_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "C"
+        }
+      ],
+      "physical_lift_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "physical_placement_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "samples": 1855,
+      "passed": true
+    },
+    {
+      "case_id": "standard",
+      "method": "gpt",
+      "approved_plan": [
+        {
+          "object_id": "red_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "C"
+        }
+      ],
+      "physical_lift_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "physical_placement_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "samples": 1855,
+      "passed": true
+    },
+    {
+      "case_id": "swapped_cups_first",
+      "method": "fixed_rule",
+      "approved_plan": [
+        {
+          "object_id": "red_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "C"
+        }
+      ],
+      "physical_lift_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "physical_placement_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "samples": 1975,
+      "passed": true
+    },
+    {
+      "case_id": "swapped_cups_first",
+      "method": "gpt",
+      "approved_plan": [
+        {
+          "object_id": "red_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "C"
+        }
+      ],
+      "physical_lift_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "physical_placement_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "samples": 1975,
+      "passed": true
+    }
+  ]
+}

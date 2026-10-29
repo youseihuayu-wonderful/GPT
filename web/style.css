@@ -87,7 +87,7 @@ button span { font-size: 10px; margin-left: 2px; }
 .planner-note { margin: 8px 0; font-size: 11px; line-height: 1.7; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .task-label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 12px; margin-top: 12px; }
 .task-label span { color: var(--muted); font-size: 10px; }
-#planner-task { display: block; width: 100%; min-width: 0; max-width: 100%; min-height: 82px; margin-top: 6px; resize: vertical; line-height: 1.7; }
+#planner-task, #sort-planner-task { display: block; width: 100%; min-width: 0; max-width: 100%; min-height: 82px; margin-top: 6px; resize: vertical; line-height: 1.7; }
 .planner-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .planner-actions button { flex: 1 1 130px; min-height: 42px; }
 .planner-setup { padding: 9px 10px; border: 1px solid #735e38; border-radius: 6px; background: #2b271f; color: #f1d19a; font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
@@ -99,6 +99,8 @@ button span { font-size: 10px; margin-left: 2px; }
 .plan-preview { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
 .decision-skill { font-size: 13px; color: var(--accent); overflow-wrap: anywhere; }
 #plan-continuous { border-color: #a48b50; color: #f1d19a; }
+#sort-plan-execute { border-color: #a48b50; color: #f1d19a; }
+#sort-planner-panel[data-status="stale"] .sorting-rules, #sort-planner-panel[data-status="stale"] .sorting-queue { opacity: .55; }
 .planner-history { max-height: 440px; overflow-y: auto; overscroll-behavior: contain; padding-left: 24px; margin: 10px 0; }
 .planner-history li { padding: 8px; margin-block: 8px; border-left: 3px solid #364454; font-size: 11px; line-height: 1.7; color: #b8c8d9; overflow-wrap: anywhere; }
 .planner-history strong { display: block; font-size: 12px; font-weight: 550; }
