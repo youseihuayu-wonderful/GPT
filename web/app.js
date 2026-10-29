@@ -257,7 +257,7 @@ async function loadExperiments() {
 const comparisonMethods = { rule: "状态感知规则（主要对照）", gpt: "GPT（真实订阅）", fixed: "固定序列（参考）" };
 const comparisonCases = ["table", "table_right", "held", "placed", "complete", "closed_empty", "disturbed"];
 const comparisonUi = Object.fromEntries(
-  ["refresh", "status", "error", "report", "meta", "summary", "runs"].map((key) => [key, byId(`comparison-${key}`)]),
+  ["refresh", "batch", "download", "status", "error", "report", "meta", "summary", "runs"].map((key) => [key, byId(`comparison-${key}`)]),
 );
 
 function validateComparison(report) {
@@ -344,23 +344,28 @@ function comparisonRow(texts) {
 }
 
 async function loadPlanningComparison() {
+  const batch = comparisonUi.batch.value;
+  const label = comparisonUi.batch.selectedOptions[0].textContent;
+  const reportUrl = `/api/planning-comparison?batch=${encodeURIComponent(batch)}`;
   comparisonUi.refresh.disabled = true;
-  comparisonUi.status.textContent = "正在读取已存储闭环报告；不会启动运行…";
+  comparisonUi.batch.disabled = true;
+  comparisonUi.download.href = reportUrl;
+  comparisonUi.status.textContent = `正在读取「${label}」；不会启动运行…`;
   comparisonUi.error.hidden = true;
   comparisonUi.report.hidden = true;
   comparisonUi.summary.replaceChildren();
   comparisonUi.runs.replaceChildren();
   const time = (value) => value === null ? "未测量" : number(value, 3);
   try {
-    const response = await fetch("/api/planning-comparison", { cache: "no-store" });
-    if (response.status === 404) throw new Error("尚无闭环对照报告（HTTP 404）；未使用替代数据。");
+    const response = await fetch(reportUrl, { cache: "no-store" });
+    if (response.status === 404) throw new Error("当前所选批次尚无报告（HTTP 404）；不会显示其他批次替代。");
     if (!response.ok) throw new Error(`闭环对照报告读取失败（HTTP ${response.status}）；未使用替代数据。`);
     const report = await response.json();
     validateComparison(report);
     const total = report.protocol.methods.length * report.protocol.cases.length;
     const subset = report.protocol.methods.length !== 3 || report.protocol.cases.length !== comparisonCases.length;
-    comparisonUi.status.textContent = `${{ running: "未完成 · 运行中", failed: "未完成 / 执行失败 · 保留原始记录", completed: "所选矩阵已完成（不代表全部成功）" }[report.status]}：已记录 ${report.runs.length} / ${total} 对。${subset ? "仅为诊断子集，不是完整协议矩阵。" : ""}${report.runs.length === 0 ? "暂无运行记录，不能计算成功率。" : ""}`;
-    comparisonUi.meta.textContent = `生成时间：${report.generated_at}。案例：${report.protocol.cases.join("、")}。目标：store_and_home。安全例不计入正例完成率。`;
+    comparisonUi.status.textContent = `「${label}」${{ running: "未完成 · 运行中", failed: "未完成 / 执行失败 · 保留原始记录", completed: "所选矩阵已完成（不代表全部成功）" }[report.status]}：已记录 ${report.runs.length} / ${total} 对。${subset ? "仅为所选场景和方法的补充子集，不与原始完整矩阵合并计分。" : ""}${report.runs.length === 0 ? "暂无运行记录，不能计算成功率。" : ""}`;
+    comparisonUi.meta.textContent = `生成时间：${report.generated_at}。案例：${report.protocol.cases.join("、")}。目标：store_and_home。安全例不计入正例完成率，各批次独立统计。`;
     comparisonUi.summary.replaceChildren(...["rule", "gpt", "fixed"]
       .filter((method) => report.protocol.methods.includes(method))
       .map((method) => {
@@ -401,6 +406,7 @@ async function loadPlanningComparison() {
     comparisonUi.error.hidden = false;
   } finally {
     comparisonUi.refresh.disabled = false;
+    comparisonUi.batch.disabled = false;
   }
 }
 
@@ -979,5 +985,6 @@ ui.reconnect.addEventListener("click", connect);
 ui.experimentsRefresh.addEventListener("click", loadExperiments);
 loadExperiments();
 comparisonUi.refresh.addEventListener("click", loadPlanningComparison);
+comparisonUi.batch.addEventListener("change", loadPlanningComparison);
 loadPlanningComparison();
 connect();

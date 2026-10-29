@@ -1,6 +1,9 @@
 """Local aiohttp lifecycle regressions; no model or external network calls."""
 
 import asyncio
+import json
+from pathlib import Path
+import tempfile
 import mujoco
 import unittest
 from unittest.mock import AsyncMock, patch
@@ -406,6 +409,66 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(renderer.released)
         self.assertIsNone(self.sim.renderer)
         remaining.close.assert_awaited_once()
+
+    async def test_report_batches_preserve_distinct_outcomes_and_download_names_without_actuation(self):
+        invocation = self.sim.skill.invocation_id
+        with tempfile.TemporaryDirectory() as directory, patch("server.ROOT", Path(directory)):
+            results = Path(directory) / "results"
+            results.mkdir()
+            for batch, filename, outcome in (
+                ("initial", "planning_comparison.json", "planning_failed"),
+                ("followup", "planning_comparison_followup.json", "succeeded"),
+            ):
+                (results / filename).write_text(json.dumps({
+                    "kind": "paired_closed_loop_comparison",
+                    "runs": [{"case_id": "held", "method": "gpt", "status": outcome}],
+                }), encoding="utf-8")
+            for batch, filename, outcome in (
+                ("initial", "planning_comparison.json", "planning_failed"),
+                ("followup", "planning_comparison_followup.json", "succeeded"),
+                (None, "planning_comparison.json", "planning_failed"),
+            ):
+                response = await self.client.get(
+                    "/api/planning-comparison", params={} if batch is None else {"batch": batch},
+                )
+                self.assertEqual(response.status, 200)
+                self.assertEqual((await response.json())["runs"][0]["status"], outcome)
+                self.assertIn(f'filename="{filename}"', response.headers["Content-Disposition"])
+                self.assertEqual(response.headers["Cache-Control"], "no-store")
+        self.assertEqual(self.sim.skill.invocation_id, invocation)
+        self.provider.assert_not_awaited()
+
+    async def test_missing_or_corrupt_selected_batch_never_falls_back_to_old_results(self):
+        with tempfile.TemporaryDirectory() as directory, patch("server.ROOT", Path(directory)):
+            results = Path(directory) / "results"
+            results.mkdir()
+            (results / "planning_comparison.json").write_text(
+                '{"kind":"paired_closed_loop_comparison","runs":[]}', encoding="utf-8",
+            )
+            response = await self.client.get("/api/planning-comparison?batch=followup")
+            self.assertEqual(response.status, 404)
+            for invalid in ("{", "[]", '{"kind":"fixed_scene_parameter_sweep"}'):
+                (results / "planning_comparison_followup.json").write_text(invalid, encoding="utf-8")
+                response = await self.client.get("/api/planning-comparison?batch=followup")
+                self.assertEqual(response.status, 500)
+            response = await self.client.get("/api/planning-comparison?batch=initial")
+            self.assertEqual(response.status, 200)
+        self.provider.assert_not_awaited()
+
+    async def test_unknown_paths_and_ambiguous_batch_queries_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory, patch("server.ROOT", Path(directory)):
+            (Path(directory) / "private.json").write_text(
+                '{"kind":"paired_closed_loop_comparison","private":"not_a_report"}', encoding="utf-8",
+            )
+            for batch in ("", "../private.json", str(Path(directory) / "private.json"), "parameter_sweep"):
+                response = await self.client.get("/api/planning-comparison", params={"batch": batch})
+                self.assertEqual(response.status, 400)
+                self.assertNotIn("not_a_report", await response.text())
+            response = await self.client.get(
+                "/api/planning-comparison", params=[("batch", "initial"), ("batch", "followup")],
+            )
+            self.assertEqual(response.status, 400)
+        self.provider.assert_not_awaited()
 
 
 if __name__ == "__main__":

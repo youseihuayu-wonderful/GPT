@@ -133,6 +133,8 @@ button span { font-size: 10px; margin-left: 2px; }
 .experiment-table tr[data-status="succeeded"] td:nth-child(2) { color: var(--accent); }
 .experiment-table button { white-space: nowrap; }
 .planning-comparison a { color: var(--accent); font-size: 11px; overflow-wrap: anywhere; }
+.comparison-batch-label { display: block; min-width: 0; margin: 10px 0; color: var(--muted); font-size: 11px; }
+.comparison-batch-label select { display: block; width: 100%; min-width: 0; margin-top: 5px; }
 .planning-comparison .experiment-scroll + .experiment-scroll { margin-top: 12px; }
 .planning-comparison .experiment-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .planning-comparison .comparison-summary { min-width: 800px; }

@@ -26,6 +26,10 @@ class Controls:
 
 
 ROOT = Path(__file__).resolve().parent
+COMPARISON_REPORTS = {
+    "initial": "planning_comparison.json",
+    "followup": "planning_comparison_followup.json",
+}
 SIMULATION = web.AppKey("simulation", Simulation)
 CLIENTS = web.AppKey("clients", set)
 CONTROLS = web.AppKey("controls", Controls)
@@ -265,15 +269,25 @@ async def experiments(request: web.Request) -> web.Response:
 
 
 async def planning_comparison(request: web.Request) -> web.Response:
+    batches = request.query.getall("batch", [])
+    if len(batches) > 1:
+        raise web.HTTPBadRequest(text="一次只能选择一个实验批次")
+    batch = batches[0] if batches else "initial"
+    if batch not in COMPARISON_REPORTS:
+        raise web.HTTPBadRequest(text="未知实验批次；请选择 initial 或 followup")
+    filename = COMPARISON_REPORTS[batch]
     try:
-        report = json.loads((ROOT / "results" / "planning_comparison.json").read_text(encoding="utf-8"))
+        report = json.loads((ROOT / "results" / filename).read_text(encoding="utf-8"))
         if not isinstance(report, dict) or report.get("kind") != "paired_closed_loop_comparison":
             raise ValueError("不是闭环规划对照报告")
     except FileNotFoundError as exc:
-        raise web.HTTPNotFound(text="尚无闭环对照结果；请先运行 compare_planning.py") from exc
+        raise web.HTTPNotFound(text=f"所选批次 {batch} 尚无结果；请先运行对应的 compare_planning.py 批次") from exc
     except (OSError, ValueError) as exc:
         raise web.HTTPInternalServerError(text=f"读取闭环对照结果失败：{exc}") from exc
-    return web.json_response(report, headers={"Cache-Control": "no-store"})
+    return web.json_response(report, headers={
+        "Cache-Control": "no-store",
+        "Content-Disposition": f'attachment; filename="{filename}"',
+    })
 
 
 async def asset(request: web.Request) -> web.FileResponse:
