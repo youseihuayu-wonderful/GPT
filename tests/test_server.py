@@ -412,12 +412,17 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_report_batches_preserve_distinct_outcomes_and_download_names_without_actuation(self):
         invocation = self.sim.skill.invocation_id
+        physical_state = (
+            self.sim.data.time, self.sim.data.qpos.tolist(),
+            self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
+        )
         with tempfile.TemporaryDirectory() as directory, patch("server.ROOT", Path(directory)):
             results = Path(directory) / "results"
             results.mkdir()
             for batch, filename, outcome in (
                 ("initial", "planning_comparison.json", "planning_failed"),
                 ("followup", "planning_comparison_followup.json", "succeeded"),
+                ("expanded", "planning_comparison_expanded.json", "running"),
             ):
                 (results / filename).write_text(json.dumps({
                     "kind": "paired_closed_loop_comparison",
@@ -426,6 +431,7 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
             for batch, filename, outcome in (
                 ("initial", "planning_comparison.json", "planning_failed"),
                 ("followup", "planning_comparison_followup.json", "succeeded"),
+                ("expanded", "planning_comparison_expanded.json", "running"),
                 (None, "planning_comparison.json", "planning_failed"),
             ):
                 response = await self.client.get(
@@ -436,6 +442,44 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn(f'filename="{filename}"', response.headers["Content-Disposition"])
                 self.assertEqual(response.headers["Cache-Control"], "no-store")
         self.assertEqual(self.sim.skill.invocation_id, invocation)
+        self.assertEqual(physical_state, (
+            self.sim.data.time, self.sim.data.qpos.tolist(),
+            self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
+        ))
+        self.provider.assert_not_awaited()
+
+    async def test_expanded_report_preserves_repeated_multigoal_rows_and_incomplete_status(self):
+        cases = (
+            "table", "table_right", "table_forward", "held", "placed", "complete",
+            "closed_empty", "disturbed", "hold_bowl", "hold_bottle", "close_only", "home_after_close",
+        )
+        goals = {
+            "hold_bowl": "hold_target", "hold_bottle": "hold_target",
+            "close_only": "close_and_home", "home_after_close": "home",
+        }
+        runs = [
+            {
+                "case_id": case, "repetition": repetition, "method": method,
+                "goal": goals.get(case, "store_and_home"),
+                "target_object": "bottle" if case == "hold_bottle" else "bowl",
+                "status": "setting_up", "success": False,
+            }
+            for repetition in range(1, 4) for case in cases for method in ("rule", "gpt")
+        ]
+        report = {
+            "kind": "paired_closed_loop_comparison", "status": "running",
+            "protocol": {"suite": "expanded", "repetitions": 3, "planned_runs": 72},
+            "runs": runs,
+        }
+        with tempfile.TemporaryDirectory() as directory, patch("server.ROOT", Path(directory)):
+            results = Path(directory) / "results"
+            results.mkdir()
+            (results / "planning_comparison_expanded.json").write_text(json.dumps(report), encoding="utf-8")
+            response = await self.client.get("/api/planning-comparison?batch=expanded")
+            self.assertEqual(response.status, 200)
+            self.assertEqual(await response.json(), report)
+            self.assertEqual(len(runs), 72)
+            self.assertEqual((await self.client.get("/api/planning-comparison")).status, 404)
         self.provider.assert_not_awaited()
 
     async def test_missing_or_corrupt_selected_batch_never_falls_back_to_old_results(self):
@@ -445,12 +489,15 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
             (results / "planning_comparison.json").write_text(
                 '{"kind":"paired_closed_loop_comparison","runs":[]}', encoding="utf-8",
             )
-            response = await self.client.get("/api/planning-comparison?batch=followup")
-            self.assertEqual(response.status, 404)
-            for invalid in ("{", "[]", '{"kind":"fixed_scene_parameter_sweep"}'):
-                (results / "planning_comparison_followup.json").write_text(invalid, encoding="utf-8")
-                response = await self.client.get("/api/planning-comparison?batch=followup")
-                self.assertEqual(response.status, 500)
+            for batch in ("followup", "expanded"):
+                response = await self.client.get("/api/planning-comparison", params={"batch": batch})
+                self.assertEqual(response.status, 404)
+                filename = server.COMPARISON_REPORTS[batch]
+                for invalid in ("{", "[]", '{"kind":"fixed_scene_parameter_sweep"}'):
+                    with self.subTest(batch=batch, invalid=invalid):
+                        (results / filename).write_text(invalid, encoding="utf-8")
+                        response = await self.client.get("/api/planning-comparison", params={"batch": batch})
+                        self.assertEqual(response.status, 500)
             response = await self.client.get("/api/planning-comparison?batch=initial")
             self.assertEqual(response.status, 200)
         self.provider.assert_not_awaited()
@@ -465,7 +512,7 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(response.status, 400)
                 self.assertNotIn("not_a_report", await response.text())
             response = await self.client.get(
-                "/api/planning-comparison", params=[("batch", "initial"), ("batch", "followup")],
+                "/api/planning-comparison", params=[("batch", "initial"), ("batch", "expanded")],
             )
             self.assertEqual(response.status, 400)
         self.provider.assert_not_awaited()

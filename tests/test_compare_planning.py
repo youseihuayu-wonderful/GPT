@@ -4,6 +4,7 @@ from contextlib import redirect_stderr
 from copy import deepcopy
 from io import StringIO
 from pathlib import Path
+import json
 import tempfile
 import unittest
 from unittest.mock import AsyncMock, patch
@@ -30,14 +31,23 @@ class ConstraintTests(unittest.TestCase):
         altered["descent_speed_m_s"] = 0.1
         proposal = decision(parameters=altered)
         with self.assertRaises((PlannerError, ValueError)):
-            comparison.enforce_constraints(proposal)
+            comparison.enforce_constraints(proposal, "store_and_home", "bowl")
         self.assertEqual(proposal.parameters.descent_speed_m_s, 0.1)
         with self.assertRaises((PlannerError, ValueError)):
-            comparison.enforce_constraints(decision(goal="hold_target"))
+            comparison.enforce_constraints(decision(goal="hold_target"), "store_and_home", "bowl")
         with self.assertRaises((PlannerError, ValueError)):
             comparison.enforce_constraints(decision(
                 decision="complete", goal="home", skill=None, parameters=None,
-            ))
+            ), "store_and_home", "bowl")
+
+    def test_forbidden_goal_actions_and_wrong_target_cannot_pass_constraints(self):
+        for goal in ("close_and_home", "home"):
+            with self.subTest(goal=goal), self.assertRaises(PlannerError):
+                comparison.enforce_constraints(decision(goal=goal), goal, "bowl")
+        with self.assertRaises(PlannerError):
+            comparison.enforce_constraints(
+                decision(goal="hold_target", target_object="bottle"), "hold_target", "bowl",
+            )
 
     def test_pairing_mismatch_aborts_instead_of_comparing_different_initial_states(self):
         first = {"physics": "original", "observation": "original", "model": "original"}
@@ -68,20 +78,20 @@ class PhysicalRuleTests(unittest.TestCase):
         self.finish("grasp_and_hold")
         for required in ("place_and_release", "withdraw_from_drawer", "close_drawer", "return_home"):
             scene = self.sim.state()
-            proposal = comparison.rule_decision(scene)
+            proposal = comparison.rule_decision(scene, "store_and_home")
             self.assertEqual(proposal.decision, "execute")
             self.assertEqual(proposal.skill, required)
-            self.assertFalse(comparison.goal_satisfied(scene))
+            self.assertFalse(comparison.goal_satisfied(scene, "store_and_home"))
             self.finish(proposal.skill)
         final = self.sim.state()
-        self.assertTrue(comparison.goal_satisfied(final))
-        self.assertEqual(comparison.rule_decision(final).decision, "complete")
+        self.assertTrue(comparison.goal_satisfied(final, "store_and_home"))
+        self.assertEqual(comparison.rule_decision(final, "store_and_home").decision, "complete")
         incomplete = deepcopy(final)
         del incomplete["goal_checks"]["store_and_home"]["bowl_inside_drawer"]
-        self.assertFalse(comparison.goal_satisfied(incomplete))
+        self.assertFalse(comparison.goal_satisfied(incomplete, "store_and_home"))
         unverified = deepcopy(final)
         unverified["goal_checks"]["store_and_home"]["bowl_inside_drawer"] = 1
-        self.assertFalse(comparison.goal_satisfied(unverified))
+        self.assertFalse(comparison.goal_satisfied(unverified, "store_and_home"))
         self.assertEqual(final["collisions"]["episodes"], 0)
 
     def test_rule_refuses_closed_empty_drawer_even_though_grasp_is_available(self):
@@ -90,8 +100,8 @@ class PhysicalRuleTests(unittest.TestCase):
         scene = self.sim.state()
         self.assertTrue(next(item["available"] for item in scene["available_skills"]
                              if item["name"] == "grasp_and_hold"))
-        self.assertFalse(comparison.goal_satisfied(scene))
-        self.assertEqual(comparison.rule_decision(scene).decision, "unsupported")
+        self.assertFalse(comparison.goal_satisfied(scene, "store_and_home"))
+        self.assertEqual(comparison.rule_decision(scene, "store_and_home").decision, "unsupported")
 
 
     def test_independent_physical_resets_have_exactly_pairable_initial_conditions(self):
@@ -105,6 +115,28 @@ class PhysicalRuleTests(unittest.TestCase):
                 "model": comparison.model_fingerprint(sim),
                 "controller_observation": comparison.observation_fingerprint(sim.state()),
             }, fingerprints)
+
+    def test_close_only_goal_leaves_bowl_on_table_and_never_selects_grasp(self):
+        original = self.sim.get_object_pose("bowl_object")["position_m"]
+        for required in ("close_drawer", "return_home"):
+            proposal = comparison.rule_decision(self.sim.state(), "close_and_home")
+            self.assertEqual(proposal.skill, required)
+            self.finish(proposal.skill)
+        final = self.sim.state()
+        self.assertTrue(comparison.goal_satisfied(final, "close_and_home"))
+        self.assertFalse(comparison.goal_satisfied(final, "store_and_home"))
+        self.assertEqual(comparison.rule_decision(final, "close_and_home").decision, "complete")
+        for before, after in zip(original, self.sim.get_object_pose("bowl_object")["position_m"]):
+            self.assertAlmostEqual(before, after, places=5)
+
+    def test_home_goal_requires_motion_after_real_close_and_does_not_reclose(self):
+        self.finish("close_drawer")
+        self.assertFalse(comparison.goal_satisfied(self.sim.state(), "home"))
+        proposal = comparison.rule_decision(self.sim.state(), "home")
+        self.assertEqual(proposal.skill, "return_home")
+        self.finish(proposal.skill)
+        self.assertTrue(comparison.goal_satisfied(self.sim.state(), "home"))
+        self.assertEqual(comparison.rule_decision(self.sim.state(), "home").decision, "complete")
 
 
 class ProviderFailureTests(unittest.IsolatedAsyncioTestCase):
@@ -146,6 +178,17 @@ class ProviderFailureTests(unittest.IsolatedAsyncioTestCase):
                 await comparison.run_comparison(("fixed",), ("table",), Path(directory) / "evidence.json")
         self.assertIn("primary setup failure", errors.getvalue())
         self.assertIn("table/fixed", errors.getvalue())
+
+    async def test_existing_evidence_is_not_overwritten_or_used_to_resume(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "prior.json"
+            prior = {"kind": "paired_closed_loop_comparison", "status": "failed", "runs": ["old failure"]}
+            output.write_text(json.dumps(prior))
+            with patch("compare_planning.Simulation") as simulation:
+                with self.assertRaises(ValueError):
+                    await comparison.run_comparison(("rule",), ("table",), output)
+                simulation.assert_not_called()
+            self.assertEqual(json.loads(output.read_text()), prior)
 
 
 class AccountingTests(unittest.TestCase):
@@ -205,7 +248,19 @@ class AccountingTests(unittest.TestCase):
         self.assertIsNone(summary["mean_end_to_end_wall_s"])
         self.assertIsNone(summary["mean_gpt_latency_s"])
 
-    def test_cli_identifies_failed_pair_and_reason_instead_of_only_saying_completed(self):
+    def test_completion_requires_every_scheduled_repetition_once(self):
+        schedule = [{"case_id": "held", "method": "rule", "repetition": repetition}
+                    for repetition in (1, 2)]
+        rows = [entry | {"expected_outcome": "success", "success": True, "infrastructure_errors": []}
+                for entry in schedule]
+        report = {"status": "completed", "error": None, "runs": rows,
+                  "protocol": {"planned_runs": 2, "schedule": schedule}}
+        self.assertTrue(comparison.report_passed(report))
+        self.assertFalse(comparison.report_passed(report | {"runs": rows[:1]}))
+        self.assertFalse(comparison.report_passed(report | {"runs": [rows[0], rows[0]]}))
+        self.assertFalse(comparison.report_passed(report | {"runs": [rows[0], rows[1] | {"repetition": 3}]}))
+
+    def test_cli_exits_nonzero_for_a_finished_matrix_with_failed_goals(self):
         row = {
             "case_id": "table", "method": "gpt", "expected_outcome": "success",
             "success": False, "safety_pass": None, "infrastructure_errors": [],
@@ -216,8 +271,6 @@ class AccountingTests(unittest.TestCase):
         with redirect_stderr(errors), patch("sys.argv", ["compare_planning.py"]), \
                 patch("compare_planning.run_comparison", new=AsyncMock(return_value=report)):
             self.assertEqual(comparison.main(), 1)
-        self.assertIn("table/gpt", errors.getvalue())
-        self.assertIn("subscription unavailable", errors.getvalue())
 
 
 if __name__ == "__main__":

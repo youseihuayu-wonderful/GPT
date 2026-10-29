@@ -172,29 +172,48 @@
         <div class="section-heading"><h2 id="comparison-title">闭环规划配对对照 · 已存储证据</h2><button id="comparison-refresh" type="button">刷新报告</button></div>
         <label class="comparison-batch-label" for="comparison-batch">实验批次
           <select id="comparison-batch" aria-describedby="comparison-batch-note">
+            <option value="expanded" selected>扩展批次 · 12 场景 × 3 次 × 2 方法</option>
             <option value="followup">补充批次 · 恢复额度后的五场景配对</option>
             <option value="initial">原始批次 · 21 组尝试，含额度受限记录</option>
           </select>
         </label>
         <p id="comparison-batch-note" class="experiment-note">每次只显示所选批次；新结果不覆盖旧失败，不合并不同批次的完成率。切换不会请求 GPT 或驱动机械臂。</p>
-        <p class="experiment-note">主要对照是状态感知规则与 GPT；固定五技能序列仅作参考。小规模确定性样本、每对单次运行，不代表泛化能力。与实时任务、参数实验及旧单次决策对照独立；刷新只读取文件，不启动运行。</p>
+        <p class="experiment-note">主要对照是状态感知规则与 GPT；固定五技能序列仅作历史参考。扩展批次包含有限位姿变化、不同物体与目标，每个场景重复实际运行；相同场景的重复共享初态，不是独立场景抽样，不代表泛化能力。历史批次保持单次配对、独立读取。刷新只读取文件，不启动运行。</p>
         <p class="experiment-note">任务完成仅统计有效已结束正例；基础设施失败及进行中试次单列、不计分母。安全停止（safe_stop）不等于任务成功。仿真时间、墙钟时间与 GPT 请求耗时分开显示，不相加；初始化与准备不计入方法延迟。未测量值不替换为零，各均值附计时样本数。正例墙钟同时列出全尝试与仅成功均值；提前失败导致耗时短，不代表方法更快。</p>
         <p id="comparison-status" class="experiment-note" role="status">正在读取闭环对照报告…</p>
         <p id="comparison-error" class="skill-failure" role="alert" hidden></p>
-        <p><a id="comparison-download" href="/api/planning-comparison?batch=followup" download>下载当前批次原始 JSON（含请求、技能与物理证据）</a></p>
+        <p><a id="comparison-download" href="/api/planning-comparison?batch=expanded" download>下载当前批次原始 JSON（含请求、技能与物理证据）</a></p>
         <div id="comparison-report" hidden>
           <p id="comparison-meta" class="experiment-note"></p>
           <div class="experiment-scroll" tabindex="0" role="region" aria-label="闭环对照方法汇总，可横向滚动">
             <table class="experiment-table comparison-summary">
-              <caption>方法汇总 · 分母仅为有效已结束样本，未完成矩阵不得视为完整结果</caption>
+              <caption>方法总账 · 混合任务仅作数量核对，不作跨任务速度排名；分母仅为有效已结束样本</caption>
               <thead><tr><th scope="col">方法 / 无效与进行中试次</th><th scope="col">正例完成 / 有效已结束正例</th><th scope="col">安全通过 / 有效已结束安全例</th><th scope="col">实际技能 / GPT 请求</th><th scope="col">正例平均墙钟 s<br>全尝试 / 仅成功（附计时数）</th><th scope="col">单请求平均 GPT 耗时 s（附计时数）</th></tr></thead>
               <tbody id="comparison-summary"></tbody>
             </table>
           </div>
+          <div id="comparison-analysis" hidden>
+            <p class="experiment-note">以下统计按场景、任务和物体分开，已与原始记录核对。分布格式为 n / 均值 / 样本标准差 / 最小 / 最大，单位秒；n=0 未测量，n=1 无法计算样本标准差。全尝试墙钟保留提前失败耗时，不代表成功更快；没有 GPT 请求时不生成请求延迟。</p>
+            <div class="experiment-scroll" tabindex="0" role="region" aria-label="按场景与任务的重复运行统计，可横向滚动">
+              <table class="experiment-table comparison-variation">
+                <caption>逐场景重复变异 · 任务分开，不合并不同目标均值</caption>
+                <thead><tr><th scope="col">场景 / 目标 / 物体 / 方法</th><th scope="col">完成或安全通过 / 有效已结束<br>基础设施 / 进行中 / 尚未记录</th><th scope="col">全尝试墙钟 s<br>n / 均值 / SD / 最小 / 最大</th><th scope="col">仅成功墙钟 s<br>n / 均值 / SD / 最小 / 最大</th><th scope="col">实际单请求耗时 s<br>n / 均值 / SD / 最小 / 最大</th><th scope="col">碰撞试次 / 失败原因计数</th></tr></thead>
+                <tbody id="comparison-by-case"></tbody>
+              </table>
+            </div>
+            <p class="experiment-note">配对以同场景、同重复序号与相同初态指纹为准；安全例不参与任务速度比较。仅双方均实测成功且均有计时的配对计算 Δ墙钟 = GPT − 规则（正值表示 GPT 较慢）。未结束、基础设施无效或单边缺失的已出现配对单列排除；双方尚未记录的重复另列。仅为小样本描述统计，不作显著性或总体置信推断。</p>
+            <div class="experiment-scroll" tabindex="0" role="region" aria-label="双方成功的配对耗时差，可横向滚动">
+              <table class="experiment-table comparison-paired">
+                <caption>同任务匹配成功配对 · GPT − 规则墙钟差</caption>
+                <thead><tr><th scope="col">场景 / 目标 / 物体</th><th scope="col">有效完整 / 双方成功</th><th scope="col">仅规则成功 / 仅 GPT 成功 / 双方失败</th><th scope="col">排除 / 双方尚未记录</th><th scope="col">配对 Δ墙钟 s<br>n / 均值 / SD / 最小 / 最大</th></tr></thead>
+                <tbody id="comparison-paired"></tbody>
+              </table>
+            </div>
+          </div>
           <div class="experiment-scroll" tabindex="0" role="region" aria-label="闭环对照逐案例记录，可横向滚动">
             <table class="experiment-table comparison-runs">
-              <caption>逐案例实际结果 · 完整历史与准备耗时见原始报告</caption>
-              <thead><tr><th scope="col">案例 / 方法 / 预期</th><th scope="col">实际状态 / 任务完成 / 安全验收</th><th scope="col">实际技能 / 决策 / GPT 请求</th><th scope="col">执行 / 总评估 / 验证<br>仿真 s</th><th scope="col">端到端墙钟 / GPT 耗时<br>s</th><th scope="col">失败原因</th></tr></thead>
+              <caption>逐案例、逐重复实际结果 · 完整历史与准备耗时见原始报告</caption>
+              <thead><tr><th scope="col">案例 / 重复 / 目标 / 物体 / 方法 / 预期</th><th scope="col">实际状态 / 任务完成 / 安全验收</th><th scope="col">实际技能 / 决策 / GPT 请求</th><th scope="col">执行 / 总评估 / 验证<br>仿真 s</th><th scope="col">端到端墙钟 / GPT 耗时<br>s</th><th scope="col">失败原因</th></tr></thead>
               <tbody id="comparison-runs"></tbody>
             </table>
           </div>

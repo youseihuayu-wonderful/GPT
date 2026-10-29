@@ -256,9 +256,117 @@ async function loadExperiments() {
 
 const comparisonMethods = { rule: "状态感知规则（主要对照）", gpt: "GPT（真实订阅）", fixed: "固定序列（参考）" };
 const comparisonCases = ["table", "table_right", "held", "placed", "complete", "closed_empty", "disturbed"];
+const expandedComparisonCases = ["table", "table_right", "table_forward", "held", "placed", "complete", "closed_empty", "disturbed", "hold_bowl", "hold_bottle", "close_only", "home_after_close"];
+const comparisonGoalChecks = {
+  hold_target: ["bilateral_grip", "clear_of_table", "target_lifted", "relative_pose_stable", "verified_hold"],
+  store_and_home: ["bowl_inside_drawer", "bowl_supported", "bowl_settled", "drawer_closed", "home_reached", "hand_empty", "hand_clear_of_drawer", "support_preserved"],
+  close_and_home: ["drawer_closed", "home_reached", "hand_empty", "hand_clear_of_drawer", "support_preserved"],
+  home: ["home_reached", "hand_empty", "hand_clear_of_drawer", "support_preserved"],
+};
 const comparisonUi = Object.fromEntries(
-  ["refresh", "batch", "download", "status", "error", "report", "meta", "summary", "runs"].map((key) => [key, byId(`comparison-${key}`)]),
+  ["refresh", "batch", "download", "status", "error", "report", "meta", "summary", "runs", "analysis", "by-case", "paired"].map((key) => [key, byId(`comparison-${key}`)]),
 );
+
+function comparisonCaseMetadata(caseId) {
+  return {
+    goal: ["hold_bowl", "hold_bottle"].includes(caseId) ? "hold_target"
+      : caseId === "close_only" ? "close_and_home" : caseId === "home_after_close" ? "home" : "store_and_home",
+    target_object: caseId === "hold_bottle" ? "bottle" : "bowl",
+    expected_outcome: ["closed_empty", "disturbed"].includes(caseId) ? "safe_stop" : "success",
+  };
+}
+
+function comparisonMeasured(run) {
+  return run.infrastructure_errors.length === 0 && !["setting_up", "running"].includes(run.status);
+}
+
+function comparisonDistribution(values) {
+  const measured = values.filter((value) => typeof value === "number" && Number.isFinite(value));
+  const n = measured.length;
+  const mean = n ? measured.reduce((sum, value) => sum + value, 0) / n : null;
+  return {
+    n, mean,
+    sd: n > 1 ? Math.sqrt(measured.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (n - 1)) : null,
+    min: n ? Math.min(...measured) : null, max: n ? Math.max(...measured) : null,
+  };
+}
+
+function comparisonEqual(actual, expected, field = "") {
+  if (typeof expected === "number") {
+    const statistic = ["mean", "sd", "min", "max"].includes(field) || field.startsWith("mean_");
+    return typeof actual === "number" && Number.isFinite(actual)
+      && (!statistic && Number.isInteger(expected) ? actual === expected : Math.abs(actual - expected) <= 1e-8 * Math.max(1, Math.abs(expected)));
+  }
+  if (expected === null || typeof expected !== "object") return actual === expected;
+  if (!actual || typeof actual !== "object" || Array.isArray(actual) !== Array.isArray(expected)) return false;
+  const keys = Object.keys(expected);
+  return Object.keys(actual).length === keys.length && keys.every((key) => Object.hasOwn(actual, key) && comparisonEqual(actual[key], expected[key], key));
+}
+
+function comparisonCollisionCount(runs) {
+  const measured = runs.filter((run) => typeof run.collisions?.episodes === "number"
+    && Number.isFinite(run.collisions.episodes) && run.collisions.episodes >= 0);
+  return measured.length ? measured.filter((run) => run.collisions.episodes > 0).length : null;
+}
+
+function comparisonAnalysis(report, invalid) {
+  const byCase = [];
+  const paired = [];
+  for (const caseId of new Set(report.runs.map((run) => run.case_id))) {
+    const runs = report.runs.filter((run) => run.case_id === caseId);
+    const metadata = comparisonCaseMetadata(caseId);
+    for (const method of report.protocol.methods) {
+      const group = runs.filter((run) => run.method === method);
+      const measured = group.filter(comparisonMeasured);
+      const successes = measured.filter((run) => run.expected_outcome === "success" && run.success);
+      const reasons = new Map();
+      for (const run of group) {
+        if (run.failure_reason && !(comparisonMeasured(run) && run.expected_outcome === "safe_stop" && run.safety_pass === true)) {
+          reasons.set(run.failure_reason, (reasons.get(run.failure_reason) || 0) + 1);
+        }
+      }
+      byCase.push({
+        case_id: caseId, ...metadata, method,
+        attempts: measured.length, successes: successes.length,
+        safety_passes: measured.filter((run) => run.expected_outcome === "safe_stop" && run.safety_pass === true).length,
+        infrastructure_failures: group.filter((run) => run.infrastructure_errors.length > 0).length,
+        pending_runs: group.filter((run) => run.infrastructure_errors.length === 0 && !comparisonMeasured(run)).length,
+        collision_runs: comparisonCollisionCount(group),
+        wall_s: comparisonDistribution(measured.map((run) => run.end_to_end_wall_s)),
+        success_wall_s: comparisonDistribution(successes.map((run) => run.end_to_end_wall_s)),
+        request_latency_s: comparisonDistribution(group.filter((run) => run.method === "gpt").flatMap((run) => run.history.map((item) => item.latency_s))),
+        failure_reasons: [...reasons.keys()].sort().map((reason) => ({ reason, count: reasons.get(reason) })),
+      });
+    }
+    if (metadata.expected_outcome !== "success" || !["rule", "gpt"].every((method) => report.protocol.methods.includes(method))) continue;
+    const item = {
+      case_id: caseId, goal: metadata.goal, target_object: metadata.target_object,
+      complete_pairs: 0, matched_success_pairs: 0, rule_only_successes: 0,
+      gpt_only_successes: 0, both_failed: 0, excluded_pairs: 0,
+    };
+    const deltas = [];
+    for (const repetition of new Set(runs.map((run) => run.repetition ?? 1))) {
+      const pair = ["rule", "gpt"].map((method) => runs.find((run) => run.method === method && (run.repetition ?? 1) === repetition));
+      if (!pair.every((run) => run && comparisonMeasured(run))) {
+        item.excluded_pairs += 1;
+        continue;
+      }
+      for (const key of ["initial_state_fingerprint", "initial_observation_fingerprint", "initial_model_fingerprint"]) {
+        if (typeof pair[0][key] !== "string" || !pair[0][key] || pair[0][key] !== pair[1][key]) invalid();
+      }
+      item.complete_pairs += 1;
+      const [rule, gpt] = pair;
+      if (rule.success && gpt.success) {
+        item.matched_success_pairs += 1;
+        if (rule.end_to_end_wall_s !== null && gpt.end_to_end_wall_s !== null) deltas.push(gpt.end_to_end_wall_s - rule.end_to_end_wall_s);
+      } else if (rule.success) item.rule_only_successes += 1;
+      else if (gpt.success) item.gpt_only_successes += 1;
+      else item.both_failed += 1;
+    }
+    paired.push({ ...item, delta_wall_s: comparisonDistribution(deltas) });
+  }
+  return { by_case: byCase, paired };
+}
 
 function validateComparison(report) {
   const count = (value) => Number.isSafeInteger(value) && value >= 0;
@@ -270,20 +378,63 @@ function validateComparison(report) {
   const selection = (values, allowed) => Array.isArray(values) && values.length > 0
     && new Set(values).size === values.length && values.every((value) => allowed.includes(value));
   const invalid = () => { throw new Error("闭环报告字段缺失、数值无效或汇总与原始记录不一致；不显示可能误导的成功率。请查看原始 JSON。"); };
+  const expanded = report?.protocol?.suite === "expanded";
   if (!report || report.kind !== "paired_closed_loop_comparison"
       || !["running", "completed", "failed"].includes(report.status)
       || typeof report.generated_at !== "string" || !Number.isFinite(Date.parse(report.generated_at))
       || !selection(report.protocol?.methods, Object.keys(comparisonMethods))
-      || !selection(report.protocol?.cases, comparisonCases)
+      || !selection(report.protocol?.cases, expanded ? expandedComparisonCases : comparisonCases)
       || !Array.isArray(report.runs) || !Array.isArray(report.summary)
       || !validError(report.error)) invalid();
+  const protocol = report.protocol;
+  const repetitions = expanded ? protocol.repetitions : 1;
+  const total = protocol.methods.length * protocol.cases.length * repetitions;
+  if (!count(repetitions) || repetitions < 1 || !count(total) || protocol.planned_runs !== total
+      || !seconds(protocol.validation_hold_s) || protocol.validation_hold_s === 0
+      || (protocol.suite !== undefined && !["expanded", "original"].includes(protocol.suite))) invalid();
+  const identity = (item) => `${item.case_id}:${item.repetition ?? 1}:${item.method}`;
+  const specs = new Map();
+  const schedule = new Set();
+  if (expanded) {
+    if (!count(protocol.seed) || !Array.isArray(protocol.case_specs)
+        || protocol.case_specs.length !== protocol.cases.length
+        || !Array.isArray(protocol.schedule) || protocol.schedule.length !== total
+        || protocol.randomization?.xy_jitter_m !== 0.003
+        || protocol.randomization?.yaw_range_rad !== 0.06
+        || protocol.randomization?.repeats_share_initial_state !== true) invalid();
+    for (const [index, spec] of protocol.case_specs.entries()) {
+      if (!spec || spec.case_id !== protocol.cases[index] || specs.has(spec.case_id)
+          || typeof spec.label !== "string" || !spec.label.trim()
+          || typeof spec.task !== "string" || !spec.task.trim()
+          || !Array.isArray(spec.preparation_skills) || !spec.preparation_skills.every((skill) => Object.hasOwn(primitiveLabels, skill))
+          || !Object.entries(comparisonCaseMetadata(spec.case_id)).every(([key, value]) => spec[key] === value)) invalid();
+      const scene = spec.scene;
+      const offset = spec.case_id === "table_right" ? [0.04, 0] : spec.case_id === "table_forward" ? [0, 0.04] : [0, 0];
+      if (!scene || typeof scene.case_id !== "string" || !scene.case_id
+          || typeof scene.position_label !== "string" || !scene.position_label
+          || scene.target_object !== spec.target_object || scene.seed !== protocol.seed
+          || !Array.isArray(scene.offset_xy_m) || scene.offset_xy_m.length !== 2
+          || !scene.offset_xy_m.every((value, axis) => Number.isFinite(value) && Math.abs(value - offset[axis]) <= protocol.randomization.xy_jitter_m + 1e-12)
+          || !Number.isFinite(scene.yaw_rad) || Math.abs(scene.yaw_rad) > protocol.randomization.yaw_range_rad) invalid();
+      specs.set(spec.case_id, spec);
+    }
+    for (const item of protocol.schedule) {
+      if (!item || !protocol.methods.includes(item.method) || !specs.has(item.case_id)
+          || !count(item.repetition) || item.repetition < 1 || item.repetition > repetitions
+          || schedule.has(identity(item))) invalid();
+      schedule.add(identity(item));
+    }
+    const goals = new Set(protocol.case_specs.map((spec) => spec.goal));
+    if (protocol.goal !== (goals.size === 1 ? [...goals][0] : "mixed")) invalid();
+  } else if (protocol.goal !== "store_and_home" || (protocol.repetitions !== undefined && protocol.repetitions !== 1)) invalid();
+  const fingerprints = new Map();
   const pairs = new Set();
   for (const run of report.runs) {
     if (!run || !report.protocol.methods.includes(run.method) || !report.protocol.cases.includes(run.case_id)
         || typeof run.label !== "string" || !run.label.trim()
         || typeof run.status !== "string" || !run.status.trim()
         || !["success", "safe_stop"].includes(run.expected_outcome)
-        || run.expected_outcome !== (["closed_empty", "disturbed"].includes(run.case_id) ? "safe_stop" : "success")
+        || run.expected_outcome !== comparisonCaseMetadata(run.case_id).expected_outcome
         || typeof run.success !== "boolean"
         || (run.expected_outcome === "success" ? run.safety_pass !== null : typeof run.safety_pass !== "boolean" && run.safety_pass !== null)
         || (run.expected_outcome === "safe_stop" && run.success)
@@ -296,17 +447,51 @@ function validateComparison(report) {
     if (!Array.isArray(run.infrastructure_errors) || !run.infrastructure_errors.every((error) => error && validError(error))
         || !Array.isArray(run.history) || !run.history.every((item) => item && nullableSeconds(item.latency_s))
         || (run.method === "gpt" && run.gpt_request_count !== run.history.length)) invalid();
-    const pair = `${run.method}:${run.case_id}`;
+    const metadata = comparisonCaseMetadata(run.case_id);
+    const repetition = run.repetition ?? 1;
+    if (!count(repetition) || repetition < 1 || repetition > repetitions
+        || Object.entries(metadata).some(([key, value]) => run[key] !== undefined && run[key] !== value)) invalid();
+    if (expanded) {
+      const spec = specs.get(run.case_id);
+      if (run.repetition === undefined || run.goal !== spec.goal || run.target_object !== spec.target_object
+          || run.label !== spec.label || !comparisonEqual(run.scene_case, spec.scene) || !schedule.has(identity(run))) invalid();
+      if (run.infrastructure_errors.length === 0) {
+        for (const key of ["initial_state_fingerprint", "initial_observation_fingerprint", "initial_model_fingerprint"]) {
+          if (run[key] === null || run[key] === undefined) {
+            if (comparisonMeasured(run)) invalid();
+            continue;
+          }
+          if (typeof run[key] !== "string" || !run[key]) invalid();
+          const fingerprintKey = `${run.case_id}:${key}`;
+          if (fingerprints.has(fingerprintKey) && fingerprints.get(fingerprintKey) !== run[key]) invalid();
+          fingerprints.set(fingerprintKey, run[key]);
+        }
+      }
+    }
+    if ((run.success || run.safety_pass === true)
+        && (!comparisonMeasured(run) || run.stop_kind === "provider_failure"
+          || run.pairing_failed === true || run.model_invariant !== true
+          || !run.initial_model_fingerprint || run.final_model_fingerprint !== run.initial_model_fingerprint
+          || run.collisions?.episodes !== 0 || !Array.isArray(run.final_state?.warnings)
+          || run.final_state.warnings.length || run.final_state.target_object !== metadata.target_object)) invalid();
+    if (run.success && (run.validation?.status !== "succeeded"
+        || run.validation_sim_s + 1e-6 < protocol.validation_hold_s
+        || !comparisonGoalChecks[metadata.goal].every((key) => run.goal_checks?.[metadata.goal]?.[key] === true
+          && run.final_state?.goal_checks?.[metadata.goal]?.[key] === true
+          && run.validation?.before?.goal_checks?.[metadata.goal]?.[key] === true
+          && run.validation?.after?.goal_checks?.[metadata.goal]?.[key] === true))) invalid();
+    const pair = identity(run);
     if (pairs.has(pair)) invalid();
     pairs.add(pair);
   }
-  if (report.status === "completed" && pairs.size !== report.protocol.methods.length * report.protocol.cases.length) invalid();
+  if (report.status === "completed" && (pairs.size !== total
+      || report.runs.some((run) => ["setting_up", "running"].includes(run.status)))) invalid();
   if (report.summary.length !== report.protocol.methods.length
       || new Set(report.summary.map((item) => item?.method)).size !== report.summary.length) invalid();
   for (const summary of report.summary) {
     if (!summary || !report.protocol.methods.includes(summary.method)) invalid();
     const runs = report.runs.filter((run) => run.method === summary.method);
-    const measured = runs.filter((run) => run.infrastructure_errors.length === 0 && !["setting_up", "running"].includes(run.status));
+    const measured = runs.filter(comparisonMeasured);
     const goals = measured.filter((run) => run.expected_outcome === "success");
     const safety = measured.filter((run) => run.expected_outcome === "safe_stop");
     const expected = {
@@ -330,6 +515,16 @@ function validateComparison(report) {
         || (expected.goal_successes === 0 && summary.mean_success_end_to_end_wall_s !== null)
         || (expected.goal_attempts === 0 && summary.mean_end_to_end_wall_s !== null)
         || (expected.gpt_request_count === 0 && summary.mean_gpt_latency_s !== null)) invalid();
+    const means = {
+      mean_end_to_end_wall_s: comparisonDistribution(goals.map((run) => run.end_to_end_wall_s)).mean,
+      mean_success_end_to_end_wall_s: comparisonDistribution(goals.filter((run) => run.success).map((run) => run.end_to_end_wall_s)).mean,
+      mean_gpt_latency_s: comparisonDistribution(runs.filter((run) => run.method === "gpt").flatMap((run) => run.history.map((item) => item.latency_s))).mean,
+      collision_runs: comparisonCollisionCount(runs),
+    };
+    if (!Object.entries(means).every(([key, value]) => comparisonEqual(summary[key], value, key))) invalid();
+  }
+  if (expanded || report.analysis !== undefined) {
+    if (!comparisonEqual(report.analysis, comparisonAnalysis(report, invalid))) invalid();
   }
 }
 
@@ -341,6 +536,41 @@ function comparisonRow(texts) {
     row.append(cell);
   }
   return row;
+}
+
+function renderComparisonAnalysis(report) {
+  const repetitions = report.protocol.repetitions ?? 1;
+  const distribution = (item) => item.n === 0 ? "n=0 · 未测量"
+    : `${item.n} / ${number(item.mean, 3)} / ${item.sd === null ? "不适用（n<2）" : number(item.sd, 3)} / ${number(item.min, 3)} / ${number(item.max, 3)}`;
+  const caseLabel = (caseId) => {
+    const metadata = comparisonCaseMetadata(caseId);
+    const label = report.protocol.case_specs?.find((spec) => spec.case_id === caseId)?.label || caseId;
+    return `${label} (${caseId})\n${goalLabels[metadata.goal]} (${metadata.goal})\n物体：${metadata.target_object}`;
+  };
+  comparisonUi["by-case"].replaceChildren(...report.protocol.cases.flatMap((caseId) => report.protocol.methods.map((method) => {
+    const item = report.analysis.by_case.find((entry) => entry.case_id === caseId && entry.method === method);
+    if (!item) return comparisonRow([`${caseLabel(caseId)}\n${comparisonMethods[method]}`, `尚未记录：${repetitions}；无有效已结束试次`, "未测量", "未测量", "未测量", "未测量"]);
+    const missing = repetitions - item.attempts - item.infrastructure_failures - item.pending_runs;
+    return comparisonRow([
+      `${caseLabel(caseId)}\n${comparisonMethods[method]}`,
+      `${item.expected_outcome === "safe_stop" ? `安全通过 ${item.safety_passes}` : `任务完成 ${item.successes}`} / ${item.attempts}\n基础设施 ${item.infrastructure_failures} / 进行中 ${item.pending_runs} / 尚未记录 ${missing}`,
+      distribution(item.wall_s), distribution(item.success_wall_s), distribution(item.request_latency_s),
+      `碰撞试次：${item.collision_runs === null ? "未测量" : item.collision_runs}\n${item.failure_reasons.map((entry) => `${entry.count} × ${entry.reason}`).join("\n") || "无记录的非预期失败原因"}`,
+    ]);
+  })));
+  const pairedRows = ["rule", "gpt"].every((method) => report.protocol.methods.includes(method))
+    ? report.protocol.cases.filter((caseId) => comparisonCaseMetadata(caseId).expected_outcome === "success").map((caseId) => {
+      const item = report.analysis.paired.find((entry) => entry.case_id === caseId);
+      if (!item) return comparisonRow([caseLabel(caseId), "尚无完整配对", "未测量", `0 / ${repetitions}`, "n=0 · 未测量"]);
+      return comparisonRow([
+        caseLabel(caseId), `${item.complete_pairs} / ${item.matched_success_pairs}`,
+        `${item.rule_only_successes} / ${item.gpt_only_successes} / ${item.both_failed}`,
+        `${item.excluded_pairs} / ${repetitions - item.complete_pairs - item.excluded_pairs}`,
+        distribution(item.delta_wall_s),
+      ]);
+    }) : [comparisonRow(["未同时选择规则与 GPT，不计算配对", "不适用", "不适用", "不适用", "未测量"])];
+  comparisonUi.paired.replaceChildren(...pairedRows);
+  comparisonUi.analysis.hidden = false;
 }
 
 async function loadPlanningComparison() {
@@ -355,6 +585,9 @@ async function loadPlanningComparison() {
   comparisonUi.report.hidden = true;
   comparisonUi.summary.replaceChildren();
   comparisonUi.runs.replaceChildren();
+  comparisonUi.analysis.hidden = true;
+  comparisonUi["by-case"].replaceChildren();
+  comparisonUi.paired.replaceChildren();
   const time = (value) => value === null ? "未测量" : number(value, 3);
   try {
     const response = await fetch(reportUrl, { cache: "no-store" });
@@ -362,30 +595,35 @@ async function loadPlanningComparison() {
     if (!response.ok) throw new Error(`闭环对照报告读取失败（HTTP ${response.status}）；未使用替代数据。`);
     const report = await response.json();
     validateComparison(report);
-    const total = report.protocol.methods.length * report.protocol.cases.length;
-    const subset = report.protocol.methods.length !== 3 || report.protocol.cases.length !== comparisonCases.length;
-    comparisonUi.status.textContent = `「${label}」${{ running: "未完成 · 运行中", failed: "未完成 / 执行失败 · 保留原始记录", completed: "所选矩阵已完成（不代表全部成功）" }[report.status]}：已记录 ${report.runs.length} / ${total} 对。${subset ? "仅为所选场景和方法的补充子集，不与原始完整矩阵合并计分。" : ""}${report.runs.length === 0 ? "暂无运行记录，不能计算成功率。" : ""}`;
-    comparisonUi.meta.textContent = `生成时间：${report.generated_at}。案例：${report.protocol.cases.join("、")}。目标：store_and_home。安全例不计入正例完成率，各批次独立统计。`;
+    const total = report.protocol.planned_runs;
+    const repetitions = report.protocol.repetitions ?? 1;
+    const mixed = report.protocol.goal === "mixed";
+    const pending = report.summary.reduce((sum, item) => sum + item.pending_runs, 0);
+    const infrastructure = report.summary.reduce((sum, item) => sum + item.infrastructure_failures, 0);
+    comparisonUi.status.textContent = `「${label}」${{ running: "未完成 · 运行中", failed: "未完成 / 执行失败 · 保留原始记录", completed: "所选矩阵已完成（不代表全部成功）" }[report.status]}：已记录 ${report.runs.length} / ${total} 次；进行中 ${pending}；基础设施无效 ${infrastructure}；尚未记录 ${total - report.runs.length}。只统计当前批次，不与历史批次合并。${report.runs.length === 0 ? "暂无运行记录，不能计算成功率。" : ""}`;
+    const randomization = report.protocol.randomization;
+    comparisonUi.meta.textContent = `生成时间：${report.generated_at}。案例：${report.protocol.cases.join("、")}。目标：${mixed ? "多任务（逐场景分开统计）" : report.protocol.goal}。每场景/方法 ${repetitions} 次。${randomization ? `种子 ${report.protocol.seed}；XY 抖动 ±${number(randomization.xy_jitter_m * 1000, 1)} mm；偏航 ±${number(randomization.yaw_range_rad, 3)} rad；同场景各方法与重复共享同一初态，非独立场景抽样。` : "历史单次配对，不能估计重复变异。"}安全例不计入正例完成率，各批次独立统计。`;
     comparisonUi.summary.replaceChildren(...["rule", "gpt", "fixed"]
       .filter((method) => report.protocol.methods.includes(method))
       .map((method) => {
         const item = report.summary.find((summary) => summary.method === method);
         const safetyUnknown = report.runs.filter((run) => run.method === method && run.expected_outcome === "safe_stop" && run.infrastructure_errors.length === 0 && !["setting_up", "running"].includes(run.status) && run.safety_pass === null).length;
         return comparisonRow([
-          `${comparisonMethods[method]}\n基础设施无效：${item.infrastructure_failures}；进行中：${item.pending_runs}（不计分母）`,
+          `${comparisonMethods[method]}\n基础设施无效：${item.infrastructure_failures}；进行中：${item.pending_runs}；尚未记录：${report.protocol.cases.length * repetitions - report.runs.filter((run) => run.method === method).length}（均不计分母）`,
           item.goal_attempts ? `${item.goal_successes} / ${item.goal_attempts}（${number(item.goal_success_rate * 100, 1)}%）` : "无有效已结束正例 · 不计算",
           item.safety_attempts ? `${item.safety_passes} / ${item.safety_attempts}${safetyUnknown ? `\n其中 ${safetyUnknown} 例未测量` : ""}` : "无有效已结束安全例 · 不计算",
           `${item.executed_skill_count} / ${item.gpt_request_count}`,
-          `${time(item.mean_end_to_end_wall_s)}（已计时 ${item.timed_goal_attempts}/${item.goal_attempts}）\n${time(item.mean_success_end_to_end_wall_s)}（已计时 ${item.timed_successes}/${item.goal_successes}）`,
-          `${time(item.mean_gpt_latency_s)}（已计时 ${item.timed_gpt_requests}/${item.gpt_request_count}）`,
+          mixed ? "混合任务不合并均值；见逐场景表" : `${time(item.mean_end_to_end_wall_s)}（已计时 ${item.timed_goal_attempts}/${item.goal_attempts}）\n${time(item.mean_success_end_to_end_wall_s)}（已计时 ${item.timed_successes}/${item.goal_successes}）`,
+          mixed ? "混合任务不合并均值；见逐场景表" : `${time(item.mean_gpt_latency_s)}（已计时 ${item.timed_gpt_requests}/${item.gpt_request_count}）`,
         ]);
       }));
+    if (report.analysis) renderComparisonAnalysis(report);
     comparisonUi.runs.replaceChildren(...report.runs.map((run) => comparisonRow([
-      `${run.label} (${run.case_id})\n${comparisonMethods[run.method]}\n预期：${run.expected_outcome === "success" ? "完成任务" : "安全停止（不算任务成功）"}`,
+      `${run.label} (${run.case_id}) · 重复 ${run.repetition ?? 1}/${repetitions}\n目标：${run.goal ?? "store_and_home"} · 物体：${run.target_object ?? "bowl"}\n${run.scene_case ? `位姿：${run.scene_case.position_label} · XY [${run.scene_case.offset_xy_m.map((value) => number(value, 4)).join(", ")}] m · yaw ${number(run.scene_case.yaw_rad, 4)} rad · seed ${run.scene_case.seed}\n` : ""}${comparisonMethods[run.method]}\n预期：${run.expected_outcome === "success" ? "完成任务" : "安全停止（不算任务成功）"}`,
       `${run.status}${run.infrastructure_errors.length ? "\n基础设施失败，不计完成率" : ["setting_up", "running"].includes(run.status) ? "\n尚未结束，不计完成率" : ""}\n任务完成：${run.success ? "是（物理验证）" : "否"}\n安全验收：${run.expected_outcome === "success" ? "不适用（正例）" : run.safety_pass === null ? "未测量" : run.safety_pass ? "通过" : "未通过"}`,
       `${run.executed_skill_count} / ${run.decision_count} / ${run.gpt_request_count}`,
       `${time(run.execution_sim_s)} / ${time(run.evaluation_sim_s)} / ${time(run.validation_sim_s)}`,
-      `${time(run.end_to_end_wall_s)} / ${time(run.gpt_latency_s)}`,
+      `${time(run.end_to_end_wall_s)} / ${run.gpt_request_count ? time(run.gpt_latency_s) : "无 GPT 请求"}`,
       run.failure_reason || "未报告失败原因",
     ])));
     comparisonUi.report.hidden = false;
@@ -397,7 +635,7 @@ async function loadPlanningComparison() {
       comparisonUi.error.hidden = false;
     } else if (providerFailures.length) {
       const reasons = [...new Set(providerFailures.map((run) => run.failure_reason).filter(Boolean))].join("；");
-      comparisonUi.error.textContent = `${providerFailures.length} 个 GPT 场景出现提供方失败：${reasons} 本表完成率包含服务可用性影响，不是模型推理能力排名；安全例未验收不能当作模型不安全的证据。`;
+      comparisonUi.error.textContent = `本存储批次中 ${providerFailures.length} 次 GPT 运行出现提供方失败：${reasons} 这是该批次归档证据，不表示当前账户状态。本表完成率包含当时服务可用性影响，不是模型推理能力排名；安全例未验收不能当作模型不安全的证据。`;
       comparisonUi.error.hidden = false;
     }
   } catch (error) {

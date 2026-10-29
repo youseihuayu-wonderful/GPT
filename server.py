@@ -29,6 +29,7 @@ ROOT = Path(__file__).resolve().parent
 COMPARISON_REPORTS = {
     "initial": "planning_comparison.json",
     "followup": "planning_comparison_followup.json",
+    "expanded": "planning_comparison_expanded.json",
 }
 SIMULATION = web.AppKey("simulation", Simulation)
 CLIENTS = web.AppKey("clients", set)
@@ -274,7 +275,7 @@ async def planning_comparison(request: web.Request) -> web.Response:
         raise web.HTTPBadRequest(text="一次只能选择一个实验批次")
     batch = batches[0] if batches else "initial"
     if batch not in COMPARISON_REPORTS:
-        raise web.HTTPBadRequest(text="未知实验批次；请选择 initial 或 followup")
+        raise web.HTTPBadRequest(text="未知实验批次；请选择 initial、followup 或 expanded")
     filename = COMPARISON_REPORTS[batch]
     try:
         report = json.loads((ROOT / "results" / filename).read_text(encoding="utf-8"))
