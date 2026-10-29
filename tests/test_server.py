@@ -1,9 +1,11 @@
 """Local aiohttp lifecycle regressions; no model or external network calls."""
 
 import asyncio
+import gzip
 import json
 from pathlib import Path
 import tempfile
+import threading
 import mujoco
 import unittest
 from unittest.mock import AsyncMock, patch
@@ -586,6 +588,123 @@ class SortingServerTests(unittest.IsolatedAsyncioTestCase):
             self.sim.data.time, self.sim.data.qpos.tolist(),
             self.sim.data.qvel.tolist(), self.sim.data.ctrl.tolist(),
         )
+
+    async def test_frozen_report_refresh_and_download_are_read_only_and_responsive(self) -> None:
+        before = self.physical_state()
+        planner_before = self.planner.state()
+        reading, release = threading.Event(), threading.Event()
+        with tempfile.TemporaryDirectory() as directory, patch("server.ROOT", Path(directory)):
+            output = Path(directory) / "results" / "sorting_frozen_evaluation"
+            output.mkdir(parents=True)
+            record = output / "fixture-run.json.gz"
+            record.write_bytes(gzip.compress(b'{"fixture":"not model evidence"}', mtime=0))
+
+            def load(path):
+                reading.set()
+                if not release.wait(5):
+                    raise TimeoutError("Blocked report reader was never released")
+                return {"status": "running"}
+
+            with patch("evaluate_sorting.load_evaluation_report", side_effect=load):
+                pending = asyncio.create_task(self.client.get("/api/sorting-evaluation"))
+                try:
+                    self.assertTrue(await asyncio.to_thread(reading.wait, 5))
+                    self.assertFalse(pending.done())
+                    state = await asyncio.wait_for(self.client.get("/api/state"), timeout=2)
+                    self.assertEqual(state.status, 200)
+                finally:
+                    release.set()
+                response = await pending
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.headers["Cache-Control"], "no-store")
+            with patch("evaluate_sorting.evaluation_run_path", return_value=record):
+                response = await self.client.get("/api/sorting-evaluation/runs/fixture-run")
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.headers["Content-Type"], "application/gzip")
+                self.assertEqual(response.headers["Cache-Control"], "no-store")
+                await response.read()
+        self.assertEqual(self.physical_state(), before)
+        self.assertEqual(self.planner.state(), planner_before)
+        self.assertTrue(self.app[server.CONTROLS].paused)
+        self.provider.assert_not_awaited()
+
+    async def test_frozen_report_missing_invalid_and_unsafe_downloads_never_fall_back(self) -> None:
+        before = self.physical_state()
+        with tempfile.TemporaryDirectory() as directory, patch("server.ROOT", Path(directory)):
+            results = Path(directory) / "results"
+            results.mkdir()
+            (results / "sorting_comparison.json").write_text('{"old":"not_a_fallback"}')
+            response = await self.client.get("/api/sorting-evaluation")
+            self.assertEqual(response.status, 404)
+            output = results / "sorting_frozen_evaluation"
+            output.mkdir()
+            (output / "summary.json").write_text("{")
+            response = await self.client.get("/api/sorting-evaluation")
+            self.assertEqual(response.status, 500)
+            self.assertNotIn("not_a_fallback", await response.text())
+            self.assertEqual(response.headers["Cache-Control"], "no-store")
+            with patch("evaluate_sorting.evaluation_run_path") as locate:
+                for run_id in ("..", "%2E%2E%2Fprivate", "private.json", "x%22", "%2Fetc%2Fpasswd"):
+                    response = await self.client.get(f"/api/sorting-evaluation/runs/{run_id}")
+                    self.assertEqual(response.status, 404)
+                locate.assert_not_called()
+            for error in (FileNotFoundError("missing"), ValueError("unregistered or unsafe")):
+                with patch("evaluate_sorting.evaluation_run_path", side_effect=error):
+                    response = await self.client.get("/api/sorting-evaluation/runs/unregistered")
+                    self.assertEqual(response.status, 404)
+            self.assertEqual((await self.client.post("/api/sorting-evaluation")).status, 405)
+            self.assertEqual((await self.client.post("/api/sorting-evaluation/runs/fixture")).status, 405)
+        self.assertEqual(self.physical_state(), before)
+        self.assertTrue(self.app[server.CONTROLS].paused)
+        self.provider.assert_not_awaited()
+
+    async def test_declared_layout_changes_real_positions_and_survives_reset(self) -> None:
+        from sorting_evaluation import load_protocol
+
+        protocol = load_protocol()
+        layout_id = protocol["layouts"][0]["id"]
+        with patch("sorting_planning.PlannerConfig.load",
+                   return_value=PlannerConfig("/fixture/codex", protocol["requested_model"])):
+            app = server.create_app(scene="sorting", sorting_layout=layout_id)
+            app[server.CONTROLS].paused = True
+            client = TestClient(TestServer(app))
+            self.addAsyncCleanup(client.close)
+            await client.start_server()
+            body = app[server.SIMULATION].model.body("red_bowl_object").id
+            self.assertAlmostEqual(float(app[server.SIMULATION].data.xpos[body, 0]),
+                                   protocol["layouts"][0]["poses"]["red_bowl"]["x_m"], delta=0.002)
+            response = await client.get("/api/state")
+            observed = await response.json()
+            self.assertEqual(observed["sorting_layout"], layout_id)
+            self.assertNotIn("sorting_layout", observed["planner"])
+            self.assertNotIn("sorting_layout", app[server.SIMULATION].state())
+            initial = app[server.SIMULATION].data.qpos.tolist()
+            ws = await client.ws_connect("/ws")
+            await ws.receive_json()
+            await ws.send_json({"action": "reset"})
+            reset = await self.receive_state(ws, lambda state: state["scene_revision"] != observed["scene_revision"])
+            self.assertEqual(reset["sorting_layout"], layout_id)
+            self.assertTrue(reset["paused"])
+            self.assertEqual(app[server.SIMULATION].data.qpos.tolist(), initial)
+            await ws.close()
+        self.provider.assert_not_awaited()
+
+    async def test_layout_validation_and_default_sorting_start_without_protocol(self) -> None:
+        with patch("sorting_evaluation.load_protocol", side_effect=AssertionError("default must not load")):
+            app = server.create_app(scene="sorting")
+            app[server.CONTROLS].paused = True
+            client = TestClient(TestServer(app))
+            self.addAsyncCleanup(client.close)
+            await client.start_server()
+            response = await client.get("/api/state")
+            self.assertEqual(response.status, 200)
+            self.assertIsNone((await response.json())["sorting_layout"])
+            with self.assertRaises(ValueError):
+                server.create_app(sorting_layout="right18")
+        for layout in ("unknown", "", "../right18"):
+            with self.assertRaises(ValueError):
+                server.create_app(scene="sorting", sorting_layout=layout)
+        self.provider.assert_not_awaited()
 
     async def test_sorting_state_uses_own_session_without_legacy_skill(self) -> None:
         observed = self.sim.state()

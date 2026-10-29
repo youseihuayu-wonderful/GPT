@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import json
 import logging
+import re
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
@@ -39,6 +40,8 @@ CONTROLS = web.AppKey("controls", Controls)
 PLANNING = web.AppKey[PlanningSession | SortingPlanningSession]("planning")
 SCENE_CASE = web.AppKey("scene_case", SceneCase)
 SCENE = web.AppKey("scene", str)
+SORTING_LAYOUT = web.AppKey[str | None]("sorting_layout")
+SORTING_PROTOCOL = web.AppKey("sorting_protocol", dict)
 FRAME_PERIOD = 0.05
 LOGGER = logging.getLogger(__name__)
 WORKER_FAILURE_MESSAGE = "仿真工作线程已停止；请查看服务日志并重启本地服务后重新连接。"
@@ -54,6 +57,8 @@ def public_state(app: web.Application) -> dict:
     state["planner"] = app[PLANNING].state(
         state["sorting"] if app[SCENE] == "sorting" else state["skill"]
     )
+    if app[SCENE] == "sorting":
+        state["sorting_layout"] = app[SORTING_LAYOUT]
     return state
 
 
@@ -125,7 +130,12 @@ async def lifecycle(app: web.Application):
     if app[SCENE] == "sorting":
         from sorting import SortingSimulation
 
-        app[SIMULATION] = SortingSimulation()
+        if app[SORTING_LAYOUT] is None:
+            app[SIMULATION] = SortingSimulation()
+        else:
+            from sorting_evaluation import make_simulation
+
+            app[SIMULATION] = make_simulation(app[SORTING_PROTOCOL], app[SORTING_LAYOUT])
         app[PLANNING] = SortingPlanningSession(ROOT, app[SIMULATION])
     else:
         app[SIMULATION] = Simulation(app[SCENE_CASE])
@@ -336,6 +346,51 @@ async def planning_comparison(request: web.Request) -> web.Response:
     })
 
 
+async def sorting_evaluation_report(request: web.Request) -> web.Response:
+    from evaluate_sorting import load_evaluation_report
+
+    try:
+        report = await asyncio.to_thread(
+            load_evaluation_report, ROOT / "results" / "sorting_frozen_evaluation",
+        )
+    except FileNotFoundError as exc:
+        raise web.HTTPNotFound(
+            text="尚无冻结版本分拣评估报告；不会显示旧批次或启动试验。",
+            headers={"Cache-Control": "no-store"},
+        ) from exc
+    except (OSError, ValueError) as exc:
+        raise web.HTTPInternalServerError(
+            text=f"冻结版本分拣评估报告无效：{exc}",
+            headers={"Cache-Control": "no-store"},
+        ) from exc
+    return web.json_response(report, headers={
+        "Cache-Control": "no-store",
+        "Content-Disposition": 'attachment; filename="sorting_frozen_evaluation_summary.json"',
+    })
+
+
+async def sorting_evaluation_run(request: web.Request) -> web.FileResponse:
+    from evaluate_sorting import evaluation_run_path
+
+    run_id = request.match_info["run_id"]
+    headers = {"Cache-Control": "no-store"}
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", run_id) is None:
+        raise web.HTTPNotFound(text="未知或不安全的评估记录编号", headers=headers)
+    try:
+        path = await asyncio.to_thread(
+            evaluation_run_path, ROOT / "results" / "sorting_frozen_evaluation", run_id,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise web.HTTPNotFound(text="评估记录不存在或未通过完整性验证", headers=headers) from exc
+    except OSError as exc:
+        raise web.HTTPInternalServerError(text="无法读取评估记录", headers=headers) from exc
+    return web.FileResponse(path, headers={
+        **headers,
+        "Content-Type": "application/gzip",
+        "Content-Disposition": f'attachment; filename="{run_id}.json.gz"',
+    })
+
+
 async def asset(request: web.Request) -> web.FileResponse:
     name = request.match_info.get("name", "index.html")
     if name not in ("index.html", "app.js", "style.css"):
@@ -343,19 +398,35 @@ async def asset(request: web.Request) -> web.FileResponse:
     return web.FileResponse(ROOT / "web" / name, headers={"Cache-Control": "no-cache"})
 
 
-def create_app(case: SceneCase = DEFAULT_CASE, *, scene: str = "storage") -> web.Application:
+def create_app(
+    case: SceneCase = DEFAULT_CASE, *, scene: str = "storage", sorting_layout: str | None = None,
+) -> web.Application:
     if scene not in ("storage", "sorting"):
         raise ValueError("scene 必须是 storage 或 sorting")
+    protocol = None
+    if sorting_layout is not None:
+        if scene != "sorting":
+            raise ValueError("sorting_layout 仅适用于 sorting 场景")
+        from sorting_evaluation import load_protocol
+
+        protocol = load_protocol()
+        if not any(layout["id"] == sorting_layout for layout in protocol["layouts"]):
+            raise ValueError(f"未知分拣布局：{sorting_layout}")
     app = web.Application(middlewares=[local_only])
     app[CLIENTS] = set()
     app[CONTROLS] = Controls()
     app[SCENE_CASE] = case
     app[SCENE] = scene
+    app[SORTING_LAYOUT] = sorting_layout
+    if protocol is not None:
+        app[SORTING_PROTOCOL] = protocol
     app.cleanup_ctx.append(lifecycle)
     app.router.add_get("/ws", websocket)
     app.router.add_get("/api/state", state)
     app.router.add_get("/api/experiments", experiments)
     app.router.add_get("/api/planning-comparison", planning_comparison)
+    app.router.add_get("/api/sorting-evaluation", sorting_evaluation_report)
+    app.router.add_get("/api/sorting-evaluation/runs/{run_id}", sorting_evaluation_run)
     app.router.add_get("/", asset)
     app.router.add_get("/{name}", asset)
     return app
@@ -366,9 +437,15 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--target", choices=tuple(TARGETS), default="bowl")
     parser.add_argument("--scene", choices=("storage", "sorting"), default="storage")
+    parser.add_argument("--sorting-layout", help="sorting 场景的预注册初始布局 ID")
     args = parser.parse_args()
     case = SceneCase(f"{args.target}.nominal", args.target, "nominal", 0, (0.0, 0.0), 0.0)
-    web.run_app(create_app(case, scene=args.scene), host="127.0.0.1", port=args.port, access_log=None)
+    if args.sorting_layout is not None and args.scene != "sorting":
+        parser.error("--sorting-layout 仅适用于 --scene sorting")
+    web.run_app(
+        create_app(case, scene=args.scene, sorting_layout=args.sorting_layout),
+        host="127.0.0.1", port=args.port, access_log=None,
+    )
 
 
 if __name__ == "__main__":

@@ -1,13 +1,16 @@
 """Independent task goals must not be rewritten by the model's own proposal."""
 
+import asyncio
 from copy import deepcopy
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import mujoco
 import numpy as np
 
-from compare_sorting import CASES, pairing_evidence, require_matches_case
+from compare_sorting import CASES, pairing_evidence, require_matches_case, run_case
+from evaluate_sorting import _infrastructure_failure
+from planner import PlannerConfig
 from sorting import SortingSimulation
 from sorting_contract import FIXED_PLAN, OBJECTS, SortStep, SortingPlan
 from verify_sorting import execute_and_verify, free_joint, observe_sorting
@@ -94,6 +97,48 @@ class SortingComparisonTests(unittest.TestCase):
         self.assertTrue(cup["bilateral_grip"])
         self.assertFalse(cup["supported"])
         self.assertFalse(record["passed"])
+
+
+class ComparisonFailureTests(unittest.IsolatedAsyncioTestCase):
+    async def test_real_session_internal_failure_is_not_a_scored_planning_failure(self):
+        record = {}
+        with patch("sorting_planning.PlannerConfig.load", return_value=PlannerConfig("/fixture/codex")), \
+                patch("sorting_planning.request_sorting_plan", side_effect=RuntimeError("injected internal failure")):
+            await run_case(CASES[0], "gpt", record)
+        self.assertFalse(record["passed"])
+        self.assertTrue(_infrastructure_failure(record))
+        self.assertEqual(record["planner"]["status"], "failed")
+        self.assertEqual(record["final_state"]["sorting"]["sorted_count"], 0)
+        self.assertIsNone(record["execution_wall_s"])
+
+    async def test_missing_subscription_transport_is_not_a_scored_planning_failure(self):
+        record = {}
+        with patch("sorting_planning.PlannerConfig.load", return_value=PlannerConfig(None)):
+            await run_case(CASES[0], "gpt", record)
+        self.assertTrue(_infrastructure_failure(record))
+        self.assertEqual(record["planner"]["calls"], 0)
+        self.assertIsNone(record["execution_wall_s"])
+
+    async def test_cleanup_interruption_preserves_primary_and_releases_simulation(self):
+        sim = SortingSimulation()
+        # An owned test resource must be released even during interrupted cleanup.
+        sim.renderer = AsyncMock()
+        sim.renderer.close = lambda: None
+        self.addCleanup(sim.close)
+        primary = asyncio.CancelledError("primary trial interruption")
+        secondary = asyncio.CancelledError("secondary cleanup interruption")
+        record, observed = {}, None
+        with patch("compare_sorting.SortingPlanningSession.start", side_effect=primary), \
+                patch("compare_sorting.SortingPlanningSession.close", side_effect=secondary):
+            try:
+                await run_case(CASES[0], "gpt", record, simulation_factory=lambda: sim)
+            except BaseException as exc:
+                observed = exc
+        self.assertIs(observed, primary)
+        self.assertIsNone(sim.renderer)
+        self.assertIsNotNone(record["final_physics"])
+        self.assertTrue(any(error.get("stage") == "planner_close" for error in record["errors"]))
+        self.assertGreaterEqual(record["wall_s"], 0)
 
 
 if __name__ == "__main__":

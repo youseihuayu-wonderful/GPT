@@ -283,10 +283,43 @@
           </div>
         </div>
       </section>
+      <section id="sorting-evaluation" class="experiments sorting-evaluation" aria-labelledby="evaluation-title" data-sorting-only hidden>
+        <div class="section-heading"><h2 id="evaluation-title">冻结版本分拣 · 独立评估存档</h2><button id="evaluation-refresh" type="button">刷新存档</button></div>
+        <p class="experiment-note">预注册的四种布局 × 两种等价任务表述 × 两种方法，每项仅一次。控制器、物理参数与提示保持冻结；失败保留，不重试、不替换。不属于随机独立抽样，不代表统计泛化能力或模型排名。</p>
+        <p class="experiment-note">此处仅读取独立评估文件，与上方实时场景无关。刷新与下载不会请求 GPT、重置或驱动机械臂。完成整批不等于全部成功；待运行、已失败和基础设施中止分开显示。未测量不记为零，提前失败耗时短不代表更快。</p>
+        <p id="evaluation-status" class="experiment-note" role="status">等待读取存档。</p>
+        <p id="evaluation-error" class="skill-failure" role="alert" hidden></p>
+        <div id="evaluation-report" hidden>
+          <p id="evaluation-meta" class="experiment-note"></p>
+          <p><a id="evaluation-download" href="/api/sorting-evaluation" download>下载经验证汇总 JSON（完整物理轨迹见逐次 gzip）</a></p>
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="冻结评估方法总账，可横向滚动">
+            <table class="experiment-table evaluation-summary">
+              <caption>方法总账 · 不合并历史批次，基础设施错误不算任务失败</caption>
+              <thead><tr><th scope="col">方法</th><th scope="col">计划 / 已尝试</th><th scope="col">成功 / 任务失败</th><th scope="col">待运行 / 基础设施错误</th></tr></thead>
+              <tbody id="evaluation-summary"></tbody>
+            </table>
+          </div>
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="冻结评估逐次记录，可横向滚动">
+            <table class="experiment-table evaluation-runs">
+              <caption>预注册顺序 · 仿真与墙钟分开，不相加；原始错误与轨迹永久保留</caption>
+              <thead><tr><th scope="col">布局 / 表述 / 方法 / 编号</th><th scope="col">状态 / 实测完成</th><th scope="col">执行仿真 / 独立最终保持 s</th><th scope="col">执行墙钟 / GPT 延迟 / 总墙钟 s</th><th scope="col">失败阶段 / 原因</th><th scope="col">证据</th></tr></thead>
+              <tbody id="evaluation-runs"></tbody>
+            </table>
+          </div>
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="冻结评估匹配配对，可横向滚动">
+            <table class="experiment-table evaluation-paired">
+              <caption>同布局、同表述且双方成功才列耗时差：GPT − 固定规则；不是总体速度估计</caption>
+              <thead><tr><th scope="col">布局 / 表述</th><th scope="col">配对结果</th><th scope="col">Δ执行仿真 s</th><th scope="col">Δ执行墙钟 s</th></tr></thead>
+              <tbody id="evaluation-paired"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     <section class="telemetry" aria-labelledby="telemetry-title">
       <div class="section-heading"><h2 id="telemetry-title">仿真器真值</h2><span>世界坐标 · 米</span></div>
       <dl class="metadata">
         <div><dt>场景</dt><dd id="scene-name">—</dd></div>
+        <div data-sorting-only hidden><dt>当前初始布局 · 非评估进度</dt><dd id="sorting-layout">—</dd></div>
         <div><dt>机械臂</dt><dd id="robot-name">—</dd></div>
         <div><dt>夹爪开度</dt><dd><output id="gripper">—</output> <small>mm</small></dd></div>
         <div><dt>接触数 / 物理步长</dt><dd><output id="contacts">—</output> / <output id="timestep">—</output> <small>ms</small></dd></div>

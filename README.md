@@ -89,6 +89,29 @@ uv run python -m unittest discover -s tests -v
 
 最终执行 `uv run python -m unittest discover -s tests -v`，**238 项全部通过**，原始输出见[完整回归日志](results/gpt_sorting_tests.log)。其中六种颜色映射各执行一条预先定义的重排队列，真实抓放、整批归位、独立目标检查与模型不变检查均通过，包含修正前失败的两条路径；这不是穷举所有物体顺序或未知布局成功率。协议测试中的受控提供方替身不算真实 GPT 调用，真实订阅证据仅来自上述独立实验和浏览器演示。
 
+### 冻结版本：新位置与等价任务表述
+
+[`sorting_evaluation_protocol.json`](sorting_evaluation_protocol.json) 已在执行前以提交 `1b477b1` 预注册。控制器、规划提示、物理资产、MuJoCo 版本、基线策略及请求模型标识冻结于 `8941027` 对应的版本；本轮不根据结果修改速度、接触搜索或抓取参数。
+
+- **4 个新布局 × 2 种等价表述 × 2 种方法 = 16 格，每格一次。** 布局分别为 X 平移 18 mm、Y 平移 −24 mm、交错位姿、交换颜色列。坐标是人工预先指定的，不是随机抽样；两种文字在同布局下的颜色目标和杯优先约束完全相同。
+- 固定规则接收结构化目标，GPT 接收自然语言与真实仿真状态；同一布局的四次执行必须具有完全一致的初始物理与编译模型指纹。两者使用原控制器，不能将差异解释为底层模型或速度不同。
+- 仅在初始化或显式重置时设置预注册位姿，再通过普通物理步进落稳。正常执行不改物体位姿、质量、碰撞体、约束或外力，不绑定物体，不自动重试或切换规则。
+- 按物理接触、抬升与放置顺序、正确区域和落点、稳定支撑、空手归位、内置及独立额外保持判定。未测量耗时保留为空；提前失败不算更快，只对两种方法都成功的配对计算耗时差。
+- 明确的模型拒绝、无效提案、目标不匹配或物理失败保留并继续；配置、未知提供方／内部错误、配对、冻结、清理或证据保存错误中止整批。中止与“全部已执行但有任务失败”分开记录，不把它们冒充通过。
+
+复现另存目录，不覆盖正式批次或旧失败：
+
+```sh
+uv run python evaluate_sorting.py --output results/sorting_frozen_evaluation_reproduction
+
+# 实时查看指定布局；不自动运行评估或请求模型
+uv run python server.py --scene sorting --sorting-layout swapped_columns --port 8766
+```
+
+每批保存原样协议、原子更新的 `summary.json` 和逐次完整 `runs/*.json.gz`，记录 SHA-256、实际提案、请求线程、物理轨迹和失败原因。输出目录必须不存在；不恢复未完成批次或用后来的成功替换失败。请求标识 `gpt-5.6-terra` 不等于服务端权重快照证明。
+
+分拣页面的“冻结版本分拣 · 独立评估存档”只读取正式目录 `results/sorting_frozen_evaluation`。刷新和下载不请求 GPT、不重置或驱动机械臂；缺失或无效报告明确报错，不退回旧报告。该存档与上方实时场景相互独立，选择复现输出目录不会自动替换页面所读批次。
+
 ### 固定颜色分拣基线（不调用 GPT）
 
 `sorting.py` / `sorting_scene.xml` 提供同一物理执行器与原固定规划基线；`sorting_contract.py` 定义独立物体身份和完整不可变计划，不改变原收纳模式。红、蓝、黄三色各有一只碗和一只无把手空心杯；颜色、身份和位姿来自仿真真值，不是视觉识别。杯底使用固定质量的复合盒碰撞近似，圆形底面渲染几何不参与碰撞；杯壁保持空心。碗复用原碰撞资产，只改变显示颜色。
@@ -714,6 +737,8 @@ uv run python benchmark.py --output results/comparison.json
 - `planning.py`：异步决策会话、显式授权、真实执行反馈、暂停／停止与迟到响应隔离。
 - `run_planning.py`：真实订阅闭环 CLI 与额外物理保持验证，不使用保存的模型答案代替请求。
 - `compare_planning.py`、`tests/test_compare_planning.py`：多初态闭环规划对照、失败边界与统计口径验证；完整原始记录见 `results/planning_comparison.json`。
+- `sorting_evaluation_protocol.json`、`sorting_evaluation.py`：预注册布局、等价目标、冻结指纹与仅限初始化的场景工厂。
+- `evaluate_sorting.py`：一次性执行预注册矩阵，配对校验、失败总账、压缩原始证据及只读报告接口。
 - `tests/test_planner.py`、`tests/test_planning.py`：决策边界、错误、取消竞争与物理结果同步检查；受控回复仅用于回归，不是 GPT 证据。
 - `.env.example`：不含密钥的本机配置示例；实际 `.env` 不入库。
 - `experiments.py`：独立真实物理参数对照入口。

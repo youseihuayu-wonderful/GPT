@@ -61,6 +61,7 @@ const ui = {
   sortingElapsed: byId("sorting-elapsed"), sortingHold: byId("sorting-hold"),
   sortingQueue: byId("sorting-queue"), sortingChecks: byId("sorting-checks"),
   sortingObjects: byId("sorting-objects"),
+  sortingLayout: byId("sorting-layout"),
 };
 let socket = null;
 let state = null;
@@ -77,6 +78,7 @@ let fatalRuntimeError = null;
 let sceneMode = null;
 let lastSorting = null;
 let storageReportsLoaded = false;
+let sortingReportLoaded = false;
 let sortingQueueKey = null;
 let sortingObjectsKey = null;
 let sortProposalKey = null;
@@ -689,6 +691,88 @@ async function loadPlanningComparison() {
     comparisonUi.batch.disabled = false;
   }
 }
+const evaluationUi = Object.fromEntries(
+  ["refresh", "status", "error", "report", "meta", "summary", "runs", "paired"].map((key) => [key, byId(`evaluation-${key}`)]),
+);
+const evaluationMethods = { fixed_rule: "固定规则", gpt: "GPT（真实订阅）" };
+const evaluationOutcomes = {
+  pending: "尚无完整配对", succeeded: "物理验证成功", failed: "任务失败",
+  infrastructure_error: "基础设施错误 · 不计任务失败",
+};
+
+async function loadSortingEvaluation() {
+  evaluationUi.refresh.disabled = true;
+  evaluationUi.status.textContent = "正在读取冻结评估存档；不会启动试验…";
+  evaluationUi.error.hidden = true;
+  evaluationUi.report.hidden = true;
+  evaluationUi.summary.replaceChildren();
+  evaluationUi.runs.replaceChildren();
+  evaluationUi.paired.replaceChildren();
+  const measured = (value) => Number.isFinite(value) ? number(value, 3) : "未测量";
+  try {
+    const response = await fetch("/api/sorting-evaluation", { cache: "no-store" });
+    if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+    // The read-only server helper validates identities, evidence and accounting.
+    const report = await response.json();
+    const total = (key) => report.summary.reduce((sum, item) => sum + item[key], 0);
+    const statuses = {
+      running: "运行中（存档状态，非实时进度）",
+      completed: "预注册矩阵已完成（不代表全部成功）",
+      aborted: "已中止 · 未完成，保留部分证据",
+    };
+    evaluationUi.status.textContent = `${statuses[report.status]}：已尝试 ${total("attempted")} / ${report.expected_runs}；成功 ${total("successes")}；任务失败 ${total("failures")}；待记录 ${total("pending")}；基础设施错误 ${total("infrastructure_failures")}。${report.passed ? "整批验收通过。" : "整批尚未通过。"}未保存结果的项可能尚未运行或正在执行，不能当作失败或成功。`;
+    const scope = typeof report.scope === "string" ? report.scope : JSON.stringify(report.scope);
+    evaluationUi.meta.textContent = `冻结提交：${report.frozen_commit}。请求模型标识：${report.requested_model}（非服务快照证明）。协议 SHA-256：${report.protocol_sha256}。范围：${scope}`;
+    evaluationUi.summary.replaceChildren(...report.summary.map((item) => comparisonRow([
+      evaluationMethods[item.method] || item.method,
+      `${item.scheduled} / ${item.attempted}`,
+      `${item.successes} / ${item.failures}`,
+      `${item.pending} / ${item.infrastructure_failures}`,
+    ])));
+    const runs = new Map(report.runs.map((run) => [run.run_id, run]));
+    evaluationUi.runs.replaceChildren(...report.schedule.map((entry) => {
+      const run = runs.get(entry.run_id);
+      const reason = run?.errors.map((error) => typeof error === "string" ? error
+        : [error.type, error.stage, error.message].filter(Boolean).join(" · ")).join("\n");
+      const row = comparisonRow([
+        `${entry.layout_id} / ${entry.wording_id}\n${evaluationMethods[entry.method] || entry.method}\n${entry.run_id}`,
+        run ? `${evaluationOutcomes[run.status] || run.status}\n${Number.isInteger(run.sorted_count) ? `${run.sorted_count} / 6` : "完成数未测量"}` : "待运行 / 尚无已保存结果",
+        `${measured(run?.execution_sim_s)} / ${measured(run?.independent_final_hold_s)}`,
+        `${measured(run?.execution_wall_s)} / ${measured(run?.gpt_latency_s)} / ${measured(run?.wall_s)}`,
+        run ? [run.failure_stage, reason].filter(Boolean).join("\n") || "无记录的失败原因" : "尚未记录",
+      ]);
+      const evidence = document.createElement("td");
+      if (run?.record_path) {
+        const link = document.createElement("a");
+        link.href = `/api/sorting-evaluation/runs/${encodeURIComponent(run.run_id)}`;
+        link.download = `${run.run_id}.json.gz`;
+        link.textContent = "下载完整 JSON.gz";
+        evidence.append(link);
+      } else {
+        evidence.textContent = run ? "记录保存失败 · 无可下载文件" : "尚无记录";
+      }
+      row.append(evidence);
+      return row;
+    }));
+    evaluationUi.paired.replaceChildren(...report.paired.map((pair) => comparisonRow([
+      `${pair.layout_id} / ${pair.wording_id}`,
+      evaluationOutcomes[pair.status] || pair.status,
+      measured(pair.execution_sim_delta_s), measured(pair.execution_wall_delta_s),
+    ])));
+    if (report.errors.length) {
+      evaluationUi.error.textContent = `批次错误：${report.errors.join("；")}`;
+      evaluationUi.error.hidden = false;
+    }
+    evaluationUi.report.hidden = false;
+  } catch (error) {
+    evaluationUi.status.textContent = "冻结评估存档不可用；不显示旧报告，实时仿真不受影响。";
+    evaluationUi.error.textContent = error.message;
+    evaluationUi.error.hidden = false;
+  } finally {
+    evaluationUi.refresh.disabled = false;
+  }
+}
+
 
 function plannerLocksScene() {
   return pendingPlannerAction !== null || state?.planner?.locks_scene === true;
@@ -1175,6 +1259,10 @@ function updateSceneMode() {
     loadExperiments();
     loadPlanningComparison();
   }
+  if (sorting && !sortingReportLoaded) {
+    sortingReportLoaded = true;
+    loadSortingEvaluation();
+  }
 }
 
 
@@ -1281,6 +1369,7 @@ function renderState(next) {
   if (state.sorting) lastSorting = state.sorting;
   ui.time.textContent = number(state.time_s, 3);
   ui.scene.textContent = state.scene_name;
+  ui.sortingLayout.textContent = state.sorting_layout ?? "默认布局（非独立评估布局）";
   ui.robot.textContent = state.robot_name;
   ui.source.textContent = state.source;
   ui.gripper.textContent = number(state.gripper_opening_m * 1000, 2);
@@ -1479,4 +1568,5 @@ ui.reconnect.addEventListener("click", connect);
 ui.experimentsRefresh.addEventListener("click", loadExperiments);
 comparisonUi.refresh.addEventListener("click", loadPlanningComparison);
 comparisonUi.batch.addEventListener("change", loadPlanningComparison);
+evaluationUi.refresh.addEventListener("click", loadSortingEvaluation);
 connect();
