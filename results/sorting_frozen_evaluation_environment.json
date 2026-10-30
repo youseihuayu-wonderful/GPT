@@ -1,0 +1,33 @@
+{
+  "kind": "frozen_sorting_evaluation_environment",
+  "collected_at": "2026-10-29T23:16:08.874104+00:00",
+  "preregistration_commit": "1b477b1",
+  "harness_commit": "2e37b8b5640dd4ae124462347588063ca8366ed7",
+  "protocol_sha256": "0513fbcd0b7fc4ed279abe1f05c789ee0965cc6d72480121702203cd08555c79",
+  "command": "uv run python evaluate_sorting.py --output results/sorting_frozen_evaluation",
+  "runtime": {
+    "python": "3.12.13",
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "machine": "arm64",
+    "mujoco": "3.3.7"
+  },
+  "codex_cli_version": "codex-cli 0.164.0",
+  "uv_version": "uv 0.9.28 (0e1351e40 2026-01-29)",
+  "harness_files_sha256": {
+    "evaluate_sorting.py": "26ba5a44c621f20a6d5823bc7ad7a2e31bcbcc2ec79e0de11a88e2720a2de792",
+    "sorting_evaluation.py": "2384975346f0acaa3802baca5a9300dc5522ee472c16f49292f68495c9f9e1a4",
+    "compare_sorting.py": "41be651f924810e9b5332b172fae8e607e9daacbfac1d0383e1f11a37da06808",
+    "server.py": "7f51b67ba09e85da124245b47fe79c3c90b8155de97315ba5d93bd4175f06a33",
+    "web/app.js": "367cab3e329adf14dbffa4b31754080f4edc0fc3ef1875c1dea59b1c10cf5ce7",
+    "web/index.html": "53bcf41501f3a612e7f53d06b27bb30e8eb5bd0a965f85e350b2cf2832d9f353",
+    "web/style.css": "c651c66ad22ef0562d570d8c5f39778d17ea4c319e1e8b007e917fd47746aa4e"
+  },
+  "regression_tests": {
+    "command": "uv run python -m unittest discover -s tests",
+    "count": 285,
+    "result": "OK",
+    "duration_s": 1365.829,
+    "log": "results/sorting_frozen_evaluation_tests.log"
+  },
+  "scope": "Real subscription calls and physical trials are recorded only in sorting_frozen_evaluation; regression-provider substitutes are not model evidence. Model name is a requested identifier, not a server-weight snapshot."
+}
