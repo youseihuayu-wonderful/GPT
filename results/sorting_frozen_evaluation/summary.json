@@ -1,0 +1,6598 @@
+{
+  "kind": "frozen_sorting_evaluation",
+  "schema_version": 1,
+  "status": "completed",
+  "passed": true,
+  "frozen_commit": "894102709d98abe16690884fe3ae7571a6727c41",
+  "requested_model": "gpt-5.6-terra",
+  "scope": "Four explicitly predeclared previously untuned layouts, two equivalent Chinese task phrasings per layout and two methods. One attempt per cell; not random sampling, statistical generalization, real hardware throughput or autonomous recovery. No control/prompt/model/asset tuning after outcomes.",
+  "protocol_sha256": "0513fbcd0b7fc4ed279abe1f05c789ee0965cc6d72480121702203cd08555c79",
+  "expected_runs": 16,
+  "schedule": [
+    {
+      "run_id": "01_right18_direct_fixed_rule",
+      "case_id": "right18_direct",
+      "method": "fixed_rule",
+      "layout_id": "right18",
+      "wording_id": "direct"
+    },
+    {
+      "run_id": "02_right18_direct_gpt",
+      "case_id": "right18_direct",
+      "method": "gpt",
+      "layout_id": "right18",
+      "wording_id": "direct"
+    },
+    {
+      "run_id": "03_right18_paraphrase_gpt",
+      "case_id": "right18_paraphrase",
+      "method": "gpt",
+      "layout_id": "right18",
+      "wording_id": "paraphrase"
+    },
+    {
+      "run_id": "04_right18_paraphrase_fixed_rule",
+      "case_id": "right18_paraphrase",
+      "method": "fixed_rule",
+      "layout_id": "right18",
+      "wording_id": "paraphrase"
+    },
+    {
+      "run_id": "05_front24_direct_fixed_rule",
+      "case_id": "front24_direct",
+      "method": "fixed_rule",
+      "layout_id": "front24",
+      "wording_id": "direct"
+    },
+    {
+      "run_id": "06_front24_direct_gpt",
+      "case_id": "front24_direct",
+      "method": "gpt",
+      "layout_id": "front24",
+      "wording_id": "direct"
+    },
+    {
+      "run_id": "07_front24_paraphrase_gpt",
+      "case_id": "front24_paraphrase",
+      "method": "gpt",
+      "layout_id": "front24",
+      "wording_id": "paraphrase"
+    },
+    {
+      "run_id": "08_front24_paraphrase_fixed_rule",
+      "case_id": "front24_paraphrase",
+      "method": "fixed_rule",
+      "layout_id": "front24",
+      "wording_id": "paraphrase"
+    },
+    {
+      "run_id": "09_staggered_direct_fixed_rule",
+      "case_id": "staggered_direct",
+      "method": "fixed_rule",
+      "layout_id": "staggered",
+      "wording_id": "direct"
+    },
+    {
+      "run_id": "10_staggered_direct_gpt",
+      "case_id": "staggered_direct",
+      "method": "gpt",
+      "layout_id": "staggered",
+      "wording_id": "direct"
+    },
+    {
+      "run_id": "11_staggered_paraphrase_gpt",
+      "case_id": "staggered_paraphrase",
+      "method": "gpt",
+      "layout_id": "staggered",
+      "wording_id": "paraphrase"
+    },
+    {
+      "run_id": "12_staggered_paraphrase_fixed_rule",
+      "case_id": "staggered_paraphrase",
+      "method": "fixed_rule",
+      "layout_id": "staggered",
+      "wording_id": "paraphrase"
+    },
+    {
+      "run_id": "13_swapped_columns_direct_fixed_rule",
+      "case_id": "swapped_columns_direct",
+      "method": "fixed_rule",
+      "layout_id": "swapped_columns",
+      "wording_id": "direct"
+    },
+    {
+      "run_id": "14_swapped_columns_direct_gpt",
+      "case_id": "swapped_columns_direct",
+      "method": "gpt",
+      "layout_id": "swapped_columns",
+      "wording_id": "direct"
+    },
+    {
+      "run_id": "15_swapped_columns_paraphrase_gpt",
+      "case_id": "swapped_columns_paraphrase",
+      "method": "gpt",
+      "layout_id": "swapped_columns",
+      "wording_id": "paraphrase"
+    },
+    {
+      "run_id": "16_swapped_columns_paraphrase_fixed_rule",
+      "case_id": "swapped_columns_paraphrase",
+      "method": "fixed_rule",
+      "layout_id": "swapped_columns",
+      "wording_id": "paraphrase"
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "01_right18_direct_fixed_rule",
+      "case_id": "right18_direct",
+      "method": "fixed_rule",
+      "layout_id": "right18",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "27c970a7c7f993cbf09dadd069dd60e0470c9c45215239ffdf81fa02b2ac8821",
+      "sorted_count": 6,
+      "execution_sim_s": 197.47400000022293,
+      "execution_wall_s": 259.7483392089489,
+      "gpt_latency_s": null,
+      "wall_s": 260.9381312089972,
+      "model": null,
+      "thread_id": null,
+      "approved_plan": [
+        {
+          "object_id": "red_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "B"
+        }
+      ],
+      "physical_lift_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "physical_placement_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 204.18000000024682,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6393735956230882,
+              0.09955271242291797,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -6.242537553897025e-18,
+              7.448585546784911e-18,
+              2.294953163329813e-14,
+              1.1784613623668246e-16,
+              3.0442920788247756e-15,
+              9.562892760800493e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5857316136114223,
+                0.04561759322275941,
+                0.7199944312390719
+              ],
+              [
+                0.6929782371221788,
+                0.15291276074124394,
+                0.7705377815047657
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034024,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6400051778667307,
+              0.28992711642195274,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -4.350198363274078e-19,
+              3.6872181518729354e-17,
+              2.354887573569777e-14,
+              -1.0183465687195453e-15,
+              -1.3941856634312677e-17,
+              -6.25752778005173e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6040036992254957,
+                0.2539256377807177,
+                0.7199916864645534
+              ],
+              [
+                0.6760066565079658,
+                0.3259285950631878,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.674912304,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.2989837021584301,
+              0.09977771556670449,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -3.1447244007461702e-18,
+              1.5984176184320928e-19,
+              2.2898927466102628e-14,
+              1.03545984709665e-16,
+              6.053713291490519e-16,
+              2.1026876917202137e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.24533266239319934,
+                0.045843819533413904,
+                0.7199944312390719
+              ],
+              [
+                0.35257905811620904,
+                0.1531252675890396,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034035,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.30108953384595283,
+              0.2898102373878417,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -6.681869349058709e-19,
+              3.6027486571244245e-17,
+              2.3568575765486933e-14,
+              -1.1414730839593706e-15,
+              1.0214053398270743e-17,
+              2.5400826602585745e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.26508920228809013,
+                0.253809905829979,
+                0.7199916864645534
+              ],
+              [
+                0.3370898654038155,
+                0.32581056894570437,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000004,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.46938195544532335,
+              0.09966943080028279,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -3.30762545335332e-18,
+              9.560961260710094e-18,
+              2.2841941882791966e-14,
+              2.490173936116496e-16,
+              -1.2930275612019312e-15,
+              -1.02723707495547e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.4156876133553192,
+                0.04574378659324164,
+                0.7199944312390719
+              ],
+              [
+                0.5229286524485439,
+                0.15295223660004278,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340345,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.47017792333246416,
+              0.2898551574245573,
+              0.7549916864645533
+            ],
+            "velocity": [
+              6.254188739098687e-19,
+              3.5521002109637235e-17,
+              2.362012490902505e-14,
+              -1.0444512175474908e-15,
+              -6.787103687322208e-17,
+              1.594395497842532e-19
+            ],
+            "collision_bounds_m": [
+              [
+                0.43417719072977057,
+                0.2538544248218637,
+                0.7199916864645534
+              ],
+              [
+                0.5061786559351578,
+                0.3258558900272509,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000006,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.0606892329909561e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/01_right18_direct_fixed_rule.json.gz",
+      "record_sha256": "172f21eb521ae63ed57bdb319c5d8c83cf32ffbee4b9898d9e4b575d6ad67682"
+    },
+    {
+      "run_id": "02_right18_direct_gpt",
+      "case_id": "right18_direct",
+      "method": "gpt",
+      "layout_id": "right18",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "27c970a7c7f993cbf09dadd069dd60e0470c9c45215239ffdf81fa02b2ac8821",
+      "sorted_count": 6,
+      "execution_sim_s": 197.47400000023998,
+      "execution_wall_s": 345.87557787500555,
+      "gpt_latency_s": 5.721804415981751,
+      "wall_s": 353.11500233301194,
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a189f6-1137-76e0-b76b-f90af3388943",
+      "approved_plan": [
+        {
+          "object_id": "red_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "B"
+        }
+      ],
+      "physical_lift_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "physical_placement_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 207.68000000026353,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6393735956230823,
+              0.09955271242291808,
+              0.7184049917753869
+            ],
+            "velocity": [
+              1.2010972958088638e-17,
+              -5.028716152881432e-18,
+              2.2698073304833408e-14,
+              -1.0617975368319096e-15,
+              -1.0291539318896076e-14,
+              8.828846101938787e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5857316136114169,
+                0.045617593222759455,
+                0.7199944312390719
+              ],
+              [
+                0.6929782371221733,
+                0.15291276074124463,
+                0.7705377815047657
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340445,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6400051778666664,
+              0.28992711642195645,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -7.680948610589818e-19,
+              3.4465783781999973e-17,
+              2.3582388844860804e-14,
+              -9.994250238179198e-16,
+              2.8185762582960163e-17,
+              -3.7178532449381415e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6040036992254318,
+                0.2539256377807218,
+                0.7199916864645534
+              ],
+              [
+                0.676006656507901,
+                0.3259285950631911,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.2989837021584317,
+              0.09977771556670467,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -9.643686147063736e-18,
+              5.559664032138097e-19,
+              2.2953309512425985e-14,
+              5.017880091490047e-16,
+              5.981036082394971e-15,
+              9.327593930503535e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.24533266239320067,
+                0.04584381953341414,
+                0.7199944312390719
+              ],
+              [
+                0.3525790581162103,
+                0.15312526758903944,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810339835,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3010895338459533,
+              0.2898102373878416,
+              0.7549916864645533
+            ],
+            "velocity": [
+              1.930827285792057e-18,
+              3.535441916177264e-17,
+              2.362956143295914e-14,
+              -1.0233880150257035e-15,
+              -8.014272011120079e-17,
+              -1.1415758034395547e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.2650892022880906,
+                0.25380990582997887,
+                0.7199916864645534
+              ],
+              [
+                0.3370898654038161,
+                0.32581056894570437,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.674912304,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.4693819554453226,
+              0.09966943080028208,
+              0.7184049917753869
+            ],
+            "velocity": [
+              9.463454881219253e-18,
+              4.044306843268177e-18,
+              2.2853373038069254e-14,
+              -1.9390809047033665e-16,
+              -1.5342250518312353e-15,
+              3.661506959625658e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41568761335531834,
+                0.04574378659324091,
+                0.7199944312390719
+              ],
+              [
+                0.5229286524485431,
+                0.1529522366000421,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034038,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.470177923332465,
+              0.2898551574245573,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -1.1747757720365738e-18,
+              3.2548904805634947e-17,
+              2.3546608924397937e-14,
+              -9.845172651856966e-16,
+              -1.6078785292952875e-17,
+              1.6147362848538178e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.43417719072977146,
+                0.25385442482186377,
+                0.7199916864645534
+              ],
+              [
+                0.5061786559351585,
+                0.32585589002725085,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000001,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.0574848746367626e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/02_right18_direct_gpt.json.gz",
+      "record_sha256": "ca8c74e7255ec9c4734dfa5f5aef956c74b216cca102e31c699aa30157f6a660"
+    },
+    {
+      "run_id": "03_right18_paraphrase_gpt",
+      "case_id": "right18_paraphrase",
+      "method": "gpt",
+      "layout_id": "right18",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "27c970a7c7f993cbf09dadd069dd60e0470c9c45215239ffdf81fa02b2ac8821",
+      "sorted_count": 6,
+      "execution_sim_s": 198.7220000002676,
+      "execution_wall_s": 173.24612750002416,
+      "gpt_latency_s": 10.15851224999642,
+      "wall_s": 184.20557599997846,
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a18a00-9422-79e0-b77d-18c0278c3df4",
+      "approved_plan": [
+        {
+          "object_id": "blue_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "C"
+        }
+      ],
+      "physical_lift_order": [
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup",
+        "red_bowl",
+        "red_cup"
+      ],
+      "physical_placement_order": [
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup",
+        "red_bowl",
+        "red_cup"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 213.5400000002915,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6393740199170833,
+              0.09955268504850634,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -5.2822023955984e-18,
+              -9.054168599838128e-19,
+              2.2769985950226793e-14,
+              -6.843912747639693e-16,
+              -3.3885392743113905e-15,
+              2.004039132039099e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.5857319983634856,
+                0.04561757084414192,
+                0.7199944312390719
+              ],
+              [
+                0.6929786214904123,
+                0.1529126795299482,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340373,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6400040013618599,
+              0.28992565773077184,
+              0.7549916864645533
+            ],
+            "velocity": [
+              3.888867768951058e-19,
+              2.968416420710886e-17,
+              2.3584958073161468e-14,
+              -9.67769368919507e-16,
+              2.849543239317955e-17,
+              3.517919490119448e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6040023270045315,
+                0.2539239833734435,
+                0.7199916864645534
+              ],
+              [
+                0.6760056757191882,
+                0.32592733208810015,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000005,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.29891127229090364,
+              0.0998077967630052,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -1.1835686612461714e-17,
+              2.1723795209191726e-18,
+              2.2987549341851395e-14,
+              7.263898621423316e-16,
+              5.460733636836884e-15,
+              1.133345172089626e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.24526088650950653,
+                0.0458738070375946,
+                0.7199944312390719
+              ],
+              [
+                0.35250730822460413,
+                0.15315626223260498,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340223,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.301153440468497,
+              0.28956972514146906,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -3.099021386914267e-19,
+              3.5879086179952136e-17,
+              2.3548652034617773e-14,
+              -9.749530276104798e-16,
+              8.304794958113107e-18,
+              -3.646480123269256e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.2651526953914711,
+                0.2535689800644432,
+                0.7199916864645534
+              ],
+              [
+                0.3371541855455229,
+                0.32557047021849495,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000005,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.4693674074446218,
+              0.0996860367468437,
+              0.7184049917753869
+            ],
+            "velocity": [
+              9.143487376434884e-19,
+              -1.6647982794546865e-18,
+              2.2829339162719618e-14,
+              -6.21521055178212e-16,
+              -2.1250604374884907e-15,
+              2.88352863869804e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41567429530595934,
+                0.045760097838003194,
+                0.7199944312390719
+              ],
+              [
+                0.5229155936160375,
+                0.15297080716079753,
+                0.7705377815047657
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340357,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.4699494044483141,
+              0.2898413056762605,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -1.001628098035445e-18,
+              3.3641462819622235e-17,
+              2.3591801718496845e-14,
+              -9.304111884441192e-16,
+              8.20313423592661e-17,
+              2.0099271739446195e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.4339488717868638,
+                0.2538407730148102,
+                0.7199916864645534
+              ],
+              [
+                0.5059499371097644,
+                0.3258418383377108,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000004,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.021405182655144e-14,
+        "arm_max_speed_rad_s": 1.0314042021565225e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/03_right18_paraphrase_gpt.json.gz",
+      "record_sha256": "4a2970b650a4bc939cf852743ed5901f365cfa324832d0a50722ff136c2193c3"
+    },
+    {
+      "run_id": "04_right18_paraphrase_fixed_rule",
+      "case_id": "right18_paraphrase",
+      "method": "fixed_rule",
+      "layout_id": "right18",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "27c970a7c7f993cbf09dadd069dd60e0470c9c45215239ffdf81fa02b2ac8821",
+      "sorted_count": 6,
+      "execution_sim_s": 197.47400000022293,
+      "execution_wall_s": 168.24401091597974,
+      "gpt_latency_s": null,
+      "wall_s": 168.96056020801188,
+      "model": null,
+      "thread_id": null,
+      "approved_plan": [
+        {
+          "object_id": "red_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "B"
+        }
+      ],
+      "physical_lift_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "physical_placement_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 204.18000000024682,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6393735956230882,
+              0.09955271242291797,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -6.242537553897025e-18,
+              7.448585546784911e-18,
+              2.294953163329813e-14,
+              1.1784613623668246e-16,
+              3.0442920788247756e-15,
+              9.562892760800493e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5857316136114223,
+                0.04561759322275941,
+                0.7199944312390719
+              ],
+              [
+                0.6929782371221788,
+                0.15291276074124394,
+                0.7705377815047657
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034024,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6400051778667307,
+              0.28992711642195274,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -4.350198363274078e-19,
+              3.6872181518729354e-17,
+              2.354887573569777e-14,
+              -1.0183465687195453e-15,
+              -1.3941856634312677e-17,
+              -6.25752778005173e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6040036992254957,
+                0.2539256377807177,
+                0.7199916864645534
+              ],
+              [
+                0.6760066565079658,
+                0.3259285950631878,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.674912304,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.2989837021584301,
+              0.09977771556670449,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -3.1447244007461702e-18,
+              1.5984176184320928e-19,
+              2.2898927466102628e-14,
+              1.03545984709665e-16,
+              6.053713291490519e-16,
+              2.1026876917202137e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.24533266239319934,
+                0.045843819533413904,
+                0.7199944312390719
+              ],
+              [
+                0.35257905811620904,
+                0.1531252675890396,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034035,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.30108953384595283,
+              0.2898102373878417,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -6.681869349058709e-19,
+              3.6027486571244245e-17,
+              2.3568575765486933e-14,
+              -1.1414730839593706e-15,
+              1.0214053398270743e-17,
+              2.5400826602585745e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.26508920228809013,
+                0.253809905829979,
+                0.7199916864645534
+              ],
+              [
+                0.3370898654038155,
+                0.32581056894570437,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000004,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.46938195544532335,
+              0.09966943080028279,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -3.30762545335332e-18,
+              9.560961260710094e-18,
+              2.2841941882791966e-14,
+              2.490173936116496e-16,
+              -1.2930275612019312e-15,
+              -1.02723707495547e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.4156876133553192,
+                0.04574378659324164,
+                0.7199944312390719
+              ],
+              [
+                0.5229286524485439,
+                0.15295223660004278,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340345,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.47017792333246416,
+              0.2898551574245573,
+              0.7549916864645533
+            ],
+            "velocity": [
+              6.254188739098687e-19,
+              3.5521002109637235e-17,
+              2.362012490902505e-14,
+              -1.0444512175474908e-15,
+              -6.787103687322208e-17,
+              1.594395497842532e-19
+            ],
+            "collision_bounds_m": [
+              [
+                0.43417719072977057,
+                0.2538544248218637,
+                0.7199916864645534
+              ],
+              [
+                0.5061786559351578,
+                0.3258558900272509,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000006,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.0606892329909561e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/04_right18_paraphrase_fixed_rule.json.gz",
+      "record_sha256": "5474bc063850d6749c2c43d59cb702f2cde5d7c4ae538a5097376315c070efa0"
+    },
+    {
+      "run_id": "05_front24_direct_fixed_rule",
+      "case_id": "front24_direct",
+      "method": "fixed_rule",
+      "layout_id": "front24",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "94800f49866d5ffd4ca0c3bead109ba35e0397fcf5b9720fc88e9b26c09cf0a5",
+      "sorted_count": 6,
+      "execution_sim_s": 197.75000000022425,
+      "execution_wall_s": 202.0257872499642,
+      "gpt_latency_s": null,
+      "wall_s": 202.69138045900036,
+      "model": null,
+      "thread_id": null,
+      "approved_plan": [
+        {
+          "object_id": "red_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "A"
+        }
+      ],
+      "physical_lift_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "physical_placement_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 204.46000000024816,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.4692148051214326,
+              0.0993974029116686,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -2.8547280415189325e-18,
+              -2.517144708100649e-18,
+              2.2871783471778923e-14,
+              -8.798737329180992e-17,
+              1.7058549210866948e-15,
+              8.640216866961025e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41561688857418866,
+                0.04545843746674803,
+                0.7199944312390719
+              ],
+              [
+                0.5228608848596124,
+                0.15281386396644916,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810339924,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.470345484521825,
+              0.2898602146248402,
+              0.7549916864645535
+            ],
+            "velocity": [
+              1.130573004435643e-18,
+              3.283612669776647e-17,
+              1.8519031868866355e-14,
+              -9.474879452217323e-16,
+              -4.2974935426589856e-17,
+              -3.641460143859765e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.4343452668211638,
+                0.253859996924179,
+                0.7199916864645535
+              ],
+              [
+                0.5063457022224861,
+                0.3258604323255014,
+                0.7899916864645535
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6391243993754645,
+              0.09959439179148664,
+              0.7184049917753869
+            ],
+            "velocity": [
+              4.71390779167118e-18,
+              -4.992527418144528e-18,
+              2.2711820877818612e-14,
+              -8.367381517749666e-16,
+              -7.060399351632847e-15,
+              8.823186512063412e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5854247858715476,
+                0.04567005451129604,
+                0.7199944312390719
+              ],
+              [
+                0.6926646361184129,
+                0.15286868616983557,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034041,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6394520591472844,
+              0.2899539153970158,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -2.7193647587547687e-19,
+              3.518920512694241e-17,
+              2.3583716497318743e-14,
+              -9.92461923367784e-16,
+              1.1164273554468594e-17,
+              -3.553211092875551e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6034512220287982,
+                0.2539530782785296,
+                0.7199916864645534
+              ],
+              [
+                0.6754528962657707,
+                0.32595475251550204,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.2991513915735093,
+              0.09967836134042321,
+              0.7184049917753869
+            ],
+            "velocity": [
+              8.715527777516132e-18,
+              -4.412461463304734e-18,
+              2.2736238052812908e-14,
+              -9.90881851138167e-16,
+              -7.565549694568982e-15,
+              1.790939292637863e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.24548470177240628,
+                0.04574696806268863,
+                0.7199944312390719
+              ],
+              [
+                0.35273001278765753,
+                0.1530035116006501,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340495,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3010140679703629,
+              0.2896793202021265,
+              0.7549916864645533
+            ],
+            "velocity": [
+              4.933445692032535e-19,
+              3.186056282342009e-17,
+              2.3523147083986933e-14,
+              -9.884022706043694e-16,
+              -1.961478701444563e-17,
+              1.6897540650488795e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.2650140486792811,
+                0.2536793009110447,
+                0.7199916864645534
+              ],
+              [
+                0.3370140872614447,
+                0.3256793394932083,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000001,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.0622848989178056e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/05_front24_direct_fixed_rule.json.gz",
+      "record_sha256": "79e62edb7ae0e0e392c8114f73c7f7b4417b4900016c03ffc51d26b1a71985d7"
+    },
+    {
+      "run_id": "06_front24_direct_gpt",
+      "case_id": "front24_direct",
+      "method": "gpt",
+      "layout_id": "front24",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "94800f49866d5ffd4ca0c3bead109ba35e0397fcf5b9720fc88e9b26c09cf0a5",
+      "sorted_count": 6,
+      "execution_sim_s": 197.75000000031406,
+      "execution_wall_s": 446.19804916600697,
+      "gpt_latency_s": 25.44391483295476,
+      "wall_s": 472.3692973749712,
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a18b52-a558-7f50-a48e-faa3fb27ce51",
+      "approved_plan": [
+        {
+          "object_id": "red_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "A"
+        }
+      ],
+      "physical_lift_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "physical_placement_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 223.18000000033754,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.4692148051214232,
+              0.0993974029116654,
+              0.7184049917753869
+            ],
+            "velocity": [
+              6.823003423990003e-18,
+              -6.18178465660226e-19,
+              2.275842729359453e-14,
+              -4.450146390403469e-16,
+              -6.5882766978002145e-15,
+              6.91971267899653e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41561688857418294,
+                0.04545843746674476,
+                0.7199944312390719
+              ],
+              [
+                0.5228608848596059,
+                0.1528138639664501,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034036,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.4703454845218246,
+              0.2898602146248474,
+              0.7549916864645535
+            ],
+            "velocity": [
+              2.4281606330044925e-19,
+              3.536278163367851e-17,
+              1.846116380964515e-14,
+              -9.60460110833975e-16,
+              -1.9504754007728294e-17,
+              8.765956000401416e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.43434526682116353,
+                0.2538599969241863,
+                0.7199916864645536
+              ],
+              [
+                0.5063457022224858,
+                0.3258604323255085,
+                0.7899916864645535
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000005,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6391243993754601,
+              0.09959439179148784,
+              0.7184049917753869
+            ],
+            "velocity": [
+              7.459533724105474e-18,
+              -4.4171228571225695e-18,
+              2.276470858720829e-14,
+              -5.862982107290372e-16,
+              -5.8121430174516946e-15,
+              -7.098491761794634e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.5854247858715437,
+                0.0456700545112971,
+                0.7199944312390719
+              ],
+              [
+                0.6926646361184092,
+                0.15286868616983762,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034035,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6394520591472832,
+              0.2899539153970151,
+              0.7549916864645534
+            ],
+            "velocity": [
+              -8.065151580423769e-19,
+              3.458912859569249e-17,
+              2.105705778485089e-14,
+              -9.058987392242656e-16,
+              -2.1694990228401427e-17,
+              -2.2485261339692076e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6034512220287974,
+                0.25395307827852925,
+                0.7199916864645535
+              ],
+              [
+                0.675452896265769,
+                0.32595475251550093,
+                0.7899916864645534
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.299151391573508,
+              0.0996783613404255,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -1.1487017483165002e-17,
+              1.908061584115293e-18,
+              2.291851980919105e-14,
+              3.092859874352569e-16,
+              4.327103362131529e-15,
+              -6.896064379488155e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.24548470177240522,
+                0.04574696806269094,
+                0.7199944312390719
+              ],
+              [
+                0.35273001278765637,
+                0.1530035116006525,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340284,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3010140679703593,
+              0.28967932020212595,
+              0.7549916864645533
+            ],
+            "velocity": [
+              2.80883116141657e-18,
+              3.2381494530326957e-17,
+              2.361990316914394e-14,
+              -9.3105681966536e-16,
+              -2.573329917010125e-17,
+              -2.981004577600928e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.26501404867927736,
+                0.25367930091104407,
+                0.7199916864645534
+              ],
+              [
+                0.3370140872614412,
+                0.3256793394932078,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.0531411742398008e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/06_front24_direct_gpt.json.gz",
+      "record_sha256": "ddc3d38f3d3d1018a40c355563b23bbfdde348c54a40eae9ebe8f09b69e4e6b9"
+    },
+    {
+      "run_id": "07_front24_paraphrase_gpt",
+      "case_id": "front24_paraphrase",
+      "method": "gpt",
+      "layout_id": "front24",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "94800f49866d5ffd4ca0c3bead109ba35e0397fcf5b9720fc88e9b26c09cf0a5",
+      "sorted_count": 6,
+      "execution_sim_s": 198.9620000002463,
+      "execution_wall_s": 185.05491662496934,
+      "gpt_latency_s": 4.219805083004758,
+      "wall_s": 190.08054362499388,
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a18d2e-acb2-7652-a44f-041445da7c7d",
+      "approved_plan": [
+        {
+          "object_id": "yellow_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "C"
+        }
+      ],
+      "physical_lift_order": [
+        "yellow_cup",
+        "red_cup",
+        "blue_cup",
+        "yellow_bowl",
+        "red_bowl",
+        "blue_bowl"
+      ],
+      "physical_placement_order": [
+        "yellow_cup",
+        "red_cup",
+        "blue_cup",
+        "yellow_bowl",
+        "red_bowl",
+        "blue_bowl"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 209.02000000026993,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.46917940648212947,
+              0.09927736446206008,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -1.3090410932644468e-17,
+              1.2345308895647047e-17,
+              2.2982723750356787e-14,
+              5.748562878659954e-16,
+              7.364840843321941e-15,
+              4.727254051016023e-20
+            ],
+            "collision_bounds_m": [
+              [
+                0.41563493067499846,
+                0.0453377294629107,
+                0.7199944312390719
+              ],
+              [
+                0.5228686494380097,
+                0.15275392347413724,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810339835,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.4703430535470871,
+              0.2898646033872733,
+              0.7549916864645538
+            ],
+            "velocity": [
+              1.5851518440150519e-18,
+              3.488217783469198e-17,
+              1.0703094439179813e-14,
+              -9.575082559703825e-16,
+              -5.058059369116008e-17,
+              -1.5475670068396694e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.43434302404214753,
+                0.25386457388233374,
+                0.7199916864645539
+              ],
+              [
+                0.5063430830520267,
+                0.3258646328922129,
+                0.7899916864645538
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6392032069780613,
+              0.09958749721867075,
+              0.7184049917753869
+            ],
+            "velocity": [
+              7.470006327482468e-18,
+              -7.243311336728776e-18,
+              2.2806185349761997e-14,
+              -1.2913646498414114e-16,
+              -2.9453932077785386e-15,
+              -1.261195231509113e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.5855056950644586,
+                0.045662630291842934,
+                0.7199944312390719
+              ],
+              [
+                0.6927460345514953,
+                0.15286520281797825,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034038,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6394215449636785,
+              0.2899661550988713,
+              0.7549916864645533
+            ],
+            "velocity": [
+              1.7296144271743138e-18,
+              3.699117506040935e-17,
+              2.3619670982696e-14,
+              -1.0291118118906386e-15,
+              -2.3263658582796687e-18,
+              4.582774929963055e-19
+            ],
+            "collision_bounds_m": [
+              [
+                0.6034207372827383,
+                0.253965347417931,
+                0.7199916864645534
+              ],
+              [
+                0.6754223526446188,
+                0.32596696277981163,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000004,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.29914014004463424,
+              0.09969597828591303,
+              0.7184049917753869
+            ],
+            "velocity": [
+              1.7397398523533608e-18,
+              -8.542852566129576e-19,
+              2.2851805662044944e-14,
+              -2.9419868428498453e-16,
+              -3.4686234902819796e-15,
+              -3.1840516165326238e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.24547406353397613,
+                0.04576447724302382,
+                0.7199944312390719
+              ],
+              [
+                0.352719434252626,
+                0.15302202659021405,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340373,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.30100254117417347,
+              0.28970608867694253,
+              0.7549916864645537
+            ],
+            "velocity": [
+              2.800934478296777e-18,
+              3.6702068499389886e-17,
+              1.3243690396452744e-14,
+              -1.0044817216533252e-15,
+              -4.600719760123181e-17,
+              -4.810532107308347e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.26500165294668704,
+                0.2537052004494561,
+                0.7199916864645538
+              ],
+              [
+                0.3370034294016599,
+                0.32570697690442896,
+                0.7899916864645536
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000005,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.021405182655144e-14,
+        "arm_max_speed_rad_s": 1.0283840696427669e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/07_front24_paraphrase_gpt.json.gz",
+      "record_sha256": "18563a73537c16f80af232808cc72a56fc850b84f00b2e5861f7baba4c3a1a67"
+    },
+    {
+      "run_id": "08_front24_paraphrase_fixed_rule",
+      "case_id": "front24_paraphrase",
+      "method": "fixed_rule",
+      "layout_id": "front24",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "94800f49866d5ffd4ca0c3bead109ba35e0397fcf5b9720fc88e9b26c09cf0a5",
+      "sorted_count": 6,
+      "execution_sim_s": 197.75000000022425,
+      "execution_wall_s": 177.05537912499858,
+      "gpt_latency_s": null,
+      "wall_s": 177.7890939170029,
+      "model": null,
+      "thread_id": null,
+      "approved_plan": [
+        {
+          "object_id": "red_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "A"
+        }
+      ],
+      "physical_lift_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "physical_placement_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 204.46000000024816,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.4692148051214326,
+              0.0993974029116686,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -2.8547280415189325e-18,
+              -2.517144708100649e-18,
+              2.2871783471778923e-14,
+              -8.798737329180992e-17,
+              1.7058549210866948e-15,
+              8.640216866961025e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41561688857418866,
+                0.04545843746674803,
+                0.7199944312390719
+              ],
+              [
+                0.5228608848596124,
+                0.15281386396644916,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810339924,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.470345484521825,
+              0.2898602146248402,
+              0.7549916864645535
+            ],
+            "velocity": [
+              1.130573004435643e-18,
+              3.283612669776647e-17,
+              1.8519031868866355e-14,
+              -9.474879452217323e-16,
+              -4.2974935426589856e-17,
+              -3.641460143859765e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.4343452668211638,
+                0.253859996924179,
+                0.7199916864645535
+              ],
+              [
+                0.5063457022224861,
+                0.3258604323255014,
+                0.7899916864645535
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6391243993754645,
+              0.09959439179148664,
+              0.7184049917753869
+            ],
+            "velocity": [
+              4.71390779167118e-18,
+              -4.992527418144528e-18,
+              2.2711820877818612e-14,
+              -8.367381517749666e-16,
+              -7.060399351632847e-15,
+              8.823186512063412e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5854247858715476,
+                0.04567005451129604,
+                0.7199944312390719
+              ],
+              [
+                0.6926646361184129,
+                0.15286868616983557,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034041,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6394520591472844,
+              0.2899539153970158,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -2.7193647587547687e-19,
+              3.518920512694241e-17,
+              2.3583716497318743e-14,
+              -9.92461923367784e-16,
+              1.1164273554468594e-17,
+              -3.553211092875551e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6034512220287982,
+                0.2539530782785296,
+                0.7199916864645534
+              ],
+              [
+                0.6754528962657707,
+                0.32595475251550204,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.2991513915735093,
+              0.09967836134042321,
+              0.7184049917753869
+            ],
+            "velocity": [
+              8.715527777516132e-18,
+              -4.412461463304734e-18,
+              2.2736238052812908e-14,
+              -9.90881851138167e-16,
+              -7.565549694568982e-15,
+              1.790939292637863e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.24548470177240628,
+                0.04574696806268863,
+                0.7199944312390719
+              ],
+              [
+                0.35273001278765753,
+                0.1530035116006501,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340495,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3010140679703629,
+              0.2896793202021265,
+              0.7549916864645533
+            ],
+            "velocity": [
+              4.933445692032535e-19,
+              3.186056282342009e-17,
+              2.3523147083986933e-14,
+              -9.884022706043694e-16,
+              -1.961478701444563e-17,
+              1.6897540650488795e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.2650140486792811,
+                0.2536793009110447,
+                0.7199916864645534
+              ],
+              [
+                0.3370140872614447,
+                0.3256793394932083,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000001,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.0622848989178056e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/08_front24_paraphrase_fixed_rule.json.gz",
+      "record_sha256": "1348c1e924fe375b7abf557a2ee45c4fdcc35ef327cd057b50472e220794a8f5"
+    },
+    {
+      "run_id": "09_staggered_direct_fixed_rule",
+      "case_id": "staggered_direct",
+      "method": "fixed_rule",
+      "layout_id": "staggered",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "a478dd1b90765a408194e0640f6455c30897b934e053bb60e5117f557f9a51cf",
+      "sorted_count": 6,
+      "execution_sim_s": 189.09800000018294,
+      "execution_wall_s": 163.84537191601703,
+      "gpt_latency_s": null,
+      "wall_s": 164.63421387498965,
+      "model": null,
+      "thread_id": null,
+      "approved_plan": [
+        {
+          "object_id": "red_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "B"
+        }
+      ],
+      "physical_lift_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "physical_placement_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 195.8000000002068,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.2989162794830152,
+              0.09885366662809988,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -8.13305707761458e-18,
+              3.3052347457105888e-18,
+              2.2995398282071654e-14,
+              4.650670275821883e-16,
+              7.452411338274112e-15,
+              9.990297700843232e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.24546118621128826,
+                0.04492057099747146,
+                0.7199944312390719
+              ],
+              [
+                0.3526641197513371,
+                0.15241479730937707,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581033978,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3032938697001273,
+              0.2897223109500669,
+              0.7549916864645538
+            ],
+            "velocity": [
+              2.916575964134868e-18,
+              3.49243440567456e-17,
+              1.0697677036867392e-14,
+              -1.0042230888985352e-15,
+              -4.045747912295138e-17,
+              1.2874908905448644e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.2671037450874249,
+                0.2535321863373645,
+                0.7199916864645539
+              ],
+              [
+                0.33948399431282966,
+                0.3259124355627693,
+                0.7899916864645539
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000007,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.640693107077194,
+              0.09922467968929272,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -1.1288090612794183e-17,
+              8.879621144001527e-19,
+              2.2878568726716253e-14,
+              -1.4612248960678051e-16,
+              -4.3926984458724846e-16,
+              -3.625610756223609e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5869229681752989,
+                0.045326015498054616,
+                0.7199944312390719
+              ],
+              [
+                0.6941323790770845,
+                0.15236805505005094,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034037,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6401375578831154,
+              0.28981786143927557,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -2.779644759816608e-18,
+              3.7053180257736684e-17,
+              2.3567630755316307e-14,
+              -1.0742174174901783e-15,
+              -1.8786111589778243e-17,
+              4.953490810351018e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.6039450156227567,
+                0.25362531917891684,
+                0.7199916864645534
+              ],
+              [
+                0.6763301001434742,
+                0.3260104036996343,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.46957268388607715,
+              0.09955675064736086,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -1.2950897844909073e-17,
+              -6.489238517158294e-19,
+              2.2931866281971886e-14,
+              2.5122924067494617e-16,
+              5.478504691745329e-15,
+              2.913679407090577e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41589014214770204,
+                0.04562843329650555,
+                0.7199944312390719
+              ],
+              [
+                0.5231333943675973,
+                0.15285808409893686,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340223,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.470353387713292,
+              0.28981301782033586,
+              0.7549916864645533
+            ],
+            "velocity": [
+              1.0301441625191e-18,
+              3.384311932847188e-17,
+              2.3514569672029804e-14,
+              -9.463285857640011e-16,
+              -3.8158008957315396e-17,
+              -3.319501715787645e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.43423403415612677,
+                0.25369366426317064,
+                0.7199916864645534
+              ],
+              [
+                0.5064727412704573,
+                0.3259323713775011,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.021405182655144e-14,
+        "arm_max_speed_rad_s": 9.998300990455357e-14,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/09_staggered_direct_fixed_rule.json.gz",
+      "record_sha256": "d22a127549e5eecaeae10ba8f9100c432a12c86eedb880ad6934ef991f5d997c"
+    },
+    {
+      "run_id": "10_staggered_direct_gpt",
+      "case_id": "staggered_direct",
+      "method": "gpt",
+      "layout_id": "staggered",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "a478dd1b90765a408194e0640f6455c30897b934e053bb60e5117f557f9a51cf",
+      "sorted_count": 6,
+      "execution_sim_s": 189.09800000021133,
+      "execution_wall_s": 170.73207370797172,
+      "gpt_latency_s": 7.499333416984882,
+      "wall_s": 179.07891970901983,
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a18d36-dad2-7dc1-a62a-72cb1c2eeaf6",
+      "approved_plan": [
+        {
+          "object_id": "red_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "B"
+        }
+      ],
+      "physical_lift_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "physical_placement_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 201.6200000002346,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.2989162794830004,
+              0.09885366662813641,
+              0.7184049917753869
+            ],
+            "velocity": [
+              6.813405141581646e-18,
+              -8.01575910081196e-18,
+              2.2817488368733266e-14,
+              -2.8159781793773766e-16,
+              -3.1996745508170897e-15,
+              1.149801749421284e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.245461186211275,
+                0.044920570997508145,
+                0.7199944312390719
+              ],
+              [
+                0.3526641197513233,
+                0.1524147973094149,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581033995,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3032938697001129,
+              0.2897223109500546,
+              0.754991686464554
+            ],
+            "velocity": [
+              2.3227550936911933e-18,
+              3.661158708966617e-17,
+              8.17619262079332e-15,
+              -1.0064032279059959e-15,
+              -1.4592611873322686e-17,
+              -7.308021123848537e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.26710374508741047,
+                0.25353218633735214,
+                0.719991686464554
+              ],
+              [
+                0.33948399431281534,
+                0.325912435562757,
+                0.789991686464554
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000004,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6406931070771962,
+              0.09922467968929298,
+              0.7184049917753869
+            ],
+            "velocity": [
+              1.596878460710699e-17,
+              -8.729506154325891e-18,
+              2.2656654111534785e-14,
+              -1.0890128746097592e-15,
+              -1.1975307507520928e-14,
+              -1.4386408621449578e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.5869229681753011,
+                0.04532601549805501,
+                0.7199944312390719
+              ],
+              [
+                0.6941323790770865,
+                0.15236805505005097,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034046,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6401375578831128,
+              0.28981786143927046,
+              0.7549916864645534
+            ],
+            "velocity": [
+              -2.5631849498855745e-18,
+              3.7294219279608255e-17,
+              2.095746847820039e-14,
+              -1.0228554861164386e-15,
+              -6.1000063958035644e-18,
+              -4.605467743230072e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.603945015622754,
+                0.2536253191789117,
+                0.7199916864645535
+              ],
+              [
+                0.6763301001434715,
+                0.32601040369962925,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000004,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.46957268388607815,
+              0.09955675064736232,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -1.795487149795202e-17,
+              1.5301739553531625e-18,
+              2.2992225002949382e-14,
+              4.353688432428364e-16,
+              7.338267149586867e-15,
+              6.961814187311076e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.4158901421477029,
+                0.045628433296506975,
+                0.7199944312390719
+              ],
+              [
+                0.5231333943675983,
+                0.15285808409893828,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810339785,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.47035338771329627,
+              0.28981301782033597,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -4.5034166829240583e-20,
+              3.4249117648178554e-17,
+              2.35533936388455e-14,
+              -1.00762057864433e-15,
+              4.225373756179637e-17,
+              -2.860881336582111e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.4342340341561316,
+                0.2536936642631713,
+                0.7199916864645534
+              ],
+              [
+                0.5064727412704609,
+                0.32593237137750064,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000001,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.021405182655144e-14,
+        "arm_max_speed_rad_s": 9.995868420026407e-14,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/10_staggered_direct_gpt.json.gz",
+      "record_sha256": "c8a60f7fb77670eecdff83d76af18ea17fa17b340a2366d0269887e284b1f9ca"
+    },
+    {
+      "run_id": "11_staggered_paraphrase_gpt",
+      "case_id": "staggered_paraphrase",
+      "method": "gpt",
+      "layout_id": "staggered",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "a478dd1b90765a408194e0640f6455c30897b934e053bb60e5117f557f9a51cf",
+      "sorted_count": 6,
+      "execution_sim_s": 196.01800000025256,
+      "execution_wall_s": 177.8563535839785,
+      "gpt_latency_s": 9.674223625042941,
+      "wall_s": 188.32493870798498,
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a18d39-98fe-7511-90df-8b7b0e858ce2",
+      "approved_plan": [
+        {
+          "object_id": "red_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "C"
+        }
+      ],
+      "physical_lift_order": [
+        "red_cup",
+        "yellow_cup",
+        "blue_cup",
+        "red_bowl",
+        "yellow_bowl",
+        "blue_bowl"
+      ],
+      "physical_placement_order": [
+        "red_cup",
+        "yellow_cup",
+        "blue_cup",
+        "red_bowl",
+        "yellow_bowl",
+        "blue_bowl"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 210.34000000027623,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.2984363494664913,
+              0.09878679488564392,
+              0.7184049917753869
+            ],
+            "velocity": [
+              3.476742056555276e-20,
+              4.8922356603279475e-18,
+              2.2947735978176703e-14,
+              7.37224320690509e-17,
+              4.2672977507501824e-15,
+              -2.0780585760045047e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.24500628485082052,
+                0.04485694138663266,
+                0.7199944312390719
+              ],
+              [
+                0.3521980934113227,
+                0.15236866960814935,
+                0.7705377815047657
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034023,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3032938697001146,
+              0.2897223109500552,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -1.6262978847020458e-19,
+              3.4145148147941064e-17,
+              2.3610654990930093e-14,
+              -9.530834019785798e-16,
+              2.977929054528208e-17,
+              4.599401127021431e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.26710374508741225,
+                0.2535321863373528,
+                0.7199916864645534
+              ],
+              [
+                0.339483994312817,
+                0.32591243556275756,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000006,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6406767515190362,
+              0.09925064813674689,
+              0.7184049917753869
+            ],
+            "velocity": [
+              1.7469356381212993e-17,
+              -1.186099542048552e-17,
+              2.274515975196382e-14,
+              -1.0463021100025463e-15,
+              -8.842067120226231e-15,
+              -7.356616686517274e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.5869011543893602,
+                0.04535474765644341,
+                0.7199944312390719
+              ],
+              [
+                0.6941068306648941,
+                0.15238227404849605,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034049,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6399770068071742,
+              0.2897582542080263,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -2.2937048570739226e-18,
+              4.001032133295379e-17,
+              2.3591219599524817e-14,
+              -9.905578151701451e-16,
+              -4.570752044631384e-17,
+              3.934168877062039e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6037644954475698,
+                0.25354574284842185,
+                0.7199916864645534
+              ],
+              [
+                0.6761895181667785,
+                0.32597076556763077,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000007,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.4695711624928496,
+              0.09955592136534504,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -4.810215978468636e-19,
+              3.6352584180690655e-18,
+              2.2886922271958822e-14,
+              4.112271962270723e-16,
+              4.014133236270287e-16,
+              5.3448979064296104e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41588874096452094,
+                0.045627578518269325,
+                0.7199944312390719
+              ],
+              [
+                0.5231320126496884,
+                0.15285743994574197,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340284,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.4703219412747741,
+              0.28977160719913636,
+              0.7549916864645533
+            ],
+            "velocity": [
+              2.8629144826434995e-18,
+              3.46624076042139e-17,
+              2.3548935404777086e-14,
+              -9.195923578316846e-16,
+              -1.8773058657559654e-17,
+              2.666708168072906e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.43420575497869085,
+                0.2536554209030531,
+                0.7199916864645534
+              ],
+              [
+                0.5064381275708575,
+                0.3258877934952196,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000005,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.0523765685544761e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/11_staggered_paraphrase_gpt.json.gz",
+      "record_sha256": "9431fef4d7cf247be289824c84ecc69d36612843baba39692bf2bff650056efe"
+    },
+    {
+      "run_id": "12_staggered_paraphrase_fixed_rule",
+      "case_id": "staggered_paraphrase",
+      "method": "fixed_rule",
+      "layout_id": "staggered",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "a478dd1b90765a408194e0640f6455c30897b934e053bb60e5117f557f9a51cf",
+      "sorted_count": 6,
+      "execution_sim_s": 189.09800000018294,
+      "execution_wall_s": 155.89608904102352,
+      "gpt_latency_s": null,
+      "wall_s": 156.63222812500317,
+      "model": null,
+      "thread_id": null,
+      "approved_plan": [
+        {
+          "object_id": "red_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "B"
+        }
+      ],
+      "physical_lift_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "physical_placement_order": [
+        "red_cup",
+        "blue_cup",
+        "yellow_cup",
+        "red_bowl",
+        "blue_bowl",
+        "yellow_bowl"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 195.8000000002068,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.2989162794830152,
+              0.09885366662809988,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -8.13305707761458e-18,
+              3.3052347457105888e-18,
+              2.2995398282071654e-14,
+              4.650670275821883e-16,
+              7.452411338274112e-15,
+              9.990297700843232e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.24546118621128826,
+                0.04492057099747146,
+                0.7199944312390719
+              ],
+              [
+                0.3526641197513371,
+                0.15241479730937707,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581033978,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3032938697001273,
+              0.2897223109500669,
+              0.7549916864645538
+            ],
+            "velocity": [
+              2.916575964134868e-18,
+              3.49243440567456e-17,
+              1.0697677036867392e-14,
+              -1.0042230888985352e-15,
+              -4.045747912295138e-17,
+              1.2874908905448644e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.2671037450874249,
+                0.2535321863373645,
+                0.7199916864645539
+              ],
+              [
+                0.33948399431282966,
+                0.3259124355627693,
+                0.7899916864645539
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000007,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.640693107077194,
+              0.09922467968929272,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -1.1288090612794183e-17,
+              8.879621144001527e-19,
+              2.2878568726716253e-14,
+              -1.4612248960678051e-16,
+              -4.3926984458724846e-16,
+              -3.625610756223609e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5869229681752989,
+                0.045326015498054616,
+                0.7199944312390719
+              ],
+              [
+                0.6941323790770845,
+                0.15236805505005094,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034037,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6401375578831154,
+              0.28981786143927557,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -2.779644759816608e-18,
+              3.7053180257736684e-17,
+              2.3567630755316307e-14,
+              -1.0742174174901783e-15,
+              -1.8786111589778243e-17,
+              4.953490810351018e-18
+            ],
+            "collision_bounds_m": [
+              [
+                0.6039450156227567,
+                0.25362531917891684,
+                0.7199916864645534
+              ],
+              [
+                0.6763301001434742,
+                0.3260104036996343,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.46957268388607715,
+              0.09955675064736086,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -1.2950897844909073e-17,
+              -6.489238517158294e-19,
+              2.2931866281971886e-14,
+              2.5122924067494617e-16,
+              5.478504691745329e-15,
+              2.913679407090577e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41589014214770204,
+                0.04562843329650555,
+                0.7199944312390719
+              ],
+              [
+                0.5231333943675973,
+                0.15285808409893686,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340223,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.470353387713292,
+              0.28981301782033586,
+              0.7549916864645533
+            ],
+            "velocity": [
+              1.0301441625191e-18,
+              3.384311932847188e-17,
+              2.3514569672029804e-14,
+              -9.463285857640011e-16,
+              -3.8158008957315396e-17,
+              -3.319501715787645e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.43423403415612677,
+                0.25369366426317064,
+                0.7199916864645534
+              ],
+              [
+                0.5064727412704573,
+                0.3259323713775011,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.021405182655144e-14,
+        "arm_max_speed_rad_s": 9.998300990455357e-14,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/12_staggered_paraphrase_fixed_rule.json.gz",
+      "record_sha256": "fa6d675bce7fc659750dc2108af9d4acc743cb2fb2e909afff05584cfce1c7ed"
+    },
+    {
+      "run_id": "13_swapped_columns_direct_fixed_rule",
+      "case_id": "swapped_columns_direct",
+      "method": "fixed_rule",
+      "layout_id": "swapped_columns",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "7f152bb63381d2fd922a618571a003bf76c809e08ad58f25a7dde67e9653d013",
+      "sorted_count": 6,
+      "execution_sim_s": 183.46600000015604,
+      "execution_wall_s": 156.1732488750131,
+      "gpt_latency_s": null,
+      "wall_s": 156.89451408397872,
+      "model": null,
+      "thread_id": null,
+      "approved_plan": [
+        {
+          "object_id": "red_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "A"
+        }
+      ],
+      "physical_lift_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "physical_placement_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 190.18000000017997,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.641344270154566,
+              0.09894601064385579,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -7.331042400589939e-18,
+              6.667001783986352e-18,
+              2.28910522454807e-14,
+              -4.6087169137646137e-17,
+              8.480789032188743e-16,
+              1.229562106713205e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5875522698822744,
+                0.04505631376218785,
+                0.7199944312390719
+              ],
+              [
+                0.6947451908641441,
+                0.1520805156169667,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034035,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6399808743790792,
+              0.2899019810939352,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -2.045806203186059e-18,
+              3.302156056239294e-17,
+              2.3632528510443813e-14,
+              -9.669975582579101e-16,
+              -1.4483032293810772e-17,
+              -1.5432190997176614e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6037887427376784,
+                0.25370984945253433,
+                0.7199916864645534
+              ],
+              [
+                0.6761730060204801,
+                0.3260941127353361,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.46961879833690734,
+              0.09959272221546765,
+              0.7184049917753869
+            ],
+            "velocity": [
+              1.7224915126179607e-17,
+              -8.484531356763916e-18,
+              2.270599336014495e-14,
+              -8.328045369637328e-16,
+              -1.0343414508999966e-14,
+              8.263538654725762e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41595722905880167,
+                0.04566045388195077,
+                0.7199944312390719
+              ],
+              [
+                0.52320299470298,
+                0.1529253190517818,
+                0.7705377815047657
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034047,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.47018339251815966,
+              0.2897567374970293,
+              0.7549916864645533
+            ],
+            "velocity": [
+              1.5897225652283453e-18,
+              3.574628457069251e-17,
+              2.3544614066100308e-14,
+              -1.0296800144164599e-15,
+              5.5487517013686795e-17,
+              -1.5899437405522412e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.4340009676984089,
+                0.25357431267727853,
+                0.7199916864645534
+              ],
+              [
+                0.5063658173379103,
+                0.32593916231678005,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000005,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.29942240768878814,
+              0.09959579605167773,
+              0.7184049917753869
+            ],
+            "velocity": [
+              1.952828742260141e-17,
+              3.0811476902296415e-18,
+              2.2771248427695505e-14,
+              -8.2052137270746945e-16,
+              -5.623790947373053e-15,
+              2.469396036921141e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.24579958098883656,
+                0.04565859520320118,
+                0.7199944312390719
+              ],
+              [
+                0.3530457896449554,
+                0.15298121995289957,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340345,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.30338446704665045,
+              0.2894320919944876,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -4.22301941801886e-18,
+              4.1959773133622724e-17,
+              2.353631963512846e-14,
+              -1.0038580751179693e-15,
+              -3.0652612832075657e-18,
+              -3.894153490822034e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.26719727488658296,
+                0.2532448998344201,
+                0.7199916864645534
+              ],
+              [
+                0.33957165920671795,
+                0.3256192841545551,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000006,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.0532687539022973e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/13_swapped_columns_direct_fixed_rule.json.gz",
+      "record_sha256": "ce39b5744fffce37c90c82b22b0a46354681e2eaf58cde2d5a13a1c9e227c1a2"
+    },
+    {
+      "run_id": "14_swapped_columns_direct_gpt",
+      "case_id": "swapped_columns_direct",
+      "method": "gpt",
+      "layout_id": "swapped_columns",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "7f152bb63381d2fd922a618571a003bf76c809e08ad58f25a7dde67e9653d013",
+      "sorted_count": 6,
+      "execution_sim_s": 184.12400000019701,
+      "execution_wall_s": 165.89885283395415,
+      "gpt_latency_s": 10.03384637500858,
+      "wall_s": 176.71342912496766,
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a18d41-4d9d-7d82-a71d-e2ab4f752fbe",
+      "approved_plan": [
+        {
+          "object_id": "yellow_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "C"
+        }
+      ],
+      "physical_lift_order": [
+        "yellow_bowl",
+        "yellow_cup",
+        "blue_bowl",
+        "blue_cup",
+        "red_bowl",
+        "red_cup"
+      ],
+      "physical_placement_order": [
+        "yellow_bowl",
+        "yellow_cup",
+        "blue_bowl",
+        "blue_cup",
+        "red_bowl",
+        "red_cup"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 198.74000000022085,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6413680112531014,
+              0.09893620518684958,
+              0.7184049917753869
+            ],
+            "velocity": [
+              1.8123009866445913e-17,
+              1.2342827956516764e-17,
+              2.2729667348191028e-14,
+              -1.1620065432815136e-15,
+              -1.043178067711345e-14,
+              -6.916167084392266e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5875755681134555,
+                0.04504667546331187,
+                0.7199944312390719
+              ],
+              [
+                0.6947681104997943,
+                0.15207174828975656,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034047,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6400119064414693,
+              0.28989351086279413,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -2.765280383872366e-20,
+              3.086470756009312e-17,
+              2.3640756963751078e-14,
+              -9.39068083704365e-16,
+              1.3696202098960285e-18,
+              7.403339516492298e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6038199193806202,
+                0.253701523801945,
+                0.7199916864645534
+              ],
+              [
+                0.6762038935023185,
+                0.3260854979236433,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000007,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.4696287148101161,
+              0.09956454684027456,
+              0.7184049917753887
+            ],
+            "velocity": [
+              2.261812389499119e-17,
+              -2.715527336460045e-19,
+              -2.1040053409294338e-14,
+              -7.474499937252193e-16,
+              -7.549600010498703e-15,
+              1.3787933966440186e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.41596404275621485,
+                0.04563280206178351,
+                0.7199944312390738
+              ],
+              [
+                0.5232095447831394,
+                0.15289264534668745,
+                0.7705377815047677
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340495,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.4702490810270797,
+              0.28974563426163785,
+              0.7549916864645533
+            ],
+            "velocity": [
+              1.2743650205190518e-18,
+              3.599891729845321e-17,
+              2.3553850063135074e-14,
+              -1.0489741828873374e-15,
+              1.7247742610523686e-17,
+              -2.2331362887963826e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.4340652050634356,
+                0.25356175829799377,
+                0.7199916864645534
+              ],
+              [
+                0.5064329569907238,
+                0.32592951022528194,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000004,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.29919082574968475,
+              0.09971457933965647,
+              0.7184049917753887
+            ],
+            "velocity": [
+              2.1466658812670554e-17,
+              -2.8453613922450826e-18,
+              -2.1029399803966567e-14,
+              -7.727840094394173e-16,
+              -9.317731119544228e-15,
+              7.321535131756048e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.24554270382718063,
+                0.04578027181685776,
+                0.7199944312390738
+              ],
+              [
+                0.35278920392419355,
+                0.1530661932407603,
+                0.7705377815047677
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034044,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3030484182485793,
+              0.28924229551418085,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -3.33885047412473e-18,
+              3.3056229653623474e-17,
+              2.3602245830568835e-14,
+              -9.76946421438139e-16,
+              3.947858199871829e-17,
+              3.0542261643704675e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.26686724271927653,
+                0.253061119984878,
+                0.7199916864645534
+              ],
+              [
+                0.3392295937778821,
+                0.3254234710434837,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.053815735716652e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/14_swapped_columns_direct_gpt.json.gz",
+      "record_sha256": "db331c8674247ce8cb40bd541076292f1adc93a7bc8921aeb78292ed7ad25816"
+    },
+    {
+      "run_id": "15_swapped_columns_paraphrase_gpt",
+      "case_id": "swapped_columns_paraphrase",
+      "method": "gpt",
+      "layout_id": "swapped_columns",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "7f152bb63381d2fd922a618571a003bf76c809e08ad58f25a7dde67e9653d013",
+      "sorted_count": 6,
+      "execution_sim_s": 184.1240000001784,
+      "execution_wall_s": 169.84799541695975,
+      "gpt_latency_s": 5.056351958017331,
+      "wall_s": 175.8520798329846,
+      "model": "gpt-5.6-terra",
+      "thread_id": "01a18d44-0543-76e0-9066-9deb602c3a08",
+      "approved_plan": [
+        {
+          "object_id": "yellow_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "A"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "red_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "C"
+        }
+      ],
+      "physical_lift_order": [
+        "yellow_bowl",
+        "yellow_cup",
+        "blue_bowl",
+        "blue_cup",
+        "red_bowl",
+        "red_cup"
+      ],
+      "physical_placement_order": [
+        "yellow_bowl",
+        "yellow_cup",
+        "blue_bowl",
+        "blue_cup",
+        "red_bowl",
+        "red_cup"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 194.78000000020194,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.6413680112530996,
+              0.09893620518684926,
+              0.7184049917753869
+            ],
+            "velocity": [
+              3.7927572757986114e-20,
+              8.761864504856823e-18,
+              2.2838304456647764e-14,
+              3.6205384415215837e-16,
+              -1.3575177623398593e-15,
+              5.079964621787586e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5875755681134539,
+                0.04504667546331153,
+                0.7199944312390719
+              ],
+              [
+                0.6947681104997928,
+                0.15207174828975586,
+                0.7705377815047657
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340357,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6400119064415223,
+              0.2898935108628271,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -2.4091213145356677e-18,
+              3.6968853641654875e-17,
+              2.352558333772364e-14,
+              -9.207943677749921e-16,
+              5.802141936710266e-17,
+              2.4235289045282505e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6038199193806739,
+                0.25370152380197863,
+                0.7199916864645534
+              ],
+              [
+                0.6762038935023706,
+                0.3260854979236756,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000005,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.4696287148101131,
+              0.09956454684027796,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -8.096212890846011e-18,
+              -4.071767778189457e-18,
+              2.2942990118894483e-14,
+              2.002222155521286e-16,
+              5.37081924984316e-15,
+              -1.1060635558370629e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.4159640427562121,
+                0.04563280206178696,
+                0.7199944312390719
+              ],
+              [
+                0.5232095447831365,
+                0.15289264534669106,
+                0.7705377815047657
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581033979,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.47024908102708,
+              0.2897456342616378,
+              0.7549916864645533
+            ],
+            "velocity": [
+              1.71969564528332e-18,
+              3.2933834709228674e-17,
+              2.3534642941192722e-14,
+              -9.749194934757884e-16,
+              3.2498790713818403e-18,
+              -3.878189624770316e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.43406520506343593,
+                0.2535617582979937,
+                0.7199916864645534
+              ],
+              [
+                0.5064329569907241,
+                0.3259295102252819,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.674912304,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.29919082574968564,
+              0.09971457933965626,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -2.8341721722981688e-18,
+              -5.94803381578818e-18,
+              2.292050587566291e-14,
+              1.19406313846013e-16,
+              1.8603866488899363e-15,
+              1.670843003863413e-16
+            ],
+            "collision_bounds_m": [
+              [
+                0.24554270382718155,
+                0.04578027181685764,
+                0.7199944312390719
+              ],
+              [
+                0.3527892039241943,
+                0.15306619324075985,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340246,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.3030484182485789,
+              0.2892422955141813,
+              0.7549916864645534
+            ],
+            "velocity": [
+              -1.904541226715958e-18,
+              3.634481017218642e-17,
+              2.1038582416174574e-14,
+              -1.0477686527769441e-15,
+              4.301114543478895e-17,
+              6.99255430580341e-19
+            ],
+            "collision_bounds_m": [
+              [
+                0.26686724271927603,
+                0.2530611199848784,
+                0.7199916864645535
+              ],
+              [
+                0.3392295937778818,
+                0.3254234710434842,
+                0.7899916864645534
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000005,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.061793924074368e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/15_swapped_columns_paraphrase_gpt.json.gz",
+      "record_sha256": "801c995e922cc9161142abc100894f57cd0f08ad490955111fece0f463077087"
+    },
+    {
+      "run_id": "16_swapped_columns_paraphrase_fixed_rule",
+      "case_id": "swapped_columns_paraphrase",
+      "method": "fixed_rule",
+      "layout_id": "swapped_columns",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "passed": true,
+      "infrastructure_failure": false,
+      "errors": [],
+      "failure_stage": null,
+      "initial_pairing_sha256": "7f152bb63381d2fd922a618571a003bf76c809e08ad58f25a7dde67e9653d013",
+      "sorted_count": 6,
+      "execution_sim_s": 183.46600000015604,
+      "execution_wall_s": 152.54920762497932,
+      "gpt_latency_s": null,
+      "wall_s": 153.28090599999996,
+      "model": null,
+      "thread_id": null,
+      "approved_plan": [
+        {
+          "object_id": "red_bowl",
+          "destination": "C"
+        },
+        {
+          "object_id": "red_cup",
+          "destination": "C"
+        },
+        {
+          "object_id": "blue_bowl",
+          "destination": "B"
+        },
+        {
+          "object_id": "blue_cup",
+          "destination": "B"
+        },
+        {
+          "object_id": "yellow_bowl",
+          "destination": "A"
+        },
+        {
+          "object_id": "yellow_cup",
+          "destination": "A"
+        }
+      ],
+      "physical_lift_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "physical_placement_order": [
+        "red_bowl",
+        "red_cup",
+        "blue_bowl",
+        "blue_cup",
+        "yellow_bowl",
+        "yellow_cup"
+      ],
+      "independent_final_hold_s": 5.000000000023874,
+      "independent_final_observation": {
+        "time_s": 190.18000000017997,
+        "objects": [
+          {
+            "id": "red_bowl",
+            "body_name": "red_bowl_object",
+            "color": "red",
+            "kind": "bowl",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.1
+            ],
+            "position_m": [
+              0.641344270154566,
+              0.09894601064385579,
+              0.7184049917753869
+            ],
+            "velocity": [
+              -7.331042400589939e-18,
+              6.667001783986352e-18,
+              2.28910522454807e-14,
+              -4.6087169137646137e-17,
+              8.480789032188743e-16,
+              1.229562106713205e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.5875522698822744,
+                0.04505631376218785,
+                0.7199944312390719
+              ],
+              [
+                0.6947451908641441,
+                0.1520805156169667,
+                0.7705377815047658
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034035,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "red_cup",
+            "body_name": "red_cup_object",
+            "color": "red",
+            "kind": "cup",
+            "expected_destination": "C",
+            "expected_slot_xy_m": [
+              0.64,
+              0.29
+            ],
+            "position_m": [
+              0.6399808743790792,
+              0.2899019810939352,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -2.045806203186059e-18,
+              3.302156056239294e-17,
+              2.3632528510443813e-14,
+              -9.669975582579101e-16,
+              -1.4483032293810772e-17,
+              -1.5432190997176614e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.6037887427376784,
+                0.25370984945253433,
+                0.7199916864645534
+              ],
+              [
+                0.6761730060204801,
+                0.3260941127353361,
+                0.7899916864645533
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000002,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_bowl",
+            "body_name": "blue_bowl_object",
+            "color": "blue",
+            "kind": "bowl",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.1
+            ],
+            "position_m": [
+              0.46961879833690734,
+              0.09959272221546765,
+              0.7184049917753869
+            ],
+            "velocity": [
+              1.7224915126179607e-17,
+              -8.484531356763916e-18,
+              2.270599336014495e-14,
+              -8.328045369637328e-16,
+              -1.0343414508999966e-14,
+              8.263538654725762e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.41595722905880167,
+                0.04566045388195077,
+                0.7199944312390719
+              ],
+              [
+                0.52320299470298,
+                0.1529253190517818,
+                0.7705377815047657
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.4502768581034047,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "blue_cup",
+            "body_name": "blue_cup_object",
+            "color": "blue",
+            "kind": "cup",
+            "expected_destination": "B",
+            "expected_slot_xy_m": [
+              0.47,
+              0.29
+            ],
+            "position_m": [
+              0.47018339251815966,
+              0.2897567374970293,
+              0.7549916864645533
+            ],
+            "velocity": [
+              1.5897225652283453e-18,
+              3.574628457069251e-17,
+              2.3544614066100308e-14,
+              -1.0296800144164599e-15,
+              5.5487517013686795e-17,
+              -1.5899437405522412e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.4340009676984089,
+                0.25357431267727853,
+                0.7199916864645534
+              ],
+              [
+                0.5063658173379103,
+                0.32593916231678005,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000005,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_bowl",
+            "body_name": "yellow_bowl_object",
+            "color": "yellow",
+            "kind": "bowl",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.1
+            ],
+            "position_m": [
+              0.29942240768878814,
+              0.09959579605167773,
+              0.7184049917753869
+            ],
+            "velocity": [
+              1.952828742260141e-17,
+              3.0811476902296415e-18,
+              2.2771248427695505e-14,
+              -8.2052137270746945e-16,
+              -5.623790947373053e-15,
+              2.469396036921141e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.24579958098883656,
+                0.04565859520320118,
+                0.7199944312390719
+              ],
+              [
+                0.3530457896449554,
+                0.15298121995289957,
+                0.7705377815047656
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.45027685810340345,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          },
+          {
+            "id": "yellow_cup",
+            "body_name": "yellow_cup_object",
+            "color": "yellow",
+            "kind": "cup",
+            "expected_destination": "A",
+            "expected_slot_xy_m": [
+              0.3,
+              0.29
+            ],
+            "position_m": [
+              0.30338446704665045,
+              0.2894320919944876,
+              0.7549916864645533
+            ],
+            "velocity": [
+              -4.22301941801886e-18,
+              4.1959773133622724e-17,
+              2.353631963512846e-14,
+              -1.0038580751179693e-15,
+              -3.0652612832075657e-18,
+              -3.894153490822034e-17
+            ],
+            "collision_bounds_m": [
+              [
+                0.26719727488658296,
+                0.2532448998344201,
+                0.7199916864645534
+              ],
+              [
+                0.33957165920671795,
+                0.3256192841545551,
+                0.7899916864645532
+              ]
+            ],
+            "finger_forces_n": [
+              0.0,
+              0.0
+            ],
+            "table_force_n": 0.6749123040000006,
+            "bilateral_grip": false,
+            "correct_region": true,
+            "slot_aligned": true,
+            "upright": true,
+            "supported": true,
+            "stable": true,
+            "detached": true
+          }
+        ],
+        "hand_empty": true,
+        "arm_home_error_rad": 1.0658141036401503e-14,
+        "arm_max_speed_rad_s": 1.0532687539022973e-13,
+        "gripper_opening_m": 0.0799999999999882
+      },
+      "grasp_evidence": {
+        "red_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "red_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "blue_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_bowl": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        },
+        "yellow_cup": {
+          "bilateral_seen": true,
+          "lifted_while_gripped": true
+        }
+      },
+      "controller_validation_hold_s": 4.999999999999671,
+      "controller_status": "succeeded",
+      "final_goal_checks": {
+        "all_correct": true,
+        "all_supported": true,
+        "all_stable": true,
+        "hand_empty": true,
+        "home_reached": true
+      },
+      "collision_episodes": 0,
+      "record_path": "runs/16_swapped_columns_paraphrase_fixed_rule.json.gz",
+      "record_sha256": "57ac0f3fd53fdd6c6ed41e25ddf3b6ca7dc519ab310bd226286f72f9d5e39a38"
+    }
+  ],
+  "summary": [
+    {
+      "method": "fixed_rule",
+      "scheduled": 8,
+      "attempted": 8,
+      "successes": 8,
+      "failures": 0,
+      "pending": 0,
+      "infrastructure_failures": 0
+    },
+    {
+      "method": "gpt",
+      "scheduled": 8,
+      "attempted": 8,
+      "successes": 8,
+      "failures": 0,
+      "pending": 0,
+      "infrastructure_failures": 0
+    }
+  ],
+  "paired": [
+    {
+      "case_id": "right18_direct",
+      "layout_id": "right18",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "fixed_rule_run_id": "01_right18_direct_fixed_rule",
+      "gpt_run_id": "02_right18_direct_gpt",
+      "execution_sim_delta_s": 1.7053025658242404e-11,
+      "execution_wall_delta_s": 86.12723866605666
+    },
+    {
+      "case_id": "right18_paraphrase",
+      "layout_id": "right18",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "fixed_rule_run_id": "04_right18_paraphrase_fixed_rule",
+      "gpt_run_id": "03_right18_paraphrase_gpt",
+      "execution_sim_delta_s": 1.2480000000446694,
+      "execution_wall_delta_s": 5.0021165840444155
+    },
+    {
+      "case_id": "front24_direct",
+      "layout_id": "front24",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "fixed_rule_run_id": "05_front24_direct_fixed_rule",
+      "gpt_run_id": "06_front24_direct_gpt",
+      "execution_sim_delta_s": 8.981260180007666e-11,
+      "execution_wall_delta_s": 244.17226191604277
+    },
+    {
+      "case_id": "front24_paraphrase",
+      "layout_id": "front24",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "fixed_rule_run_id": "08_front24_paraphrase_fixed_rule",
+      "gpt_run_id": "07_front24_paraphrase_gpt",
+      "execution_sim_delta_s": 1.2120000000220443,
+      "execution_wall_delta_s": 7.9995374999707565
+    },
+    {
+      "case_id": "staggered_direct",
+      "layout_id": "staggered",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "fixed_rule_run_id": "09_staggered_direct_fixed_rule",
+      "gpt_run_id": "10_staggered_direct_gpt",
+      "execution_sim_delta_s": 2.8393287720973603e-11,
+      "execution_wall_delta_s": 6.8867017919546925
+    },
+    {
+      "case_id": "staggered_paraphrase",
+      "layout_id": "staggered",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "fixed_rule_run_id": "12_staggered_paraphrase_fixed_rule",
+      "gpt_run_id": "11_staggered_paraphrase_gpt",
+      "execution_sim_delta_s": 6.920000000069621,
+      "execution_wall_delta_s": 21.960264542954974
+    },
+    {
+      "case_id": "swapped_columns_direct",
+      "layout_id": "swapped_columns",
+      "wording_id": "direct",
+      "status": "succeeded",
+      "fixed_rule_run_id": "13_swapped_columns_direct_fixed_rule",
+      "gpt_run_id": "14_swapped_columns_direct_gpt",
+      "execution_sim_delta_s": 0.6580000000409711,
+      "execution_wall_delta_s": 9.725603958941065
+    },
+    {
+      "case_id": "swapped_columns_paraphrase",
+      "layout_id": "swapped_columns",
+      "wording_id": "paraphrase",
+      "status": "succeeded",
+      "fixed_rule_run_id": "16_swapped_columns_paraphrase_fixed_rule",
+      "gpt_run_id": "15_swapped_columns_paraphrase_gpt",
+      "execution_sim_delta_s": 0.6580000000223549,
+      "execution_wall_delta_s": 17.29878779198043
+    }
+  ],
+  "errors": []
+}
