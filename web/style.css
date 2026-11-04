@@ -236,3 +236,20 @@ footer { grid-column: 1 / -1; color: #8a9ab0; font-size: 11px; line-height: 1.8;
   .vector { gap: 6px 9px; }
   .vector-label { width: 100%; flex-basis: 100%; }
 }
+
+.language-toolbar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.language-toolbar p { flex-basis: 100%; margin: 0; }
+.language-toolbar button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.language-toolbar .language-note { color: var(--muted); font-size: 11px; line-height: 1.6; }
+button, label, dt, summary, .skill-stages li { overflow-wrap: anywhere; }
+button { white-space: normal; }
+select { min-width: 0; max-width: 100%; }
+.section-heading { flex-wrap: wrap; }
+.localized-copy { font: inherit; color: inherit; letter-spacing: inherit; margin: 0; }
+.localized-copy:not(:last-child) { margin-inline-end: 0.25em; }
+@media (max-width: 440px) {
+  .manual-skill-actions { flex-wrap: wrap; }
+  .manual-skill-actions label { min-width: 0; width: 100%; }
+  .comparison-batch-label { display: block; }
+  #comparison-batch { width: 100%; }
+}

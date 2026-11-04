@@ -4,70 +4,77 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>GPT 实时单技能决策 · 物理执行与反馈</title>
+  <title data-i18n="GPT 实时单技能决策 · 物理执行与反馈">GPT 实时单技能决策 · 物理执行与反馈</title>
   <link rel="stylesheet" href="/style.css">
+  <script src="/localization.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
   <main class="viewer">
+    <nav class="language-toolbar" aria-label="界面语言" data-i18n-aria-label="界面语言">
+      <button id="language-zh" type="button" lang="zh-CN" aria-pressed="true">中文</button>
+      <button id="language-en" type="button" lang="en" aria-pressed="false">English</button>
+      <p id="language-persistence" class="language-note" role="status" hidden></p>
+      <p class="language-note" data-i18n="语言切换仅改变显示，不请求模型或执行动作。原始用户与模型文本、JSON 和历史证据不翻译；未知消息保留原文并标记。">语言切换仅改变显示，不请求模型或执行动作。原始用户与模型文本、JSON 和历史证据不翻译；未知消息保留原文并标记。</p>
+    </nav>
     <header class="page-header" data-storage-only>
-      <div class="eyebrow">实时决策 <span>GPT + LIVE PHYSICS</span></div>
-      <h1>GPT 单技能决策 <span>· 观察、执行、反馈</span></h1>
-      <p class="scope">每次只选一项技能 <span aria-hidden="true">/</span> 明确授权 · 真实接触执行 · 本地目标检查</p>
+      <div class="eyebrow"><span class="localized-copy" data-i18n="实时决策">实时决策 </span><span>GPT + LIVE PHYSICS</span></div>
+      <h1><span class="localized-copy" data-i18n="GPT 单技能决策">GPT 单技能决策 </span><span data-i18n="· 观察、执行、反馈">· 观察、执行、反馈</span></h1>
+      <p class="scope"><span class="localized-copy" data-i18n="每次只选一项技能">每次只选一项技能 </span><span aria-hidden="true">/</span><span class="localized-copy" data-i18n="明确授权 · 真实接触执行 · 本地目标检查"> 明确授权 · 真实接触执行 · 本地目标检查</span></p>
     </header>
     <header class="page-header" data-sorting-only hidden>
-      <div class="eyebrow">分拣规划对照 <span>GPT / FIXED PLAN + LIVE PHYSICS</span></div>
-      <h1>彩色碗杯分拣 <span>· 六物体真实接触执行</span></h1>
-      <p class="scope">仿真真值 · 无视觉识别 <span aria-hidden="true">/</span> GPT 完整提案须批准 · 固定队列可对照 · 失败即停止</p>
+      <div class="eyebrow"><span class="localized-copy" data-i18n="分拣规划对照">分拣规划对照 </span><span>GPT / FIXED PLAN + LIVE PHYSICS</span></div>
+      <h1><span class="localized-copy" data-i18n="彩色碗杯分拣">彩色碗杯分拣 </span><span data-i18n="· 六物体真实接触执行">· 六物体真实接触执行</span></h1>
+      <p class="scope"><span class="localized-copy" data-i18n="仿真真值 · 无视觉识别">仿真真值 · 无视觉识别 </span><span aria-hidden="true">/</span><span class="localized-copy" data-i18n="GPT 完整提案须批准 · 固定队列可对照 · 失败即停止"> GPT 完整提案须批准 · 固定队列可对照 · 失败即停止</span></p>
     </header>
 
-    <section class="scene-panel" aria-label="实时物理仿真">
+    <section class="scene-panel" aria-label="实时物理仿真" data-i18n-aria-label="实时物理仿真">
       <div class="scene-toolbar">
-        <span id="status" class="status" data-kind="connecting" role="status">正在连接</span>
-        <span class="clock">仿真时间 <output id="time">—</output><span> s</span></span>
+        <span id="status" class="status" data-kind="connecting" role="status" data-i18n="正在连接">正在连接</span>
+        <span class="clock"><span class="localized-copy" data-i18n="仿真时间">仿真时间 </span><output id="time">—</output><span> s</span></span>
       </div>
       <div class="viewport" id="viewport">
-        <img id="frame" alt="MuJoCo 实时渲染的机械臂与工作台场景" hidden>
-        <div id="empty-frame" class="empty-frame"><span class="empty-mark" aria-hidden="true">＋</span><p>等待仿真器首帧</p><small>仅显示后端物理仿真渲染画面</small></div>
-        <span id="stale-frame" class="stale-frame" hidden>连接已中断 · 最后一帧</span>
+        <img id="frame" alt="MuJoCo 实时渲染的机械臂与工作台场景" data-i18n-alt="MuJoCo 实时渲染的机械臂与工作台场景" hidden>
+        <div id="empty-frame" class="empty-frame"><span class="empty-mark" aria-hidden="true">＋</span><p data-i18n="等待仿真器首帧">等待仿真器首帧</p><small data-i18n="仅显示后端物理仿真渲染画面">仅显示后端物理仿真渲染画面</small></div>
+        <span id="stale-frame" class="stale-frame" hidden data-i18n="连接已中断 · 最后一帧">连接已中断 · 最后一帧</span>
         <div id="task-overlay" class="task-overlay" hidden><strong id="overlay-task"></strong><span id="overlay-phase"></span></div>
       </div>
-      <div class="controls" aria-label="仿真控制">
-        <button id="toggle" class="primary" type="button" disabled>开始运行</button>
-        <button id="step" type="button" disabled>单步 <span>20 ms</span></button>
-        <button id="reset" type="button" disabled>重置</button>
-        <label class="camera-label" for="camera">视角
-          <select id="camera" disabled>
-            <option value="overview">全景</option>
-            <option value="front">正面</option>
-            <option value="top">俯视</option>
+      <div class="controls" aria-label="仿真控制" data-i18n-aria-label="仿真控制">
+        <button id="toggle" class="primary" type="button" disabled data-i18n="开始运行">开始运行</button>
+        <button id="step" type="button" disabled><span class="localized-copy" data-i18n="单步">单步 </span><span>20 ms</span></button>
+        <button id="reset" type="button" disabled data-i18n="重置">重置</button>
+        <label class="camera-label" for="camera"><span class="localized-copy" data-i18n="视角">视角
+          </span><select id="camera" disabled>
+            <option value="overview" data-i18n="全景">全景</option>
+            <option value="front" data-i18n="正面">正面</option>
+            <option value="top" data-i18n="俯视">俯视</option>
           </select>
         </label>
       </div>
       <div id="error" class="error" role="alert" hidden></div>
-      <div id="reconnect-panel" class="reconnect-panel" hidden><span>不会自动重连；连接恢复后以仿真器状态为准。</span><button id="reconnect" type="button">重新连接</button></div>
+      <div id="reconnect-panel" class="reconnect-panel" hidden><span data-i18n="不会自动重连；连接恢复后以仿真器状态为准。">不会自动重连；连接恢复后以仿真器状态为准。</span><button id="reconnect" type="button" data-i18n="重新连接">重新连接</button></div>
     </section>
 
-    <aside class="right-pane" aria-label="任务与仿真状态">
+    <aside class="right-pane" aria-label="任务与仿真状态" data-i18n-aria-label="任务与仿真状态">
       <section id="sort-planner-panel" class="planner-panel" aria-labelledby="sort-planner-title" data-sorting-only hidden>
-        <div class="section-heading"><h2 id="sort-planner-title">GPT 订阅 · 分拣提案与批准</h2><span id="sort-planner-status" role="status">等待状态</span></div>
-        <p id="sort-planner-scope" class="planner-note">仅限当前六只碗杯与 A/B/C 三个区。GPT 可选择六物体顺序与颜色分区；同色碗杯同区、每色独占一区。落点与所有运动由本地控制器确定，不接收模型坐标或电机指令。</p>
-        <label class="task-label" for="sort-planner-task">分拣任务 <span>最多 1000 字符</span></label>
-        <textarea id="sort-planner-task" rows="3" maxlength="1000" required disabled aria-describedby="sort-planner-scope sort-planner-hint">请将红色物体放到 A 区、蓝色物体放到 B 区、黄色物体放到 C 区；先处理全部三个杯子，再处理全部三个碗。</textarea>
+        <div class="section-heading"><h2 id="sort-planner-title" data-i18n="GPT 订阅 · 分拣提案与批准">GPT 订阅 · 分拣提案与批准</h2><span id="sort-planner-status" role="status" data-i18n="等待状态">等待状态</span></div>
+        <p id="sort-planner-scope" class="planner-note" data-i18n="仅限当前六只碗杯与 A/B/C 三个区。GPT 可选择六物体顺序与颜色分区；同色碗杯同区、每色独占一区。落点与所有运动由本地控制器确定，不接收模型坐标或电机指令。">仅限当前六只碗杯与 A/B/C 三个区。GPT 可选择六物体顺序与颜色分区；同色碗杯同区、每色独占一区。落点与所有运动由本地控制器确定，不接收模型坐标或电机指令。</p>
+        <label class="task-label" for="sort-planner-task"><span class="localized-copy" data-i18n="分拣任务">分拣任务 </span><span data-i18n="最多 1000 字符">最多 1000 字符</span></label>
+        <textarea id="sort-planner-task" rows="3" maxlength="1000" required disabled aria-describedby="sort-planner-scope sort-planner-hint" data-i18n-example="请将红色物体放到 A 区、蓝色物体放到 B 区、黄色物体放到 C 区；先处理全部三个杯子，再处理全部三个碗。">请将红色物体放到 A 区、蓝色物体放到 B 区、黄色物体放到 C 区；先处理全部三个杯子，再处理全部三个碗。</textarea>
         <div class="planner-actions">
-          <button id="sort-plan-generate" class="primary" type="button" disabled>请求 GPT 完整提案</button>
-          <button id="sort-plan-execute" type="button" disabled>批准所示提案并执行</button>
-          <button id="sort-plan-cancel" type="button" disabled>取消请求 / 提案</button>
+          <button id="sort-plan-generate" class="primary" type="button" disabled data-i18n="请求 GPT 完整提案">请求 GPT 完整提案</button>
+          <button id="sort-plan-execute" type="button" disabled data-i18n="批准所示提案并执行">批准所示提案并执行</button>
+          <button id="sort-plan-cancel" type="button" disabled data-i18n="取消请求 / 提案">取消请求 / 提案</button>
         </div>
-        <p class="planner-note">生成不会移动机器人。本地仅校验计划的结构、安全边界与物理条件，不能证明自然语言意图已被正确理解；请核对实际颜色映射和顺序，再批准该编号提案。批准后自动恢复物理时钟。执行中请使用暂停或重置，不可取消整批动作。</p>
+        <p class="planner-note" data-i18n="生成不会移动机器人。本地仅校验计划的结构、安全边界与物理条件，不能证明自然语言意图已被正确理解；请核对实际颜色映射和顺序，再批准该编号提案。批准后自动恢复物理时钟。执行中请使用暂停或重置，不可取消整批动作。">生成不会移动机器人。本地仅校验计划的结构、安全边界与物理条件，不能证明自然语言意图已被正确理解；请核对实际颜色映射和顺序，再批准该编号提案。批准后自动恢复物理时钟。执行中请使用暂停或重置，不可取消整批动作。</p>
         <p id="sort-planner-hint" class="planner-note" role="status"></p>
-        <p id="sort-planner-setup" class="planner-setup" hidden>请安装官方 Codex CLI，并运行 codex login 使用 ChatGPT 订阅登录。无需 API 密钥；可在本机 .env 设置 CODEX_MODEL。不要上传登录凭证。</p>
+        <p id="sort-planner-setup" class="planner-setup" hidden data-i18n="请安装官方 Codex CLI，并运行 codex login 使用 ChatGPT 订阅登录。无需 API 密钥；可在本机 .env 设置 CODEX_MODEL。不要上传登录凭证。">请安装官方 Codex CLI，并运行 codex login 使用 ChatGPT 订阅登录。无需 API 密钥；可在本机 .env 设置 CODEX_MODEL。不要上传登录凭证。</p>
         <p id="sort-planner-error" class="skill-failure" role="alert" hidden></p>
         <dl class="metadata planner-metadata">
-          <div><dt>Codex 请求模型标识 · 非服务快照证明</dt><dd id="sort-planner-model">—</dd></div>
-          <div><dt>已记录请求数</dt><dd id="sort-planner-calls">—</dd></div>
-          <div><dt>最近 GPT 延迟 · 墙钟秒</dt><dd id="sort-planner-latency">—</dd></div>
-          <div><dt>累计 GPT 延迟 · 墙钟秒</dt><dd id="sort-planner-total-latency">—</dd></div>
+          <div><dt data-i18n="Codex 请求模型标识 · 非服务快照证明">Codex 请求模型标识 · 非服务快照证明</dt><dd id="sort-planner-model">—</dd></div>
+          <div><dt data-i18n="已记录请求数">已记录请求数</dt><dd id="sort-planner-calls">—</dd></div>
+          <div><dt data-i18n="最近 GPT 延迟 · 墙钟秒">最近 GPT 延迟 · 墙钟秒</dt><dd id="sort-planner-latency">—</dd></div>
+          <div><dt data-i18n="累计 GPT 延迟 · 墙钟秒">累计 GPT 延迟 · 墙钟秒</dt><dd id="sort-planner-total-latency">—</dd></div>
         </dl>
         <p id="sort-planner-response" class="planner-note"></p>
         <p id="sort-planner-submitted" class="planner-note"></p>
@@ -75,265 +82,265 @@
           <h3 id="sort-plan-preview-title"></h3>
           <p id="sort-plan-summary" class="planner-note"></p>
           <p id="sort-plan-reason" class="planner-note"></p>
-          <ul id="sort-plan-mapping" class="sorting-rules" aria-label="GPT 实际提案的颜色映射"></ul>
-          <ol id="sort-plan-queue" class="sorting-queue" aria-label="GPT 实际提案的处理顺序"></ol>
+          <ul id="sort-plan-mapping" class="sorting-rules" aria-label="GPT 实际提案的颜色映射" data-i18n-aria-label="GPT 实际提案的颜色映射"></ul>
+          <ol id="sort-plan-queue" class="sorting-queue" aria-label="GPT 实际提案的处理顺序" data-i18n-aria-label="GPT 实际提案的处理顺序"></ol>
         </div>
-        <h3 class="postconditions-title">真实请求与执行反馈</h3>
-        <p id="sort-planner-history-empty" class="planner-note">尚无请求记录；固定对照不会调用模型。</p>
-        <ol id="sort-planner-history" class="planner-history" aria-label="分拣提案与实测结果记录"></ol>
+        <h3 class="postconditions-title" data-i18n="真实请求与执行反馈">真实请求与执行反馈</h3>
+        <p id="sort-planner-history-empty" class="planner-note" data-i18n="尚无请求记录；固定对照不会调用模型。">尚无请求记录；固定对照不会调用模型。</p>
+        <ol id="sort-planner-history" class="planner-history" aria-label="分拣提案与实测结果记录" data-i18n-aria-label="分拣提案与实测结果记录"></ol>
       </section>
       <section id="sorting-panel" class="sorting-panel" aria-labelledby="sorting-title" data-sorting-only hidden>
-        <div class="section-heading"><h2 id="sorting-title">分拣 · 实时物理执行</h2><span id="sorting-status" role="status">等待状态</span></div>
-        <p class="skill-criteria">固定对照规则：红色 → A 区、蓝色 → B 区、黄色 → C 区；使用既定物体顺序，不调用模型。GPT 提案可改变此映射与顺序，实际执行队列如下。</p>
-        <p class="skill-criteria">每色一只碗、一只无把手空心杯；每区两个独立落点。色区是桌面标记，不是容器。身份、颜色与位姿直接来自仿真真值，无视觉识别。</p>
-        <button id="sort-start" type="button" disabled aria-describedby="sorting-hint">运行固定分拣对照（不调用 GPT）</button>
-        <p id="sorting-hint" class="skill-hint" role="status">等待后端启动条件。</p>
-        <p class="skill-phase">当前物体：<strong id="sorting-current">—</strong></p>
-        <p class="skill-phase">物理阶段：<strong id="sorting-phase">—</strong></p>
+        <div class="section-heading"><h2 id="sorting-title" data-i18n="分拣 · 实时物理执行">分拣 · 实时物理执行</h2><span id="sorting-status" role="status" data-i18n="等待状态">等待状态</span></div>
+        <p class="skill-criteria" data-i18n="固定对照规则：红色 → A 区、蓝色 → B 区、黄色 → C 区；使用既定物体顺序，不调用模型。GPT 提案可改变此映射与顺序，实际执行队列如下。">固定对照规则：红色 → A 区、蓝色 → B 区、黄色 → C 区；使用既定物体顺序，不调用模型。GPT 提案可改变此映射与顺序，实际执行队列如下。</p>
+        <p class="skill-criteria" data-i18n="每色一只碗、一只无把手空心杯；每区两个独立落点。色区是桌面标记，不是容器。身份、颜色与位姿直接来自仿真真值，无视觉识别。">每色一只碗、一只无把手空心杯；每区两个独立落点。色区是桌面标记，不是容器。身份、颜色与位姿直接来自仿真真值，无视觉识别。</p>
+        <button id="sort-start" type="button" disabled aria-describedby="sorting-hint" data-i18n="运行固定分拣对照（不调用 GPT）">运行固定分拣对照（不调用 GPT）</button>
+        <p id="sorting-hint" class="skill-hint" role="status" data-i18n="等待后端启动条件。">等待后端启动条件。</p>
+        <p class="skill-phase"><span class="localized-copy" data-i18n="当前物体：">当前物体：</span><strong id="sorting-current">—</strong></p>
+        <p class="skill-phase"><span class="localized-copy" data-i18n="物理阶段：">物理阶段：</span><strong id="sorting-phase">—</strong></p>
         <p id="sorting-message" class="skill-message"></p>
         <p id="sorting-failure" class="skill-failure" role="alert" hidden></p>
-        <label class="sorting-progress-label" for="sorting-progress">实测完成 <output id="sorting-count">—</output></label>
-        <progress id="sorting-progress" max="6" value="0" aria-label="后端实测已分拣物体数"></progress>
+        <label class="sorting-progress-label" for="sorting-progress"><span class="localized-copy" data-i18n="实测完成">实测完成 </span><output id="sorting-count">—</output></label>
+        <progress id="sorting-progress" max="6" value="0" aria-label="后端实测已分拣物体数" data-i18n-aria-label="后端实测已分拣物体数"></progress>
         <dl class="metadata skill-metrics">
-          <div><dt>本次执行 · 仿真秒，非墙钟耗时</dt><dd><output id="sorting-elapsed">—</output> <small>s</small></dd></div>
-          <div><dt>归位后整批最终保持 · 目标 5 仿真秒</dt><dd><output id="sorting-hold">—</output> <small>/ 5 s</small></dd></div>
+          <div><dt data-i18n="本次执行 · 仿真秒，非墙钟耗时">本次执行 · 仿真秒，非墙钟耗时</dt><dd><output id="sorting-elapsed">—</output> <small>s</small></dd></div>
+          <div><dt data-i18n="归位后整批最终保持 · 目标 5 仿真秒">归位后整批最终保持 · 目标 5 仿真秒</dt><dd><output id="sorting-hold">—</output> <small>/ 5 s</small></dd></div>
         </dl>
-        <p class="skill-criteria">每个物体依次抓取、抬升保持、转移、放置释放、撤离；全队列后归位并验证 5 仿真秒。不自动重试，不跳过失败；完成或失败后须显式重置。</p>
-        <h3 class="postconditions-title">当前执行队列 · 状态由后端报告</h3>
-        <ol id="sorting-queue" class="sorting-queue" aria-label="当前物体处理顺序"></ol>
-        <h3 class="postconditions-title">整批目标 · 当前物理检查</h3>
+        <p class="skill-criteria" data-i18n="每个物体依次抓取、抬升保持、转移、放置释放、撤离；全队列后归位并验证 5 仿真秒。不自动重试，不跳过失败；完成或失败后须显式重置。">每个物体依次抓取、抬升保持、转移、放置释放、撤离；全队列后归位并验证 5 仿真秒。不自动重试，不跳过失败；完成或失败后须显式重置。</p>
+        <h3 class="postconditions-title" data-i18n="当前执行队列 · 状态由后端报告">当前执行队列 · 状态由后端报告</h3>
+        <ol id="sorting-queue" class="sorting-queue" aria-label="当前物体处理顺序" data-i18n-aria-label="当前物体处理顺序"></ol>
+        <h3 class="postconditions-title" data-i18n="整批目标 · 当前物理检查">整批目标 · 当前物理检查</h3>
         <dl id="sorting-checks" class="metadata storage-metrics"></dl>
-        <h3 class="postconditions-title">逐物体实测 · 不由动画推断</h3>
+        <h3 class="postconditions-title" data-i18n="逐物体实测 · 不由动画推断">逐物体实测 · 不由动画推断</h3>
         <div id="sorting-objects" class="sorting-objects"></div>
       </section>
       <section id="planner-panel" class="planner-panel" aria-labelledby="planner-title" data-status="waiting" data-storage-only>
-        <div class="section-heading"><h2 id="planner-title">GPT 订阅 · 实时决策循环</h2><span id="planner-status" role="status">等待状态</span></div>
-        <p id="planner-scope" class="planner-note">GPT 依据当前物理观测从五个独立技能中选择一项；每次执行结果会进入下一次请求，不预编整段动作。支持抓取保持、黑碗收纳归位、关柜归位或直接归位；不能打开抽屉、编写动作代码或切换已授权目标。无需重置已成功的夹持状态。</p>
-        <label class="task-label" for="planner-task">任务描述 <span>最多 1000 字符</span></label>
-        <textarea id="planner-task" rows="3" maxlength="1000" required disabled aria-describedby="planner-scope planner-hint">抓起黑碗并稳定保持，然后放入已经打开的下层抽屉，撤出夹爪，关闭抽屉，最后机械臂归位。</textarea>
+        <div class="section-heading"><h2 id="planner-title" data-i18n="GPT 订阅 · 实时决策循环">GPT 订阅 · 实时决策循环</h2><span id="planner-status" role="status" data-i18n="等待状态">等待状态</span></div>
+        <p id="planner-scope" class="planner-note" data-i18n="GPT 依据当前物理观测从五个独立技能中选择一项；每次执行结果会进入下一次请求，不预编整段动作。支持抓取保持、黑碗收纳归位、关柜归位或直接归位；不能打开抽屉、编写动作代码或切换已授权目标。无需重置已成功的夹持状态。">GPT 依据当前物理观测从五个独立技能中选择一项；每次执行结果会进入下一次请求，不预编整段动作。支持抓取保持、黑碗收纳归位、关柜归位或直接归位；不能打开抽屉、编写动作代码或切换已授权目标。无需重置已成功的夹持状态。</p>
+        <label class="task-label" for="planner-task"><span class="localized-copy" data-i18n="任务描述">任务描述 </span><span data-i18n="最多 1000 字符">最多 1000 字符</span></label>
+        <textarea id="planner-task" rows="3" maxlength="1000" required disabled aria-describedby="planner-scope planner-hint" data-i18n-example="抓起黑碗并稳定保持，然后放入已经打开的下层抽屉，撤出夹爪，关闭抽屉，最后机械臂归位。">抓起黑碗并稳定保持，然后放入已经打开的下层抽屉，撤出夹爪，关闭抽屉，最后机械臂归位。</textarea>
         <div class="planner-actions">
-          <button id="plan-generate" class="primary" type="button" disabled>生成第一项决策</button>
-          <button id="plan-execute" type="button" disabled>仅执行当前一项</button>
-          <button id="plan-continuous" type="button" disabled>授权持续完成当前目标</button>
-          <button id="plan-next" type="button" disabled>根据反馈请求下一项</button>
-          <button id="plan-cancel" type="button" disabled>停止后续决策</button>
+          <button id="plan-generate" class="primary" type="button" disabled data-i18n="生成第一项决策">生成第一项决策</button>
+          <button id="plan-execute" type="button" disabled data-i18n="仅执行当前一项">仅执行当前一项</button>
+          <button id="plan-continuous" type="button" disabled data-i18n="授权持续完成当前目标">授权持续完成当前目标</button>
+          <button id="plan-next" type="button" disabled data-i18n="根据反馈请求下一项">根据反馈请求下一项</button>
+          <button id="plan-cancel" type="button" disabled data-i18n="停止后续决策">停止后续决策</button>
         </div>
-        <p class="planner-note">生成第一项不会执行。持续授权仅限同一目标，最多 8 次技能调用 / 9 次模型请求，不自动重试。停止后续决策会等待当前技能完成；暂停会停止物理时钟与自动派发，但不会隐藏真实 GPT 墙钟延迟。</p>
-        <p id="planner-mode" class="planner-note">逐项授权 · 当前一项结束后等待人工请求</p>
-        <p id="planner-hint" class="planner-note">未暂停时，物理与夹持会在 GPT 等待期间继续运行。</p>
-        <p id="planner-setup" class="planner-setup" hidden>请安装官方 Codex CLI，并在本机运行 codex login 使用 ChatGPT 订阅登录。无需 API 密钥。模型可通过本机 .env 的 CODEX_MODEL 设置；不要复制或上传 Codex 登录凭证。</p>
+        <p class="planner-note" data-i18n="生成第一项不会执行。持续授权仅限同一目标，最多 8 次技能调用 / 9 次模型请求，不自动重试。停止后续决策会等待当前技能完成；暂停会停止物理时钟与自动派发，但不会隐藏真实 GPT 墙钟延迟。">生成第一项不会执行。持续授权仅限同一目标，最多 8 次技能调用 / 9 次模型请求，不自动重试。停止后续决策会等待当前技能完成；暂停会停止物理时钟与自动派发，但不会隐藏真实 GPT 墙钟延迟。</p>
+        <p id="planner-mode" class="planner-note" data-i18n="逐项授权 · 当前一项结束后等待人工请求">逐项授权 · 当前一项结束后等待人工请求</p>
+        <p id="planner-hint" class="planner-note" data-i18n="未暂停时，物理与夹持会在 GPT 等待期间继续运行。">未暂停时，物理与夹持会在 GPT 等待期间继续运行。</p>
+        <p id="planner-setup" class="planner-setup" hidden data-i18n="请安装官方 Codex CLI，并在本机运行 codex login 使用 ChatGPT 订阅登录。无需 API 密钥。模型可通过本机 .env 的 CODEX_MODEL 设置；不要复制或上传 Codex 登录凭证。">请安装官方 Codex CLI，并在本机运行 codex login 使用 ChatGPT 订阅登录。无需 API 密钥。模型可通过本机 .env 的 CODEX_MODEL 设置；不要复制或上传 Codex 登录凭证。</p>
         <p id="planner-error" class="skill-failure" role="alert" hidden></p>
         <dl class="metadata planner-metadata">
-          <div><dt id="planner-model-label">Codex 请求模型 · 当前 ChatGPT 订阅</dt><dd id="planner-model">—</dd></div>
-          <div><dt>最近 GPT 延迟 · 墙钟时间</dt><dd><output id="planner-latency">—</output> <small>s · 非仿真秒</small></dd></div>
-          <div><dt>累计 GPT 延迟 · 墙钟时间</dt><dd><output id="planner-total-latency">—</output> <small>s · 非仿真秒</small></dd></div>
+          <div><dt id="planner-model-label" data-i18n="Codex 请求模型 · 当前 ChatGPT 订阅">Codex 请求模型 · 当前 ChatGPT 订阅</dt><dd id="planner-model">—</dd></div>
+          <div><dt data-i18n="最近 GPT 延迟 · 墙钟时间">最近 GPT 延迟 · 墙钟时间</dt><dd><output id="planner-latency">—</output> <small data-i18n="s · 非仿真秒">s · 非仿真秒</small></dd></div>
+          <div><dt data-i18n="累计 GPT 延迟 · 墙钟时间">累计 GPT 延迟 · 墙钟时间</dt><dd><output id="planner-total-latency">—</output> <small data-i18n="s · 非仿真秒">s · 非仿真秒</small></dd></div>
         </dl>
         <p id="planner-response" class="planner-note" hidden></p>
-        <div id="planner-submitted" class="planner-submitted" hidden><h3>后端本次任务 · 所有客户端共享</h3><p id="planner-submitted-task"></p></div>
+        <div id="planner-submitted" class="planner-submitted" hidden><h3 data-i18n="后端本次任务 · 所有客户端共享">后端本次任务 · 所有客户端共享</h3><p id="planner-submitted-task"></p></div>
         <div id="plan-preview" class="plan-preview" hidden>
-          <h3 id="plan-preview-title">单项决策 · 尚未执行</h3>
+          <h3 id="plan-preview-title" data-i18n="单项决策 · 尚未执行">单项决策 · 尚未执行</h3>
           <p id="plan-goal" class="planner-note"></p>
           <p id="plan-skill" class="decision-skill"></p>
           <p id="plan-summary"></p>
           <p id="plan-reason" class="planner-note"></p>
           <p id="plan-parameters" class="applied-parameters" hidden></p>
-          <p class="planner-note">模型提出完成不等于成功；后端必须检查当前物理目标判据。预览过期会明确拒绝，不会偷偷重试。</p>
+          <p class="planner-note" data-i18n="模型提出完成不等于成功；后端必须检查当前物理目标判据。预览过期会明确拒绝，不会偷偷重试。">模型提出完成不等于成功；后端必须检查当前物理目标判据。预览过期会明确拒绝，不会偷偷重试。</p>
         </div>
-        <h3 class="postconditions-title">当前目标判据 · 实时物理检查</h3>
-        <p id="planner-goal-checks" class="planner-note">生成第一项决策后显示对应目标判据。</p>
-        <h3 class="postconditions-title">决策与执行反馈 · 按发生顺序</h3>
-        <p id="planner-history-empty" class="planner-note">尚无请求记录；不展示预设步骤或替代结果。</p>
-        <ol id="planner-history" class="planner-history" aria-label="真实决策与执行反馈记录"></ol>
+        <h3 class="postconditions-title" data-i18n="当前目标判据 · 实时物理检查">当前目标判据 · 实时物理检查</h3>
+        <p id="planner-goal-checks" class="planner-note" data-i18n="生成第一项决策后显示对应目标判据。">生成第一项决策后显示对应目标判据。</p>
+        <h3 class="postconditions-title" data-i18n="决策与执行反馈 · 按发生顺序">决策与执行反馈 · 按发生顺序</h3>
+        <p id="planner-history-empty" class="planner-note" data-i18n="尚无请求记录；不展示预设步骤或替代结果。">尚无请求记录；不展示预设步骤或替代结果。</p>
+        <ol id="planner-history" class="planner-history" aria-label="真实决策与执行反馈记录" data-i18n-aria-label="真实决策与执行反馈记录"></ol>
       </section>
       <section id="skill-panel" class="skill-panel" aria-labelledby="skill-title" data-status="waiting" data-storage-only>
-        <div class="section-heading"><h2 id="skill-title">物理执行与手动对照</h2><span id="skill-result" role="status">等待状态</span></div>
+        <div class="section-heading"><h2 id="skill-title" data-i18n="物理执行与手动对照">物理执行与手动对照</h2><span id="skill-result" role="status" data-i18n="等待状态">等待状态</span></div>
         <div class="manual-skills" aria-labelledby="manual-skills-title">
-          <h3 id="manual-skills-title">独立本地技能 · 手动单次调用</h3>
-          <p class="skill-criteria">不调用 GPT，不自动串联技能。每次仅运行所选技能；成功后按实时物理条件选择下一项，无需重置场景。</p>
+          <h3 id="manual-skills-title" data-i18n="独立本地技能 · 手动单次调用">独立本地技能 · 手动单次调用</h3>
+          <p class="skill-criteria" data-i18n="不调用 GPT，不自动串联技能。每次仅运行所选技能；成功后按实时物理条件选择下一项，无需重置场景。">不调用 GPT，不自动串联技能。每次仅运行所选技能；成功后按实时物理条件选择下一项，无需重置场景。</p>
           <div class="manual-skill-actions">
-            <label for="manual-skill">选择技能<select id="manual-skill" disabled aria-describedby="manual-skill-readiness manual-skill-parameters"><option value="">等待后端技能列表</option></select></label>
-            <button id="start-skill" class="primary" type="button" disabled>运行所选技能</button>
+            <label for="manual-skill"><span class="localized-copy" data-i18n="选择技能">选择技能</span><select id="manual-skill" disabled aria-describedby="manual-skill-readiness manual-skill-parameters"><option value="" data-i18n="等待后端技能列表">等待后端技能列表</option></select></label>
+            <button id="start-skill" class="primary" type="button" disabled data-i18n="运行所选技能">运行所选技能</button>
           </div>
-          <p id="manual-skill-readiness" class="skill-hint" role="status">等待后端可用性检查。</p>
-          <p id="manual-skill-parameters" class="skill-criteria">仅抓取与保持接受下方三个抓取参数；其他技能不发送参数。</p>
+          <p id="manual-skill-readiness" class="skill-hint" role="status" data-i18n="等待后端可用性检查。">等待后端可用性检查。</p>
+          <p id="manual-skill-parameters" class="skill-criteria" data-i18n="仅抓取与保持接受下方三个抓取参数；其他技能不发送参数。">仅抓取与保持接受下方三个抓取参数；其他技能不发送参数。</p>
           <details id="manual-skill-contract" class="phase-details">
-            <summary>所选技能契约 <span id="manual-skill-watchdog"></span></summary>
+            <summary><span class="localized-copy" data-i18n="所选技能契约">所选技能契约 </span><span id="manual-skill-watchdog"></span></summary>
             <p id="manual-skill-targets" class="skill-criteria"></p>
             <p id="manual-skill-phases" class="skill-criteria"></p>
-            <h4>开始前置条件</h4><ul id="manual-skill-preconditions" class="contract-list"></ul>
-            <h4>完成后置条件</h4><ul id="manual-skill-postconditions" class="contract-list"></ul>
+            <h4 data-i18n="开始前置条件">开始前置条件</h4><ul id="manual-skill-preconditions" class="contract-list"></ul>
+            <h4 data-i18n="完成后置条件">完成后置条件</h4><ul id="manual-skill-postconditions" class="contract-list"></ul>
           </details>
         </div>
-        <h3 class="fixed-task-title">原有固定任务 · 仅待开始状态可运行</h3>
+        <h3 class="fixed-task-title" data-i18n="原有固定任务 · 仅待开始状态可运行">原有固定任务 · 仅待开始状态可运行</h3>
         <div class="grasp-actions">
-          <button id="grasp" class="grasp-button" type="button" disabled aria-describedby="skill-hint">固定抓取 · baseline</button>
-          <button id="grasp-custom" class="grasp-button" type="button" disabled aria-describedby="skill-hint parameter-error">固定抓取 · 下方参数</button>
-          <button id="store-script" class="grasp-button store-button" type="button" disabled aria-describedby="skill-hint">运行完整固定任务 · 不调用 GPT</button>
+          <button id="grasp" class="grasp-button" type="button" disabled aria-describedby="skill-hint" data-i18n="固定抓取 · baseline">固定抓取 · baseline</button>
+          <button id="grasp-custom" class="grasp-button" type="button" disabled aria-describedby="skill-hint parameter-error" data-i18n="固定抓取 · 下方参数">固定抓取 · 下方参数</button>
+          <button id="store-script" class="grasp-button store-button" type="button" disabled aria-describedby="skill-hint" data-i18n="运行完整固定任务 · 不调用 GPT">运行完整固定任务 · 不调用 GPT</button>
         </div>
-        <div class="parameter-inputs" aria-label="自定义抓取参数">
-          <label for="initial-opening">初始开度 <span>mm</span><input id="initial-opening" type="number" value="80" step="any" required disabled aria-describedby="initial-opening-range"><small id="initial-opening-range">等待后端范围</small></label>
-          <label for="descent-speed">下降速度 <span>mm/s</span><input id="descent-speed" type="number" value="100" step="any" required disabled aria-describedby="descent-speed-range"><small id="descent-speed-range">等待后端范围</small></label>
-          <label for="close-trigger-height">提前闭合高度 <span>mm</span><input id="close-trigger-height" type="number" value="0" step="any" required disabled aria-describedby="close-trigger-height-range"><small id="close-trigger-height-range">等待后端范围</small></label>
+        <div class="parameter-inputs" aria-label="自定义抓取参数" data-i18n-aria-label="自定义抓取参数">
+          <label for="initial-opening"><span class="localized-copy" data-i18n="初始开度">初始开度 </span><span>mm</span><input id="initial-opening" type="number" value="80" step="any" required disabled aria-describedby="initial-opening-range"><small id="initial-opening-range" data-i18n="等待后端范围">等待后端范围</small></label>
+          <label for="descent-speed"><span class="localized-copy" data-i18n="下降速度">下降速度 </span><span>mm/s</span><input id="descent-speed" type="number" value="100" step="any" required disabled aria-describedby="descent-speed-range"><small id="descent-speed-range" data-i18n="等待后端范围">等待后端范围</small></label>
+          <label for="close-trigger-height"><span class="localized-copy" data-i18n="提前闭合高度">提前闭合高度 </span><span>mm</span><input id="close-trigger-height" type="number" value="0" step="any" required disabled aria-describedby="close-trigger-height-range"><small id="close-trigger-height-range" data-i18n="等待后端范围">等待后端范围</small></label>
         </div>
-        <p class="skill-criteria">参数用于「独立抓取与保持」和「固定抓取 · 下方参数」。固定 baseline 与完整固定任务始终使用 80 mm / 100 mm/s / 0 mm。下降速度为轨迹设定值，并非恒定实测速度；闭合高度相对下降目标。修改参数不会自动运行或重置。</p>
+        <p class="skill-criteria" data-i18n="参数用于「独立抓取与保持」和「固定抓取 · 下方参数」。固定 baseline 与完整固定任务始终使用 80 mm / 100 mm/s / 0 mm。下降速度为轨迹设定值，并非恒定实测速度；闭合高度相对下降目标。修改参数不会自动运行或重置。">参数用于「独立抓取与保持」和「固定抓取 · 下方参数」。固定 baseline 与完整固定任务始终使用 80 mm / 100 mm/s / 0 mm。下降速度为轨迹设定值，并非恒定实测速度；闭合高度相对下降目标。修改参数不会自动运行或重置。</p>
         <p id="parameter-error" class="skill-failure" role="alert" hidden></p>
-        <p id="skill-hint" class="skill-hint">等待后端技能状态。</p>
-        <p class="skill-phase">当前调用：<strong id="skill-invocation">等待状态</strong></p>
-        <p class="skill-phase">实际当前技能：<strong id="current-skill">等待状态</strong></p>
-        <ol id="skill-stages" class="skill-stages" aria-label="后端物理执行阶段"></ol>
-        <p class="skill-phase">当前阶段：<strong id="skill-phase">等待状态</strong></p>
-        <p id="skill-message" class="skill-message">仅显示后端执行结果，不由页面推断成功。</p>
+        <p id="skill-hint" class="skill-hint" data-i18n="等待后端技能状态。">等待后端技能状态。</p>
+        <p class="skill-phase"><span class="localized-copy" data-i18n="当前调用：">当前调用：</span><strong id="skill-invocation" data-i18n="等待状态">等待状态</strong></p>
+        <p class="skill-phase"><span class="localized-copy" data-i18n="实际当前技能：">实际当前技能：</span><strong id="current-skill" data-i18n="等待状态">等待状态</strong></p>
+        <ol id="skill-stages" class="skill-stages" aria-label="后端物理执行阶段" data-i18n-aria-label="后端物理执行阶段"></ol>
+        <p class="skill-phase"><span class="localized-copy" data-i18n="当前阶段：">当前阶段：</span><strong id="skill-phase" data-i18n="等待状态">等待状态</strong></p>
+        <p id="skill-message" class="skill-message" data-i18n="仅显示后端执行结果，不由页面推断成功。">仅显示后端执行结果，不由页面推断成功。</p>
         <p id="early-close" class="early-close" role="status" hidden></p>
-        <p id="applied-parameters" class="applied-parameters">后端参数：等待状态</p>
+        <p id="applied-parameters" class="applied-parameters" data-i18n="后端参数：等待状态">后端参数：等待状态</p>
         <p id="skill-failure" class="skill-failure" role="alert" hidden></p>
         <dl class="metadata skill-metrics">
-          <div><dt>执行时间 · 仿真秒</dt><dd><output id="skill-elapsed">—</output> <small>s</small></dd></div>
-          <div><dt>当前高度 · 相对初始稳定位置</dt><dd><output id="skill-lift">—</output> <small>cm</small></dd></div>
-          <div><dt>抓取阶段稳定保持</dt><dd><output id="skill-hold">—</output> <small>s</small></dd></div>
-          <div><dt>当前阶段时间</dt><dd><output id="skill-phase-elapsed">—</output> <small>s</small></dd></div>
-          <div><dt>实际下降 / 闭合重叠</dt><dd><output id="skill-overlap">—</output> <small>s</small></dd></div>
-          <div><dt>闭合开始 / 下降完成 · 相对任务起点</dt><dd><output id="close-started">—</output> / <output id="descent-completed">—</output> <small>s</small></dd></div>
+          <div><dt data-i18n="执行时间 · 仿真秒">执行时间 · 仿真秒</dt><dd><output id="skill-elapsed">—</output> <small>s</small></dd></div>
+          <div><dt data-i18n="当前高度 · 相对初始稳定位置">当前高度 · 相对初始稳定位置</dt><dd><output id="skill-lift">—</output> <small>cm</small></dd></div>
+          <div><dt data-i18n="抓取阶段稳定保持">抓取阶段稳定保持</dt><dd><output id="skill-hold">—</output> <small>s</small></dd></div>
+          <div><dt data-i18n="当前阶段时间">当前阶段时间</dt><dd><output id="skill-phase-elapsed">—</output> <small>s</small></dd></div>
+          <div><dt data-i18n="实际下降 / 闭合重叠">实际下降 / 闭合重叠</dt><dd><output id="skill-overlap">—</output> <small>s</small></dd></div>
+          <div><dt data-i18n="闭合开始 / 下降完成 · 相对任务起点">闭合开始 / 下降完成 · 相对任务起点</dt><dd><output id="close-started">—</output> / <output id="descent-completed">—</output> <small>s</small></dd></div>
         </dl>
-        <p id="goal-criteria" class="skill-criteria">等待后端任务与完成判据。</p>
-        <h3 class="postconditions-title">当前执行后置条件 · 实时物理检查</h3>
-        <dl id="skill-postconditions" class="metadata storage-metrics"><div><dt>等待后端检查</dt><dd>—</dd></div></dl>
+        <p id="goal-criteria" class="skill-criteria" data-i18n="等待后端任务与完成判据。">等待后端任务与完成判据。</p>
+        <h3 class="postconditions-title" data-i18n="当前执行后置条件 · 实时物理检查">当前执行后置条件 · 实时物理检查</h3>
+        <dl id="skill-postconditions" class="metadata storage-metrics"><div><dt data-i18n="等待后端检查">等待后端检查</dt><dd>—</dd></div></dl>
         <div id="storage-status" hidden>
-          <h3>收纳与归位 · 物理真值</h3>
+          <h3 data-i18n="收纳与归位 · 物理真值">收纳与归位 · 物理真值</h3>
           <dl class="metadata storage-metrics">
-            <div><dt>碗完全位于抽屉内</dt><dd id="store-contained">—</dd></div>
-            <div><dt>碗受到抽屉底面支撑</dt><dd id="store-supported">—</dd></div>
-            <div><dt>夹爪已与目标分离</dt><dd id="store-clear">—</dd></div>
-            <div><dt>手部已安全退出抽屉</dt><dd id="store-hand-clear">—</dd></div>
-            <div><dt>已测得推动把手的接触</dt><dd id="store-push-contact">—</dd></div>
-            <div><dt>抽屉位移 · 关闭位置为 0</dt><dd><output id="store-drawer">—</output> <small>mm</small></dd></div>
-            <div><dt>抽屉已关闭</dt><dd id="store-closed">—</dd></div>
-            <div><dt>最大关节归位误差</dt><dd><output id="store-home-error">—</output> <small>rad</small></dd></div>
-            <div><dt>机械臂已归位</dt><dd id="store-home">—</dd></div>
-            <div><dt>最终状态验证保持</dt><dd><output id="store-verified">—</output> <small>s</small></dd></div>
+            <div><dt data-i18n="碗完全位于抽屉内">碗完全位于抽屉内</dt><dd id="store-contained">—</dd></div>
+            <div><dt data-i18n="碗受到抽屉底面支撑">碗受到抽屉底面支撑</dt><dd id="store-supported">—</dd></div>
+            <div><dt data-i18n="夹爪已与目标分离">夹爪已与目标分离</dt><dd id="store-clear">—</dd></div>
+            <div><dt data-i18n="手部已安全退出抽屉">手部已安全退出抽屉</dt><dd id="store-hand-clear">—</dd></div>
+            <div><dt data-i18n="已测得推动把手的接触">已测得推动把手的接触</dt><dd id="store-push-contact">—</dd></div>
+            <div><dt data-i18n="抽屉位移 · 关闭位置为 0">抽屉位移 · 关闭位置为 0</dt><dd><output id="store-drawer">—</output> <small>mm</small></dd></div>
+            <div><dt data-i18n="抽屉已关闭">抽屉已关闭</dt><dd id="store-closed">—</dd></div>
+            <div><dt data-i18n="最大关节归位误差">最大关节归位误差</dt><dd><output id="store-home-error">—</output> <small>rad</small></dd></div>
+            <div><dt data-i18n="机械臂已归位">机械臂已归位</dt><dd id="store-home">—</dd></div>
+            <div><dt data-i18n="最终状态验证保持">最终状态验证保持</dt><dd><output id="store-verified">—</output> <small>s</small></dd></div>
           </dl>
         </div>
-        <details class="phase-details"><summary>各阶段耗时 <span>仿真秒</span></summary><dl id="phase-times" class="phase-times"><dt>等待后端状态</dt></dl></details>
+        <details class="phase-details"><summary><span class="localized-copy" data-i18n="各阶段耗时">各阶段耗时 </span><span data-i18n="仿真秒">仿真秒</span></summary><dl id="phase-times" class="phase-times"><dt data-i18n="等待后端状态">等待后端状态</dt></dl></details>
       </section>
       <section class="experiments" aria-labelledby="experiments-title" data-storage-only>
-        <div class="section-heading"><h2 id="experiments-title">已存储实验 · 非实时</h2><button id="experiments-refresh" type="button">刷新报告</button></div>
-        <p class="experiment-note">固定场景参数对照：每组仅运行一次、相同重置初态。不是统计成功率证据；与上方当前任务独立。</p>
-        <p id="experiments-status" class="experiment-note" role="status">正在读取实验报告…</p>
+        <div class="section-heading"><h2 id="experiments-title" data-i18n="已存储实验 · 非实时">已存储实验 · 非实时</h2><button id="experiments-refresh" type="button" data-i18n="刷新报告">刷新报告</button></div>
+        <p class="experiment-note" data-i18n="固定场景参数对照：每组仅运行一次、相同重置初态。不是统计成功率证据；与上方当前任务独立。">固定场景参数对照：每组仅运行一次、相同重置初态。不是统计成功率证据；与上方当前任务独立。</p>
+        <p id="experiments-status" class="experiment-note" role="status" data-i18n="正在读取实验报告…">正在读取实验报告…</p>
         <p id="experiments-error" class="skill-failure" role="alert" hidden></p>
         <div id="experiments-report" hidden>
           <p id="experiments-meta" class="experiment-note"></p>
-          <div class="experiment-scroll" tabindex="0" role="region" aria-label="固定场景单次实验对照表，可横向滚动">
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="固定场景单次实验对照表，可横向滚动" data-i18n-aria-label="固定场景单次实验对照表，可横向滚动">
             <table class="experiment-table">
-              <caption>真实物理运行记录（耗时均为仿真秒）</caption>
-              <thead><tr><th scope="col">配置 / 参数<br>mm · mm/s · mm</th><th scope="col">结果 / 失败原因</th><th scope="col">执行 / 验证<br>s</th><th scope="col">抬升 / 保持<br>cm / s</th><th scope="col">实际重叠<br>s</th><th scope="col">闭合开始 / 下降完成<br>相对起点 s</th><th scope="col">阶段耗时 / 警告</th><th scope="col">操作</th></tr></thead>
+              <caption data-i18n="真实物理运行记录（耗时均为仿真秒）">真实物理运行记录（耗时均为仿真秒）</caption>
+              <thead><tr><th scope="col"><span class="localized-copy" data-i18n="配置 / 参数">配置 / 参数</span><br>mm · mm/s · mm</th><th scope="col" data-i18n="结果 / 失败原因">结果 / 失败原因</th><th scope="col"><span class="localized-copy" data-i18n="执行 / 验证">执行 / 验证</span><br>s</th><th scope="col"><span class="localized-copy" data-i18n="抬升 / 保持">抬升 / 保持</span><br>cm / s</th><th scope="col"><span class="localized-copy" data-i18n="实际重叠">实际重叠</span><br>s</th><th scope="col"><span class="localized-copy" data-i18n="闭合开始 / 下降完成">闭合开始 / 下降完成</span><br><span class="localized-copy" data-i18n="相对起点 s">相对起点 s</span></th><th scope="col" data-i18n="阶段耗时 / 警告">阶段耗时 / 警告</th><th scope="col" data-i18n="操作">操作</th></tr></thead>
               <tbody id="experiment-runs"></tbody>
             </table>
           </div>
         </div>
       </section>
       <section id="planning-comparison" class="experiments planning-comparison" aria-labelledby="comparison-title" data-storage-only>
-        <div class="section-heading"><h2 id="comparison-title">闭环规划配对对照 · 已存储证据</h2><button id="comparison-refresh" type="button">刷新报告</button></div>
-        <label class="comparison-batch-label" for="comparison-batch">实验批次
-          <select id="comparison-batch" aria-describedby="comparison-batch-note">
-            <option value="drawer_state" selected>状态补全回归 · 6 场景 × 3 次 × 2 方法</option>
-            <option value="expanded">扩展批次 · 12 场景 × 3 次 × 2 方法</option>
-            <option value="followup">补充批次 · 恢复额度后的五场景配对</option>
-            <option value="initial">原始批次 · 21 组尝试，含额度受限记录</option>
+        <div class="section-heading"><h2 id="comparison-title" data-i18n="闭环规划配对对照 · 已存储证据">闭环规划配对对照 · 已存储证据</h2><button id="comparison-refresh" type="button" data-i18n="刷新报告">刷新报告</button></div>
+        <label class="comparison-batch-label" for="comparison-batch"><span class="localized-copy" data-i18n="实验批次">实验批次
+          </span><select id="comparison-batch" aria-describedby="comparison-batch-note">
+            <option value="drawer_state" selected data-i18n="状态补全回归 · 6 场景 × 3 次 × 2 方法">状态补全回归 · 6 场景 × 3 次 × 2 方法</option>
+            <option value="expanded" data-i18n="扩展批次 · 12 场景 × 3 次 × 2 方法">扩展批次 · 12 场景 × 3 次 × 2 方法</option>
+            <option value="followup" data-i18n="补充批次 · 恢复额度后的五场景配对">补充批次 · 恢复额度后的五场景配对</option>
+            <option value="initial" data-i18n="原始批次 · 21 组尝试，含额度受限记录">原始批次 · 21 组尝试，含额度受限记录</option>
           </select>
         </label>
-        <p id="comparison-batch-note" class="experiment-note">每次只显示所选批次；新结果不覆盖旧失败，不合并不同批次的完成率。切换不会请求 GPT 或驱动机械臂。</p>
-        <p class="experiment-note">主要对照是状态感知规则与 GPT；固定五技能序列仅作历史参考。扩展批次包含有限位姿变化、不同物体与目标，每个场景重复实际运行；相同场景的重复共享初态，不是独立场景抽样，不代表泛化能力。历史批次保持单次配对、独立读取。刷新只读取文件，不启动运行。</p>
-        <p class="experiment-note">状态补全回归单独检验新增抽屉真值和规划说明，复用扩展批次的六类场景与同一随机种子；不是未知场景盲测。原错误拒绝记录保留，不把新批结果覆盖或并入旧批。</p>
-        <p class="experiment-note">任务完成仅统计有效已结束正例；基础设施失败及进行中试次单列、不计分母。安全停止（safe_stop）不等于任务成功。仿真时间、墙钟时间与 GPT 请求耗时分开显示，不相加；初始化与准备不计入方法延迟。未测量值不替换为零，各均值附计时样本数。正例墙钟同时列出全尝试与仅成功均值；提前失败导致耗时短，不代表方法更快。</p>
-        <p id="comparison-status" class="experiment-note" role="status">正在读取闭环对照报告…</p>
+        <p id="comparison-batch-note" class="experiment-note" data-i18n="每次只显示所选批次；新结果不覆盖旧失败，不合并不同批次的完成率。切换不会请求 GPT 或驱动机械臂。">每次只显示所选批次；新结果不覆盖旧失败，不合并不同批次的完成率。切换不会请求 GPT 或驱动机械臂。</p>
+        <p class="experiment-note" data-i18n="主要对照是状态感知规则与 GPT；固定五技能序列仅作历史参考。扩展批次包含有限位姿变化、不同物体与目标，每个场景重复实际运行；相同场景的重复共享初态，不是独立场景抽样，不代表泛化能力。历史批次保持单次配对、独立读取。刷新只读取文件，不启动运行。">主要对照是状态感知规则与 GPT；固定五技能序列仅作历史参考。扩展批次包含有限位姿变化、不同物体与目标，每个场景重复实际运行；相同场景的重复共享初态，不是独立场景抽样，不代表泛化能力。历史批次保持单次配对、独立读取。刷新只读取文件，不启动运行。</p>
+        <p class="experiment-note" data-i18n="状态补全回归单独检验新增抽屉真值和规划说明，复用扩展批次的六类场景与同一随机种子；不是未知场景盲测。原错误拒绝记录保留，不把新批结果覆盖或并入旧批。">状态补全回归单独检验新增抽屉真值和规划说明，复用扩展批次的六类场景与同一随机种子；不是未知场景盲测。原错误拒绝记录保留，不把新批结果覆盖或并入旧批。</p>
+        <p class="experiment-note" data-i18n="任务完成仅统计有效已结束正例；基础设施失败及进行中试次单列、不计分母。安全停止（safe_stop）不等于任务成功。仿真时间、墙钟时间与 GPT 请求耗时分开显示，不相加；初始化与准备不计入方法延迟。未测量值不替换为零，各均值附计时样本数。正例墙钟同时列出全尝试与仅成功均值；提前失败导致耗时短，不代表方法更快。">任务完成仅统计有效已结束正例；基础设施失败及进行中试次单列、不计分母。安全停止（safe_stop）不等于任务成功。仿真时间、墙钟时间与 GPT 请求耗时分开显示，不相加；初始化与准备不计入方法延迟。未测量值不替换为零，各均值附计时样本数。正例墙钟同时列出全尝试与仅成功均值；提前失败导致耗时短，不代表方法更快。</p>
+        <p id="comparison-status" class="experiment-note" role="status" data-i18n="正在读取闭环对照报告…">正在读取闭环对照报告…</p>
         <p id="comparison-error" class="skill-failure" role="alert" hidden></p>
-        <p><a id="comparison-download" href="/api/planning-comparison?batch=drawer_state" download>下载当前批次原始 JSON（含请求、技能与物理证据）</a></p>
+        <p><a id="comparison-download" href="/api/planning-comparison?batch=drawer_state" download data-i18n="下载当前批次原始 JSON（含请求、技能与物理证据）">下载当前批次原始 JSON（含请求、技能与物理证据）</a></p>
         <div id="comparison-report" hidden>
           <p id="comparison-meta" class="experiment-note"></p>
-          <div class="experiment-scroll" tabindex="0" role="region" aria-label="闭环对照方法汇总，可横向滚动">
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="闭环对照方法汇总，可横向滚动" data-i18n-aria-label="闭环对照方法汇总，可横向滚动">
             <table class="experiment-table comparison-summary">
-              <caption>方法总账 · 混合任务仅作数量核对，不作跨任务速度排名；分母仅为有效已结束样本</caption>
-              <thead><tr><th scope="col">方法 / 无效与进行中试次</th><th scope="col">正例完成 / 有效已结束正例</th><th scope="col">安全通过 / 有效已结束安全例</th><th scope="col">实际技能 / GPT 请求</th><th scope="col">正例平均墙钟 s<br>全尝试 / 仅成功（附计时数）</th><th scope="col">单请求平均 GPT 耗时 s（附计时数）</th></tr></thead>
+              <caption data-i18n="方法总账 · 混合任务仅作数量核对，不作跨任务速度排名；分母仅为有效已结束样本">方法总账 · 混合任务仅作数量核对，不作跨任务速度排名；分母仅为有效已结束样本</caption>
+              <thead><tr><th scope="col" data-i18n="方法 / 无效与进行中试次">方法 / 无效与进行中试次</th><th scope="col" data-i18n="正例完成 / 有效已结束正例">正例完成 / 有效已结束正例</th><th scope="col" data-i18n="安全通过 / 有效已结束安全例">安全通过 / 有效已结束安全例</th><th scope="col" data-i18n="实际技能 / GPT 请求">实际技能 / GPT 请求</th><th scope="col"><span class="localized-copy" data-i18n="正例平均墙钟 s">正例平均墙钟 s</span><br><span class="localized-copy" data-i18n="全尝试 / 仅成功（附计时数）">全尝试 / 仅成功（附计时数）</span></th><th scope="col" data-i18n="单请求平均 GPT 耗时 s（附计时数）">单请求平均 GPT 耗时 s（附计时数）</th></tr></thead>
               <tbody id="comparison-summary"></tbody>
             </table>
           </div>
           <div id="comparison-analysis" hidden>
-            <p class="experiment-note">以下统计按场景、任务和物体分开，已与原始记录核对。分布格式为 n / 均值 / 样本标准差 / 最小 / 最大，单位秒；n=0 未测量，n=1 无法计算样本标准差。全尝试墙钟保留提前失败耗时，不代表成功更快；没有 GPT 请求时不生成请求延迟。</p>
-            <div class="experiment-scroll" tabindex="0" role="region" aria-label="按场景与任务的重复运行统计，可横向滚动">
+            <p class="experiment-note" data-i18n="以下统计按场景、任务和物体分开，已与原始记录核对。分布格式为 n / 均值 / 样本标准差 / 最小 / 最大，单位秒；n=0 未测量，n=1 无法计算样本标准差。全尝试墙钟保留提前失败耗时，不代表成功更快；没有 GPT 请求时不生成请求延迟。">以下统计按场景、任务和物体分开，已与原始记录核对。分布格式为 n / 均值 / 样本标准差 / 最小 / 最大，单位秒；n=0 未测量，n=1 无法计算样本标准差。全尝试墙钟保留提前失败耗时，不代表成功更快；没有 GPT 请求时不生成请求延迟。</p>
+            <div class="experiment-scroll" tabindex="0" role="region" aria-label="按场景与任务的重复运行统计，可横向滚动" data-i18n-aria-label="按场景与任务的重复运行统计，可横向滚动">
               <table class="experiment-table comparison-variation">
-                <caption>逐场景重复变异 · 任务分开，不合并不同目标均值</caption>
-                <thead><tr><th scope="col">场景 / 目标 / 物体 / 方法</th><th scope="col">完成或安全通过 / 有效已结束<br>基础设施 / 进行中 / 尚未记录</th><th scope="col">全尝试墙钟 s<br>n / 均值 / SD / 最小 / 最大</th><th scope="col">仅成功墙钟 s<br>n / 均值 / SD / 最小 / 最大</th><th scope="col">实际单请求耗时 s<br>n / 均值 / SD / 最小 / 最大</th><th scope="col">碰撞试次 / 失败原因计数</th></tr></thead>
+                <caption data-i18n="逐场景重复变异 · 任务分开，不合并不同目标均值">逐场景重复变异 · 任务分开，不合并不同目标均值</caption>
+                <thead><tr><th scope="col" data-i18n="场景 / 目标 / 物体 / 方法">场景 / 目标 / 物体 / 方法</th><th scope="col"><span class="localized-copy" data-i18n="完成或安全通过 / 有效已结束">完成或安全通过 / 有效已结束</span><br><span class="localized-copy" data-i18n="基础设施 / 进行中 / 尚未记录">基础设施 / 进行中 / 尚未记录</span></th><th scope="col"><span class="localized-copy" data-i18n="全尝试墙钟 s">全尝试墙钟 s</span><br><span class="localized-copy" data-i18n="n / 均值 / SD / 最小 / 最大">n / 均值 / SD / 最小 / 最大</span></th><th scope="col"><span class="localized-copy" data-i18n="仅成功墙钟 s">仅成功墙钟 s</span><br><span class="localized-copy" data-i18n="n / 均值 / SD / 最小 / 最大">n / 均值 / SD / 最小 / 最大</span></th><th scope="col"><span class="localized-copy" data-i18n="实际单请求耗时 s">实际单请求耗时 s</span><br><span class="localized-copy" data-i18n="n / 均值 / SD / 最小 / 最大">n / 均值 / SD / 最小 / 最大</span></th><th scope="col" data-i18n="碰撞试次 / 失败原因计数">碰撞试次 / 失败原因计数</th></tr></thead>
                 <tbody id="comparison-by-case"></tbody>
               </table>
             </div>
-            <p class="experiment-note">配对以同场景、同重复序号与相同初态指纹为准；安全例不参与任务速度比较。仅双方均实测成功且均有计时的配对计算 Δ墙钟 = GPT − 规则（正值表示 GPT 较慢）。未结束、基础设施无效或单边缺失的已出现配对单列排除；双方尚未记录的重复另列。仅为小样本描述统计，不作显著性或总体置信推断。</p>
-            <div class="experiment-scroll" tabindex="0" role="region" aria-label="双方成功的配对耗时差，可横向滚动">
+            <p class="experiment-note" data-i18n="配对以同场景、同重复序号与相同初态指纹为准；安全例不参与任务速度比较。仅双方均实测成功且均有计时的配对计算 Δ墙钟 = GPT − 规则（正值表示 GPT 较慢）。未结束、基础设施无效或单边缺失的已出现配对单列排除；双方尚未记录的重复另列。仅为小样本描述统计，不作显著性或总体置信推断。">配对以同场景、同重复序号与相同初态指纹为准；安全例不参与任务速度比较。仅双方均实测成功且均有计时的配对计算 Δ墙钟 = GPT − 规则（正值表示 GPT 较慢）。未结束、基础设施无效或单边缺失的已出现配对单列排除；双方尚未记录的重复另列。仅为小样本描述统计，不作显著性或总体置信推断。</p>
+            <div class="experiment-scroll" tabindex="0" role="region" aria-label="双方成功的配对耗时差，可横向滚动" data-i18n-aria-label="双方成功的配对耗时差，可横向滚动">
               <table class="experiment-table comparison-paired">
-                <caption>同任务匹配成功配对 · GPT − 规则墙钟差</caption>
-                <thead><tr><th scope="col">场景 / 目标 / 物体</th><th scope="col">有效完整 / 双方成功</th><th scope="col">仅规则成功 / 仅 GPT 成功 / 双方失败</th><th scope="col">排除 / 双方尚未记录</th><th scope="col">配对 Δ墙钟 s<br>n / 均值 / SD / 最小 / 最大</th></tr></thead>
+                <caption data-i18n="同任务匹配成功配对 · GPT − 规则墙钟差">同任务匹配成功配对 · GPT − 规则墙钟差</caption>
+                <thead><tr><th scope="col" data-i18n="场景 / 目标 / 物体">场景 / 目标 / 物体</th><th scope="col" data-i18n="有效完整 / 双方成功">有效完整 / 双方成功</th><th scope="col" data-i18n="仅规则成功 / 仅 GPT 成功 / 双方失败">仅规则成功 / 仅 GPT 成功 / 双方失败</th><th scope="col" data-i18n="排除 / 双方尚未记录">排除 / 双方尚未记录</th><th scope="col"><span class="localized-copy" data-i18n="配对 Δ墙钟 s">配对 Δ墙钟 s</span><br><span class="localized-copy" data-i18n="n / 均值 / SD / 最小 / 最大">n / 均值 / SD / 最小 / 最大</span></th></tr></thead>
                 <tbody id="comparison-paired"></tbody>
               </table>
             </div>
           </div>
-          <div class="experiment-scroll" tabindex="0" role="region" aria-label="闭环对照逐案例记录，可横向滚动">
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="闭环对照逐案例记录，可横向滚动" data-i18n-aria-label="闭环对照逐案例记录，可横向滚动">
             <table class="experiment-table comparison-runs">
-              <caption>逐案例、逐重复实际结果 · 完整历史与准备耗时见原始报告</caption>
-              <thead><tr><th scope="col">案例 / 重复 / 目标 / 物体 / 方法 / 预期</th><th scope="col">实际状态 / 任务完成 / 安全验收</th><th scope="col">实际技能 / 决策 / GPT 请求</th><th scope="col">执行 / 总评估 / 验证<br>仿真 s</th><th scope="col">端到端墙钟 / GPT 耗时<br>s</th><th scope="col">失败原因</th></tr></thead>
+              <caption data-i18n="逐案例、逐重复实际结果 · 完整历史与准备耗时见原始报告">逐案例、逐重复实际结果 · 完整历史与准备耗时见原始报告</caption>
+              <thead><tr><th scope="col" data-i18n="案例 / 重复 / 目标 / 物体 / 方法 / 预期">案例 / 重复 / 目标 / 物体 / 方法 / 预期</th><th scope="col" data-i18n="实际状态 / 任务完成 / 安全验收">实际状态 / 任务完成 / 安全验收</th><th scope="col" data-i18n="实际技能 / 决策 / GPT 请求">实际技能 / 决策 / GPT 请求</th><th scope="col"><span class="localized-copy" data-i18n="执行 / 总评估 / 验证">执行 / 总评估 / 验证</span><br><span class="localized-copy" data-i18n="仿真 s">仿真 s</span></th><th scope="col"><span class="localized-copy" data-i18n="端到端墙钟 / GPT 耗时">端到端墙钟 / GPT 耗时</span><br>s</th><th scope="col" data-i18n="失败原因">失败原因</th></tr></thead>
               <tbody id="comparison-runs"></tbody>
             </table>
           </div>
         </div>
       </section>
       <section id="sorting-evaluation" class="experiments sorting-evaluation" aria-labelledby="evaluation-title" data-sorting-only hidden>
-        <div class="section-heading"><h2 id="evaluation-title">冻结版本分拣 · 独立评估存档</h2><button id="evaluation-refresh" type="button">刷新存档</button></div>
-        <p class="experiment-note">预注册的四种布局 × 两种等价任务表述 × 两种方法，每项仅一次。控制器、物理参数与提示保持冻结；失败保留，不重试、不替换。不属于随机独立抽样，不代表统计泛化能力或模型排名。</p>
-        <p class="experiment-note">此处仅读取独立评估文件，与上方实时场景无关。刷新与下载不会请求 GPT、重置或驱动机械臂。完成整批不等于全部成功；待运行、已失败和基础设施中止分开显示。未测量不记为零，提前失败耗时短不代表更快。</p>
-        <p id="evaluation-status" class="experiment-note" role="status">等待读取存档。</p>
+        <div class="section-heading"><h2 id="evaluation-title" data-i18n="冻结版本分拣 · 独立评估存档">冻结版本分拣 · 独立评估存档</h2><button id="evaluation-refresh" type="button" data-i18n="刷新存档">刷新存档</button></div>
+        <p class="experiment-note" data-i18n="预注册的四种布局 × 两种等价任务表述 × 两种方法，每项仅一次。控制器、物理参数与提示保持冻结；失败保留，不重试、不替换。不属于随机独立抽样，不代表统计泛化能力或模型排名。">预注册的四种布局 × 两种等价任务表述 × 两种方法，每项仅一次。控制器、物理参数与提示保持冻结；失败保留，不重试、不替换。不属于随机独立抽样，不代表统计泛化能力或模型排名。</p>
+        <p class="experiment-note" data-i18n="此处仅读取独立评估文件，与上方实时场景无关。刷新与下载不会请求 GPT、重置或驱动机械臂。完成整批不等于全部成功；待运行、已失败和基础设施中止分开显示。未测量不记为零，提前失败耗时短不代表更快。">此处仅读取独立评估文件，与上方实时场景无关。刷新与下载不会请求 GPT、重置或驱动机械臂。完成整批不等于全部成功；待运行、已失败和基础设施中止分开显示。未测量不记为零，提前失败耗时短不代表更快。</p>
+        <p id="evaluation-status" class="experiment-note" role="status" data-i18n="等待读取存档。">等待读取存档。</p>
         <p id="evaluation-error" class="skill-failure" role="alert" hidden></p>
         <div id="evaluation-report" hidden>
           <p id="evaluation-meta" class="experiment-note"></p>
-          <p><a id="evaluation-download" href="/api/sorting-evaluation" download>下载经验证汇总 JSON（完整物理轨迹见逐次 gzip）</a></p>
-          <div class="experiment-scroll" tabindex="0" role="region" aria-label="冻结评估方法总账，可横向滚动">
+          <p><a id="evaluation-download" href="/api/sorting-evaluation" download data-i18n="下载经验证汇总 JSON（完整物理轨迹见逐次 gzip）">下载经验证汇总 JSON（完整物理轨迹见逐次 gzip）</a></p>
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="冻结评估方法总账，可横向滚动" data-i18n-aria-label="冻结评估方法总账，可横向滚动">
             <table class="experiment-table evaluation-summary">
-              <caption>方法总账 · 不合并历史批次，基础设施错误不算任务失败</caption>
-              <thead><tr><th scope="col">方法</th><th scope="col">计划 / 已尝试</th><th scope="col">成功 / 任务失败</th><th scope="col">待运行 / 基础设施错误</th></tr></thead>
+              <caption data-i18n="方法总账 · 不合并历史批次，基础设施错误不算任务失败">方法总账 · 不合并历史批次，基础设施错误不算任务失败</caption>
+              <thead><tr><th scope="col" data-i18n="方法">方法</th><th scope="col" data-i18n="计划 / 已尝试">计划 / 已尝试</th><th scope="col" data-i18n="成功 / 任务失败">成功 / 任务失败</th><th scope="col" data-i18n="待运行 / 基础设施错误">待运行 / 基础设施错误</th></tr></thead>
               <tbody id="evaluation-summary"></tbody>
             </table>
           </div>
-          <div class="experiment-scroll" tabindex="0" role="region" aria-label="冻结评估逐次记录，可横向滚动">
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="冻结评估逐次记录，可横向滚动" data-i18n-aria-label="冻结评估逐次记录，可横向滚动">
             <table class="experiment-table evaluation-runs">
-              <caption>预注册顺序 · 仿真与墙钟分开，不相加；原始错误与轨迹永久保留</caption>
-              <thead><tr><th scope="col">布局 / 表述 / 方法 / 编号</th><th scope="col">状态 / 实测完成</th><th scope="col">执行仿真 / 独立最终保持 s</th><th scope="col">执行墙钟 / GPT 延迟 / 总墙钟 s</th><th scope="col">失败阶段 / 原因</th><th scope="col">证据</th></tr></thead>
+              <caption data-i18n="预注册顺序 · 仿真与墙钟分开，不相加；原始错误与轨迹永久保留">预注册顺序 · 仿真与墙钟分开，不相加；原始错误与轨迹永久保留</caption>
+              <thead><tr><th scope="col" data-i18n="布局 / 表述 / 方法 / 编号">布局 / 表述 / 方法 / 编号</th><th scope="col" data-i18n="状态 / 实测完成">状态 / 实测完成</th><th scope="col" data-i18n="执行仿真 / 独立最终保持 s">执行仿真 / 独立最终保持 s</th><th scope="col" data-i18n="执行墙钟 / GPT 延迟 / 总墙钟 s">执行墙钟 / GPT 延迟 / 总墙钟 s</th><th scope="col" data-i18n="失败阶段 / 原因">失败阶段 / 原因</th><th scope="col" data-i18n="证据">证据</th></tr></thead>
               <tbody id="evaluation-runs"></tbody>
             </table>
           </div>
-          <div class="experiment-scroll" tabindex="0" role="region" aria-label="冻结评估匹配配对，可横向滚动">
+          <div class="experiment-scroll" tabindex="0" role="region" aria-label="冻结评估匹配配对，可横向滚动" data-i18n-aria-label="冻结评估匹配配对，可横向滚动">
             <table class="experiment-table evaluation-paired">
-              <caption>同布局、同表述且双方成功才列耗时差：GPT − 固定规则；不是总体速度估计</caption>
-              <thead><tr><th scope="col">布局 / 表述</th><th scope="col">配对结果</th><th scope="col">Δ执行仿真 s</th><th scope="col">Δ执行墙钟 s</th></tr></thead>
+              <caption data-i18n="同布局、同表述且双方成功才列耗时差：GPT − 固定规则；不是总体速度估计">同布局、同表述且双方成功才列耗时差：GPT − 固定规则；不是总体速度估计</caption>
+              <thead><tr><th scope="col" data-i18n="布局 / 表述">布局 / 表述</th><th scope="col" data-i18n="配对结果">配对结果</th><th scope="col" data-i18n="Δ执行仿真 s">Δ执行仿真 s</th><th scope="col" data-i18n="Δ执行墙钟 s">Δ执行墙钟 s</th></tr></thead>
               <tbody id="evaluation-paired"></tbody>
             </table>
           </div>
         </div>
       </section>
     <section class="telemetry" aria-labelledby="telemetry-title">
-      <div class="section-heading"><h2 id="telemetry-title">仿真器真值</h2><span>世界坐标 · 米</span></div>
+      <div class="section-heading"><h2 id="telemetry-title" data-i18n="仿真器真值">仿真器真值</h2><span data-i18n="世界坐标 · 米">世界坐标 · 米</span></div>
       <dl class="metadata">
-        <div><dt>场景</dt><dd id="scene-name">—</dd></div>
-        <div data-sorting-only hidden><dt>当前初始布局 · 非评估进度</dt><dd id="sorting-layout">—</dd></div>
-        <div><dt>机械臂</dt><dd id="robot-name">—</dd></div>
-        <div><dt>夹爪开度</dt><dd><output id="gripper">—</output> <small>mm</small></dd></div>
-        <div><dt>接触数 / 物理步长</dt><dd><output id="contacts">—</output> / <output id="timestep">—</output> <small>ms</small></dd></div>
-        <div><dt>意外接触事件 / 峰值法向力</dt><dd><output id="collision-episodes">—</output> / <output id="collision-force">—</output> <small>N</small></dd></div>
+        <div><dt data-i18n="场景">场景</dt><dd id="scene-name">—</dd></div>
+        <div data-sorting-only hidden><dt data-i18n="当前初始布局 · 非评估进度">当前初始布局 · 非评估进度</dt><dd id="sorting-layout">—</dd></div>
+        <div><dt data-i18n="机械臂">机械臂</dt><dd id="robot-name">—</dd></div>
+        <div><dt data-i18n="夹爪开度">夹爪开度</dt><dd><output id="gripper">—</output> <small>mm</small></dd></div>
+        <div><dt data-i18n="接触数 / 物理步长">接触数 / 物理步长</dt><dd><output id="contacts">—</output> / <output id="timestep">—</output> <small>ms</small></dd></div>
+        <div><dt data-i18n="意外接触事件 / 峰值法向力">意外接触事件 / 峰值法向力</dt><dd><output id="collision-episodes">—</output> / <output id="collision-force">—</output> <small>N</small></dd></div>
       </dl>
-      <p id="telemetry-note" class="telemetry-note">等待后端状态；无估计值。</p>
-      <div id="objects" class="objects" aria-label="物体位置与姿态"></div>
-      <details class="joint-details"><summary>关节位置 <span>rad</span></summary><div id="joints" class="joints">等待后端状态</div></details>
+      <p id="telemetry-note" class="telemetry-note" data-i18n="等待后端状态；无估计值。">等待后端状态；无估计值。</p>
+      <div id="objects" class="objects" aria-label="物体位置与姿态" data-i18n-aria-label="物体位置与姿态"></div>
+      <details class="joint-details"><summary><span class="localized-copy" data-i18n="关节位置">关节位置 </span><span>rad</span></summary><div id="joints" class="joints" data-i18n="等待后端状态">等待后端状态</div></details>
       <p id="warnings" class="warnings" role="status" hidden></p>
-      <p class="source">场景来源 <span id="source">—</span></p>
+      <p class="source"><span class="localized-copy" data-i18n="场景来源">场景来源 </span><span id="source">—</span></p>
     </section>
     </aside>
-    <footer data-storage-only>GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，每次只选择一个已定义技能；首项决策须人工授权。后续决策依据真实物理反馈，逐项或有界持续执行。实时画面与任务成败来自 MuJoCo，不是视频回放或模型自报成功。碗与抽屉保持原尺寸，抽屉初态使用原滑轨的完整开度。</footer>
-    <footer data-sorting-only hidden>GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，一次提出完整顺序与颜色映射，批准后交给同一个物理控制器执行；固定对照不调用模型。无视觉识别、无闭环重规划、无自动重试。实时画面来自 MuJoCo；支撑、稳定与成败均由物理状态检查，不由模型文字宣告。进度不是成功率；当前六物体场景不代表任意物体泛化能力。</footer>
+    <footer data-storage-only data-i18n="GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，每次只选择一个已定义技能；首项决策须人工授权。后续决策依据真实物理反馈，逐项或有界持续执行。实时画面与任务成败来自 MuJoCo，不是视频回放或模型自报成功。碗与抽屉保持原尺寸，抽屉初态使用原滑轨的完整开度。">GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，每次只选择一个已定义技能；首项决策须人工授权。后续决策依据真实物理反馈，逐项或有界持续执行。实时画面与任务成败来自 MuJoCo，不是视频回放或模型自报成功。碗与抽屉保持原尺寸，抽屉初态使用原滑轨的完整开度。</footer>
+    <footer data-sorting-only hidden data-i18n="GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，一次提出完整顺序与颜色映射，批准后交给同一个物理控制器执行；固定对照不调用模型。无视觉识别、无闭环重规划、无自动重试。实时画面来自 MuJoCo；支撑、稳定与成败均由物理状态检查，不由模型文字宣告。进度不是成功率；当前六物体场景不代表任意物体泛化能力。">GPT 经官方 Codex CLI 使用当前 ChatGPT 订阅，一次提出完整顺序与颜色映射，批准后交给同一个物理控制器执行；固定对照不调用模型。无视觉识别、无闭环重规划、无自动重试。实时画面来自 MuJoCo；支撑、稳定与成败均由物理状态检查，不由模型文字宣告。进度不是成功率；当前六物体场景不代表任意物体泛化能力。</footer>
   </main>
 </body>
 </html>

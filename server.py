@@ -393,7 +393,7 @@ async def sorting_evaluation_run(request: web.Request) -> web.FileResponse:
 
 async def asset(request: web.Request) -> web.FileResponse:
     name = request.match_info.get("name", "index.html")
-    if name not in ("index.html", "app.js", "style.css"):
+    if name not in ("index.html", "app.js", "style.css", "localization.js"):
         raise web.HTTPNotFound()
     return web.FileResponse(ROOT / "web" / name, headers={"Cache-Control": "no-cache"})
 

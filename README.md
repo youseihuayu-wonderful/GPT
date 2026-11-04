@@ -1,65 +1,75 @@
-# GPT — 机器人多子任务执行仿真
+<a href="README.md"><kbd>English</kbd></a> <a href="README.zh-CN.md"><kbd>中文</kbd></a>
 
-## 两段独立视频
+# GPT — Robot Multi-Task Execution Simulation
 
-下面是两个不同场景的独立录像，分别播放，不拼接：第一个做黑碗入屉与关屉，第二个只做彩色碗杯分拣。视频来自真实 MuJoCo 执行，不是 GitHub 页面内在线运行的仿真。
+## Reading and switching between Chinese and English
 
-### 视频 1：黑碗放入抽屉 → 关闭抽屉 → 机械臂归位
+English is the default for this GitHub landing page and for first-time visits to the live simulation. The complete [Chinese edition](README.zh-CN.md) remains available through the button above. GitHub documents switch through links, not page scripts. The live page provides a global **English / 中文** switch for both storage and sorting. The preference is stored only in the current browser's local storage (`gpt-ui-language`) and is not uploaded to the server.
 
-抓取黑碗、移到已打开的下层抽屉、支撑放置并松爪、撤出夹爪、接触推关抽屉，最后空手归位。这里的黑色容器实际是碗，不是彩色杯子。
+Switching changes presentation only: it does not advance, reset, or execute the physics simulation, or send planning, approval, or model requests. It does not overwrite an edited task draft. Original user/GPT text, JSON, logs, traces, and historical videos remain unchanged and are distinguished from translated structured explanations. English documentation does not mean historical Chinese tasks were rerun in English. The Level 1 verification record is available in [English](results/grasp_level1_verified_20261104/record.md), with a separate [Chinese edition](results/grasp_level1_verified_20261104/record.zh-CN.md).
+
+Localization smoke check: the complete fixed black-bowl storage sequence and six-object fixed sorting both completed successfully in actual MuJoCo execution. With physics paused, language round trips preserved physical state and edited drafts and emitted no control or model requests. Preference persistence and an explicit warning when storage is blocked were also exercised. These UI checks are not additional classifier experiments or new GPT-comparison trials.
+
+## Two independent videos
+
+These are separate recordings of two different scenes, played independently rather than concatenated: the first stores the black bowl in a drawer and closes it; the second only sorts colored bowls and cups. Both videos show actual MuJoCo execution, not a simulation running inside the GitHub page.
+
+### Video 1: Black bowl into drawer → close drawer → return arm home
+
+Grasp the black bowl, move it to the open bottom drawer, place it with support and release the gripper, withdraw the gripper, push the drawer closed through contact, and finally return home empty-handed. The black container here is a bowl, not a colored cup.
 
 https://github.com/user-attachments/assets/52878d01-3f40-4ef7-8964-c73e69dbba4b
 
-[下载仓库中的原始 MP4](media/grasp-demo.mp4) · [对应物理验收记录](results/subscription_storage.json)
+[Download the original repository MP4](media/grasp-demo.mp4) · [Corresponding physical acceptance record](results/subscription_storage.json)
 
-这是一段约 **1 分 29 秒**的完整历史收纳录像，包含关屉、归位和成功画面；一次订阅提案获批后执行固定收纳流程，不冒充逐项 GPT 闭环录像。
+This complete historical storage recording is approximately **1 minute 29 seconds**, including drawer closing, return home, and the success display. A single subscription-backed proposal was approved before the fixed storage procedure ran; this is not presented as a step-by-step GPT closed-loop recording.
 
-### 视频 2：彩色碗杯分拣 · 六物体真实接触执行
+### Video 2: Colored bowl/cup sorting · real-contact execution for six objects
 
-红、蓝、黄三色各一只碗和一只杯，共 **3 碗＋3 杯**。GPT 完整提案获批后，本地控制器依次完成真实夹持、抬升、转移、支撑放置和松爪；六件全部验收后空手归位。本场景没有抽屉，也不执行关屉动作。
+There is one bowl and one cup in each of red, blue, and yellow: **3 bowls + 3 cups**. After approval of a complete GPT proposal, the local controller sequentially performs actual gripping, lifting, transfer, supported placement, and release. After all six objects pass acceptance, the arm returns home empty-handed. This scene has no drawer and performs no drawer-closing action.
 
 https://github.com/user-attachments/assets/c2c58695-b541-4502-ae3f-c1862f18cd8e
 
-[下载仓库中的原始 MP4](media/gpt-sorting-contact-feedback-demo.mp4) · [对应提案与物理验收记录](results/gpt_sorting_contact_feedback_demo.json)
+[Download the original repository MP4](media/gpt-sorting-contact-feedback-demo.mp4) · [Corresponding proposal and physical acceptance record](results/gpt_sorting_contact_feedback_demo.json)
 
-录像约 **8 分 29 秒**，包含等待批准及展示停留；物理任务耗时为 **197.786 仿真秒**。录像时长不能当作机器人执行耗时，也不与第一个视频拼接比较。
+The recording is approximately **8 minutes 29 seconds**, including the approval wait and display dwell time; the physical task takes **197.786 simulation seconds**. Video duration is not robot execution time, and is not combined with the first video for comparison.
 
-## 项目与实验说明
+## Project and experiment overview
 
-为 GPT 高层任务规划提供真实物理执行能力。默认收纳场景通过当前 ChatGPT 订阅，每轮从五项本地技能中选择**一个动作**，执行后把实际结果送回 GPT。独立分拣场景支持**一次生成完整六物体提案，核对并批准后执行**，同时保留无模型的固定规则对照。两种规划粒度不同，不混称闭环重规划。不需要 API 密钥，没有固定模型回复、物体绑定或动画平移；尚未加入视觉识别或 DP。
+This project provides real physical execution for GPT high-level task planning. In the default storage scene, the current ChatGPT subscription selects **one action** from five local skills per round, and the actual execution result is fed back to GPT. The independent sorting scene supports **generating one complete six-object proposal, reviewing it, and executing it after approval**, while retaining a model-free fixed-rule control. These are different planning granularities and are not both described as closed-loop replanning. No API key is required. There are no fixed model replies, object attachments, or animated object translations; visual recognition and DP have not been added.
 
-仓库：https://github.com/youseihuayu-wonderful/GPT
+Repository: https://github.com/youseihuayu-wonderful/GPT
 
-默认收纳场景包含 Franka Panda 七轴机械臂、双指夹爪、桌面、黑碗、酒瓶、三层抽屉柜、酒架。浏览器画面由正在运行的 MuJoCo Renderer 生成，不是视频或预录轨迹回放。物体位姿直接取自仿真器。另有下述独立彩色碗杯分拣场景，支持 GPT 提案与固定规划。
+The default storage scene contains a seven-axis Franka Panda arm, two-finger gripper, table, black bowl, wine bottle, three-drawer cabinet, and wine rack. Browser images are produced by the running MuJoCo Renderer, not by a video or prerecorded trajectory replay. Object poses come directly from the simulator. The separate colored bowl/cup sorting scene below supports GPT proposals and fixed planning.
 
-原收纳项目的实施顺序：
+Implementation sequence for the original storage project:
 
-1. 搭建仿真场景：已完成，读取物体真值位姿。
-2. 固定脚本抓取：已完成，保留顺序执行 baseline。
-3. 参数化抓取与时序控制：已完成，支持真实运动重叠及固定场景参数小实验。
-4. GPT 规划层：从整段固定阶段说明升级为单步技能决策、真实执行、状态反馈闭环；可逐步确认，也可明确授权后连续执行。
-5. 对比验证：已完成 72 组多目标扩展配对；针对其中一次错误拒绝，补全抽屉观测后另做 36 组回归并通过约定验收。新旧批次与历史 54 次抓取、21 组原始闭环、10 组补充闭环均独立保留，不覆盖失败或混算完成率。
+1. Build the simulation scene: completed; object ground-truth poses are read directly.
+2. Fixed-script grasping: completed; the sequential baseline is retained.
+3. Parameterized grasping and timing control: completed; supports actual overlapping motion and small parameter experiments in a fixed scene.
+4. GPT planning layer: upgraded from descriptions of a whole fixed phase sequence to single-step skill decisions, real execution, and state-feedback closure. Each step can be confirmed separately, or execution can continue after explicit authorization.
+5. Comparative validation: completed 72 expanded multi-goal paired runs. Following one erroneous refusal, drawer observations were completed and a separate 36-run regression passed the agreed acceptance criteria. The new and old batches, historical 54 grasp trials, original 21 closed-loop runs, and 10 follow-up closed-loop runs remain separate; failures are not overwritten and completion rates are not pooled.
 
-收纳场景的五项技能可在同一仿真中独立调用，无需重置。该模式的 GPT 根据每轮物理状态选择技能；初态已持物时不必重新抓取。可选技能和终点均有限，这不是开放式机器人代理。
+The storage scene's five skills can be called independently within the same simulation without resetting. GPT selects skills from each round's physical state; an initially held object does not need to be grasped again. Both the skill set and endpoints are bounded: this is not an open-ended robot agent.
 
-## Proposal Level 1：抓取速度分类与真实执行
+## Proposal Level 1: Grasp-speed classification and real execution
 
-使用上方第一个视频的原收纳工位，但只做黑碗／酒瓶的抓取、抬升与连续 2 秒保持，不混入入屉、关屉或六物分拣。新增的本地随机森林负责三档下降速度的预测与选择；这一步不使用 GPT、27B、MRIoC 或付费接口。
+This uses the original storage workstation shown in the first video above, but only for grasping and lifting the black bowl/wine bottle and holding continuously for 2 seconds. Drawer placement, drawer closing, and six-object sorting are excluded. A newly added local random forest predicts and selects among three descent-speed settings; this step does not use GPT, 27B, MRIoC, or paid interfaces.
 
-已完成真实正负采集、训练、先保存三档预测再实际执行建议，并按同一冻结协议复验。**工程流程可行，但本批模型建议没有优于固定最快档；尚未验证主动学习或 D-optimal 的采样优势。** 具体样本数、计时、错误预测、失败阶段与研究边界见[简短验证记录](results/grasp_level1_verified_20261104/record.md)和[原始汇总](results/grasp_level1_verified_20261104/summary.json)。
+Actual positive and negative samples have been collected and used for training. Predictions for all three settings are saved before the recommendation is physically executed, followed by re-verification under the same frozen protocol. **The engineering workflow is feasible, but this batch's model recommendations did not outperform the fixed fastest setting; active-learning or D-optimal sampling advantages have not been verified.** Recommendations and fixed-fastest both achieved **16/18** successes, with mean successful-task times of **13.010 vs 12.634 simulation seconds**, respectively—not a learned speed advantage. Sample counts, timing, incorrect predictions, failure phases, and research limits are documented in the [concise verification record](results/grasp_level1_verified_20261104/record.md) and [raw summary](results/grasp_level1_verified_20261104/summary.json).
 
 ```sh
 uv sync --locked
 uv run --locked python run_grasp_learning.py --output results/grasp_level1_reproduction
 ```
 
-输出目录必须不存在。入口为 [`run_grasp_learning.py`](run_grasp_learning.py)，物理标签采集器为 [`grasp_trial.py`](grasp_trial.py)，模型与选速规则为 [`grasp_speed_model.py`](grasp_speed_model.py)。每批保留协议、源码／资产指纹、模型、逐次物理轨迹、预测与真实结果；无效初态不当作失败，内部／数值异常中止并保留当前尝试信息，不覆盖旧证据。
+The output directory must not already exist. The entry point is [`run_grasp_learning.py`](run_grasp_learning.py), the physical-label collector is [`grasp_trial.py`](grasp_trial.py), and the model and speed-selection rules are in [`grasp_speed_model.py`](grasp_speed_model.py). Each batch preserves the protocol, source/asset fingerprints, model, per-trial physical traces, predictions, and actual outcomes. Invalid initial states are not treated as failures. Internal/numerical exceptions abort the run and retain the current attempt's information; old evidence is not overwritten.
 
-原实时页面仍由 `server.py` 提供，可显示黑碗／抽屉工位；页面不会自动加载这些随机森林建议。本轮模型执行走上述无画面批量入口，不把旧演示视频当作学习实验。
+The original live page is still served by `server.py` and can display the black-bowl/drawer workstation; it does not automatically load these random-forest recommendations. This round's model execution uses the headless batch entry point above. Old demonstration videos are not presented as learning experiments.
 
-## 彩色碗杯分拣：GPT 提案与固定规则对照
+## Colored bowl/cup sorting: GPT proposals and fixed-rule controls
 
-两个终端分别启动后端与右侧实时页面：
+Start the backend and the right-side live page in two separate terminals:
 
 ```sh
 uv run python server.py --scene sorting --port 8766
@@ -69,151 +79,149 @@ uv run python server.py --scene sorting --port 8766
 terminal-browser open http://127.0.0.1:8766/ --split right --size 0.48
 ```
 
-### GPT 提案、批准与执行
+### GPT proposal, approval, and execution
 
-`sorting_planning.py` 使用与收纳模式共用的订阅传输层。点击“请求 GPT 完整提案”只调用当前 Codex 的 ChatGPT 订阅，不移动机械臂；核对返回的映射、六件物体顺序与提案编号，再点击“批准所示提案并执行”。模型可更换颜色到 A/B/C 的一一映射和处理顺序，每色的一碗一杯必须同区；碗固定使用该区前排落点，杯使用后排落点，坐标、速度、力及底层轨迹均不由模型生成。
+`sorting_planning.py` uses the same subscription transport layer as storage mode. Clicking “Request complete GPT proposal” only calls the current Codex ChatGPT subscription; it does not move the arm. Review the returned mapping, six-object order, and proposal number, then click “Approve shown proposal and execute.” The model can change the one-to-one color mapping to A/B/C and the processing order. Each color's bowl and cup must share a zone; bowls always use that zone's front placement point and cups its rear placement point. Coordinates, speeds, forces, and low-level trajectories are not generated by the model.
 
-本地校验能证明计划完整、身份和落区合法、物理前置条件满足，**不能证明模型正确理解了任意自然语言**。批准的是实际展示的提案，而不是一段未核对的任务文字。批准时再次检查场景版本、位置与姿态漂移、机械臂及夹爪状态；过期、无效、拒绝或失败的提案不会执行，也不自动改跑固定队列。执行期间锁定目标，不再次调用 GPT、不重试、不在线改变计划。初始物理时钟是否暂停取决于页面控制；批准会恢复时钟。取消只用于等待请求或待批准阶段；执行中使用暂停或显式重置。
+Local validation can establish plan completeness, valid identities and destination zones, and physical preconditions; **it cannot establish that the model correctly understood arbitrary natural language**. Approval applies to the actually displayed proposal, not unchecked task text. Approval rechecks scene revision, position/orientation drift, arm state, and gripper state. Expired, invalid, refused, or failed proposals do not execute and do not automatically fall back to the fixed queue. The target is locked during execution: no further GPT calls, retries, or online plan changes occur. Whether the initial physics clock is paused depends on page controls; approval resumes it. Cancellation applies only while a request is pending or approval is awaited; during execution use pause or explicit reset.
 
-接口为 `sort_plan`（`task`）、`sort_execute`（整数 `decision_id`）、`sort_cancel`。原 `sort` 仍执行固定基线；GPT 尝试后必须显式重置才能切换，避免自动抹掉失败历史。错误启动若已改变控制器状态，或出现未知启动异常，会锁定服务运行错误、停止物理时钟，要求重启，而不是当作普通拒绝继续运行。订阅取消与超时重叠时也必须完成子进程组终止和回收。
+The interfaces are `sort_plan` (`task`), `sort_execute` (integer `decision_id`), and `sort_cancel`. The original `sort` still runs the fixed baseline. After a GPT attempt, switching requires an explicit reset so failure history is not silently erased. If a failed start has already changed controller state, or an unknown startup exception occurs, the service latches a runtime error, stops the physics clock, and requires a restart rather than continuing as if it were an ordinary refusal. Overlapping subscription cancellation and timeout must still terminate and reap the subprocess group.
 
-### 首轮实测对照与动态演示（接触反馈修正前）
+### First measured comparison and dynamic demonstration (before the contact-feedback correction)
 
-[`compare_sorting.py`](compare_sorting.py) 在两项预先声明的目标上分别运行固定规则与真实 GPT：每对使用同一模型和相同的初始位置、速度、控制量、约束、外力及求解器预热状态。固定规则接收结构化映射/优先级，GPT 接收相应任务文字；两者都使用相同控制器，不把旧固定颜色队列强行用于新目标。自动验收仅批准与预先声明目标相符的模型提案，绝不修补错误回答。
+[`compare_sorting.py`](compare_sorting.py) runs fixed rules and actual GPT for each of two predeclared goals. Each pair uses the same model and identical initial positions, velocities, control inputs, constraints, external forces, and solver warm-start state. Fixed rules receive a structured mapping/priority; GPT receives the corresponding task text. Both use the same controller; the old fixed-color queue is not forced onto new goals. Automated acceptance only approves model proposals matching the predeclared goal and never repairs an incorrect answer.
 
-| 任务 | 方法 | 正确放置 | 执行仿真秒 | GPT 请求墙钟秒 |
+| Task | Method | Correctly placed | Execution, simulation s | GPT request, wall-clock s |
 |---|---|---:|---:|---:|
-| 红 A、蓝 B、黄 C | 固定规则 | 6 / 6 | 183.356 | 不调用 |
-| 红 A、蓝 B、黄 C | GPT | 6 / 6 | 183.356 | 7.188 |
-| 红 B、蓝 A、黄 C，杯先于碗 | 固定规则 | 6 / 6 | 195.518 | 不调用 |
-| 红 B、蓝 A、黄 C，杯先于碗 | GPT | 6 / 6 | 195.518 | 8.175 |
+| Red A, blue B, yellow C | Fixed rules | 6 / 6 | 183.356 | No call |
+| Red A, blue B, yellow C | GPT | 6 / 6 | 183.356 | 7.188 |
+| Red B, blue A, yellow C; cups before bowls | Fixed rules | 6 / 6 | 195.518 | No call |
+| Red B, blue A, yellow C; cups before bowls | GPT | 6 / 6 | 195.518 | 8.175 |
 
-四次运行均无意外碰撞，并通过完成后的独立 5 仿真秒保持。数据见[完整配对记录](results/sorting_planning_comparison.json)。本批次另有[独立顺序审计](results/sorting_planning_order_audit.json)：绑定原记录 SHA-256，仅从保存的接触力、离桌高度、释放和稳定支撑观测重建抓放顺序，不从控制器阶段、索引或完成日志推断；这是原轨迹的事后审计，不是新增执行。当前验收器已在执行时直接检查这些顺序约束，采样不足则不能通过。
+All four runs had no unexpected collisions and passed an independent 5-simulation-second hold after completion. See the [full paired records](results/sorting_planning_comparison.json). This batch also has an [independent order audit](results/sorting_planning_order_audit.json), bound to the original record's SHA-256. It reconstructs grasp/place order only from saved contact forces, height above the table, release, and stable-support observations—not controller phases, indices, or completion logs. This is a retrospective audit of the original traces, not additional execution. The current acceptance checker directly checks these order constraints during execution; insufficient sampling cannot pass.
 
-**本轮证明了自然语言可以转成可执行的受约束分拣提案，没有证明 GPT 提速或优于固定规则。** 两项任务中 GPT 选择了与规则相同的队列，物理耗时相同，另有真实请求等待。只有两项已知布局目标，不是随机场景成功率或泛化研究。等待 GPT 时无界面对照仍推进物理；执行阶段为加速无界面运行，墙钟耗时不是实物产能，也不能与仿真秒直接相加。
+**This round demonstrates that natural language can be converted into executable constrained sorting proposals; it does not demonstrate GPT speedup or superiority over fixed rules.** For both tasks GPT chose the same queue as the rules, with identical physical execution time plus actual request waiting. These are only two goals with known layouts, not a random-scene success-rate or generalization study. In the headless comparison, physics continues while waiting for GPT. Execution runs headlessly with accelerated computation; wall-clock time is neither real-hardware production throughput nor directly additive to simulation seconds.
 
-[真实 GPT 分拣演示 MP4](media/gpt-sorting-demo.mp4) · [提案、终态及调用证据](results/gpt_sorting_demo.json)。这段独立浏览器演示使用“红 B、蓝 A、黄 C，杯先于碗”，真实请求约 5.861 墙钟秒，物理任务约 195.52 仿真秒，6 / 6 完成。请求模型标识为 `gpt-5.6-terra`，不代表已证明服务端模型权重快照。录像为 1440 × 1080、H.264、约 635 秒，包含暂停等待批准及完成后的停留；不是任务耗时测量，也不计入上述四次配对。
+[Actual GPT sorting demonstration MP4](media/gpt-sorting-demo.mp4) · [Proposal, final state, and invocation evidence](results/gpt_sorting_demo.json). This separate browser demonstration used “红 B、蓝 A、黄 C，杯先于碗” (“red B, blue A, yellow C; cups before bowls”). The actual request took approximately 5.861 wall-clock seconds; the physical task took approximately 195.52 simulation seconds and completed 6 / 6 objects. The requested model identifier was `gpt-5.6-terra`, which is not proof of a server-side model-weight snapshot. The recording is 1440 × 1080, H.264, approximately 635 seconds, including a paused approval wait and post-completion dwell. It is not a task-duration measurement and is not included in the four paired runs above.
 
 ```sh
 uv run python compare_sorting.py --output results/sorting_comparison_new.json
 uv run python -m unittest discover -s tests -v
 ```
 
-报告文件必须不存在；异常和中断保留已产生记录，不覆盖旧失败。范围仍限六个已建模物体、已知工位、三色独占三个区；不支持摄像头识别、混色同区、同色分区、堆叠、传送带或任意新物体。结构校验允许不同顺序，不等于所有顺序都已有物理成功证明。
+The report file must not already exist. Exceptions and interruptions preserve records already produced and do not overwrite earlier failures. Scope remains limited to six modeled objects, a known workstation, and three colors each exclusively assigned to one of three zones. Camera recognition, mixed colors in one zone, splitting one color across zones, stacking, conveyors, and arbitrary new objects are unsupported. Structural validation allowing different orders does not mean every order has physical success evidence.
 
-### 放置末段的有界接触反馈
+### Bounded contact feedback at the end of placement
 
-六种颜色映射的物理回归曾发现两项队列失败：黄色碗移到 A 区时，原位置轨迹结束后仍有约 0.1 mm 的真实离桌间隙，没有正向桌面支撑，控制器因此停止而非提前松爪。[两次原始失败状态](results/sorting_placement_failures_before_fix.json)从首次失败的全量测试输出提取，保留原队列、物理诊断和失败原因，不是重跑，也不被后续成功覆盖。
+Physical regression across six color mappings found two failing queues: when moving the yellow bowl to zone A, approximately 0.1 mm of actual clearance above the table remained after the original position trajectory ended. There was no positive table support, so the controller stopped instead of releasing prematurely. The [two original failure states](results/sorting_placement_failures_before_fix.json) were extracted from the full output of the first failing test run. They retain the original queues, physical diagnostics, and failure causes; they are not reruns and are not overwritten by later successes.
 
-修正只作用于放置末段：原轨迹正常到位但仍无支撑时，保持夹持，从当前实测 TCP 开始以 **2 mm/s 的目标速度、最多 3 mm、最多 2 s**寻找桌面支撑。检测到正向支撑立即停止下降，再使用原稳定支撑／释放判据。关节目标变化仍有速率限制，失抓、落点占用和意外碰撞检查保持有效；无支撑则明确失败，不修改物体尺寸、质量、摩擦、位姿或成功阈值。这不是提高整段搬运速度。
+The correction affects only the end of placement. If the original trajectory reaches its normal endpoint but support is still absent, the gripper maintains its hold and searches for table support from the current measured TCP at a **target speed of 2 mm/s, for at most 3 mm and at most 2 s**. Descent stops immediately upon positive support, followed by the original stable-support/release criteria. Joint-target changes remain rate-limited; lost-grasp, occupied-placement-point, and unexpected-collision checks remain active. Missing support produces an explicit failure. Object dimensions, mass, friction, pose, and success thresholds are unchanged. This does not increase the speed of the entire transfer.
 
-[黄色碗→A 的针对性实测](results/sorting_support_search_smoke.json)实际触发了 0.816 mm 的接触搜索目标增量；释放后桌面支撑力约 0.450 N，正确区域、落点、直立、静稳与脱离夹爪均由独立观察确认，模型指纹保持不变。该记录只验证这一次放置，不把尚未完成的整批物体计作成功。
+The [targeted yellow-bowl → A measurement](results/sorting_support_search_smoke.json) actually triggered a 0.816 mm contact-search target increment. After release, table support force was approximately 0.450 N. Independent observation confirmed the correct zone and placement point, upright orientation, stable rest, and separation from the gripper; the model fingerprint remained unchanged. This record verifies only that placement and does not count the unfinished full batch as successful.
 
-### 修正版浏览器演示
+### Corrected browser demonstration
 
-[完整动态 MP4](media/gpt-sorting-contact-feedback-demo.mp4) · [真实提案与最终物理状态](results/gpt_sorting_contact_feedback_demo.json)。任务要求“黄 A、蓝 B、红 C，先碗后杯、黄碗优先”；GPT 实际提出黄碗、蓝碗、红碗、黄杯、蓝杯、红杯。提案期间暂停且没有启动技能，核对映射和优先级后明确批准；六件全部完成、空手归位，内置整批保持 5 仿真秒，无意外碰撞。执行耗时 **197.786 仿真秒**，真实订阅请求 **9.508 墙钟秒**，请求型号仍为 `gpt-5.6-terra`。
+[Complete dynamic MP4](media/gpt-sorting-contact-feedback-demo.mp4) · [Actual proposal and final physical state](results/gpt_sorting_contact_feedback_demo.json). The task requested “黄 A、蓝 B、红 C，先碗后杯、黄碗优先” (“yellow A, blue B, red C; bowls before cups, yellow bowl first”). GPT actually proposed yellow bowl, blue bowl, red bowl, yellow cup, blue cup, red cup. Physics was paused during proposal generation and no skill started. After checking the mapping and priorities, execution was explicitly approved. All six objects completed, the arm returned home empty-handed, and the built-in batch hold lasted 5 simulation seconds, with no unexpected collisions. Execution took **197.786 simulation seconds**; the actual subscription request took **9.508 wall-clock seconds**, still requesting `gpt-5.6-terra`.
 
-该演示不计入配对对照。录像为 1440 × 1080、H.264、6 fps、约 509 秒，包含等待批准和成功后停留；浏览器自动化的终态等待提前超时，但物理执行正常继续，随后观察到真实成功再暂停并结束录制。录像时长不是任务计时，也不把它称为独立的额外保持实验。
+This demonstration is not included in the paired comparison. The recording is 1440 × 1080, H.264, 6 fps, approximately 509 seconds, including the approval wait and post-success dwell. The browser automation's final-state wait timed out early, but physical execution continued normally. Actual success was subsequently observed before pausing and ending the recording. Video duration is not task timing, and this is not described as a separate additional-hold experiment.
 
-当前服务的实际界面检查还包括：390 px 下分拣初态、完整提案和成功终态无页面横向溢出；原收纳模式仍可由页面实际执行 `grasp_and_hold` 并满足全部持物判据，报告切换不改变暂停现场。两个模式的检查均未出现浏览器错误。
+Actual interface checks on the current service also included: no page-level horizontal overflow at 390 px for sorting's initial state, complete proposal, or successful final state; the original storage mode could still execute `grasp_and_hold` through the page and satisfy every holding criterion; switching reports did not change the paused scene. Neither mode produced browser errors during those checks.
 
-### 修正版配对复验（独立批次）
+### Corrected paired re-verification (separate batch)
 
-接触反馈与在线物理顺序验收加入后，使用相同两项目标重新运行固定规则和真实订阅 GPT，另存[修正版完整配对记录](results/sorting_planning_comparison_contact_feedback.json)，不覆盖首轮：
+After adding contact feedback and online physical-order acceptance, fixed rules and actual subscription-backed GPT were rerun on the same two goals and saved separately in the [complete corrected paired records](results/sorting_planning_comparison_contact_feedback.json), without overwriting the first round:
 
-| 任务 | 固定规则执行 · 仿真 s | GPT 执行 · 仿真 s | GPT 请求 · 墙钟 s | 物理验收 |
+| Task | Fixed-rule execution · simulation s | GPT execution · simulation s | GPT request · wall-clock s | Physical acceptance |
 |---|---:|---:|---:|---|
-| 红 A、蓝 B、黄 C | 183.356 | 183.356 | 6.916 | 两者均 6 / 6 |
-| 红 B、蓝 A、黄 C，杯先于碗 | 195.604 | 195.604 | 8.886 | 两者均 6 / 6 |
+| Red A, blue B, yellow C | 183.356 | 183.356 | 6.916 | Both 6 / 6 |
+| Red B, blue A, yellow C; cups before bowls | 195.604 | 195.604 | 8.886 | Both 6 / 6 |
 
-四次均通过独立的抓放顺序检查与完成后额外 5 仿真秒保持，无意外碰撞。两对的初始物理状态及编译模型匹配；GPT 仍选择与规则相同的队列，仍没有执行提速。第二目标的耗时与首轮不同，因此不沿用旧控制器的 195.518 s 作为新版结果；不同批次不合并为成功率或吞吐量。
+All four runs passed independent grasp/place order checks and an additional 5-simulation-second hold after completion, with no unexpected collisions. The pairs matched in initial physical state and compiled model. GPT again chose the same queue as the rules and still produced no execution speedup. The second goal's duration differs from the first round, so the old controller's 195.518 s is not reused as a new-version result. Batches are not pooled into a success rate or throughput figure.
 
-最终执行 `uv run python -m unittest discover -s tests -v`，**238 项全部通过**，原始输出见[完整回归日志](results/gpt_sorting_tests.log)。其中六种颜色映射各执行一条预先定义的重排队列，真实抓放、整批归位、独立目标检查与模型不变检查均通过，包含修正前失败的两条路径；这不是穷举所有物体顺序或未知布局成功率。协议测试中的受控提供方替身不算真实 GPT 调用，真实订阅证据仅来自上述独立实验和浏览器演示。
+The final command `uv run python -m unittest discover -s tests -v` passed **all 238 checks**; raw output is in the [full regression log](results/gpt_sorting_tests.log). For each of the six color mappings, one predeclared reordered queue passed actual grasping/placement, whole-batch return home, independent goal checks, and model-invariance checks, including the two paths that failed before the correction. This does not exhaust all object orders or estimate unknown-layout success rates. Controlled provider substitutes in protocol tests are not actual GPT calls; genuine subscription evidence comes only from the separate experiments and browser demonstrations above.
 
-### 冻结版本：新位置与等价任务表述
+### Frozen version: New positions and equivalent task formulations
 
-[`sorting_evaluation_protocol.json`](sorting_evaluation_protocol.json) 已在执行前以提交 `1b477b1` 预注册。控制器、规划提示、物理资产、MuJoCo 版本、基线策略及请求模型标识冻结于 `8941027` 对应的版本；本轮不根据结果修改速度、接触搜索或抓取参数。
+[`sorting_evaluation_protocol.json`](sorting_evaluation_protocol.json) was preregistered in commit `1b477b1` before execution. The controller, planning prompt, physical assets, MuJoCo version, baseline policy, and requested model identifier were frozen to the version corresponding to `8941027`. Speeds, contact search, and grasp parameters were not adjusted based on this round's results.
 
-- **4 个新布局 × 2 种等价表述 × 2 种方法 = 16 格，每格一次。** 布局分别为 X 平移 18 mm、Y 平移 −24 mm、交错位姿、交换颜色列。坐标是人工预先指定的，不是随机抽样；两种文字在同布局下的颜色目标和杯优先约束完全相同。
-- 固定规则接收结构化目标，GPT 接收自然语言与真实仿真状态；同一布局的四次执行必须具有完全一致的初始物理与编译模型指纹。两者使用原控制器，不能将差异解释为底层模型或速度不同。
-- 仅在初始化或显式重置时设置预注册位姿，再通过普通物理步进落稳。正常执行不改物体位姿、质量、碰撞体、约束或外力，不绑定物体，不自动重试或切换规则。
-- 按物理接触、抬升与放置顺序、正确区域和落点、稳定支撑、空手归位、内置及独立额外保持判定。未测量耗时保留为空；提前失败不算更快，只对两种方法都成功的配对计算耗时差。
-- 明确的模型拒绝、无效提案、目标不匹配或物理失败保留并继续；配置、未知提供方／内部错误、配对、冻结、清理或证据保存错误中止整批。中止与“全部已执行但有任务失败”分开记录，不把它们冒充通过。
+- **4 new layouts × 2 equivalent formulations × 2 methods = 16 cells, one run per cell.** Layouts are an X translation of 18 mm, a Y translation of −24 mm, staggered poses, and swapped color columns. Coordinates were manually specified in advance, not randomly sampled. Within each layout, both texts impose exactly the same color goals and cup-first constraint.
+- Fixed rules receive structured goals; GPT receives natural language and the actual simulation state. All four executions for a layout must have identical initial-physics and compiled-model fingerprints. Both use the original controller, so differences cannot be attributed to different underlying models or speeds.
+- Preregistered poses are set only during initialization or explicit reset, then settled through ordinary physics stepping. Normal execution does not alter object poses, masses, collision bodies, constraints, or external forces, attach objects, or automatically retry or switch to rules.
+- Acceptance uses physical contact, lifting and placement order, correct zones and placement points, stable support, empty-handed return home, and built-in plus independent additional holds. Unmeasured durations remain empty. Early failure is not faster completion; duration differences are computed only for pairs in which both methods succeed.
+- Explicit model refusal, invalid proposals, goal mismatches, and physical failures are retained and the batch continues. Configuration, unknown provider/internal, pairing, freeze, cleanup, or evidence-saving errors abort the entire batch. An abort is recorded separately from “all attempted, but some tasks failed”; neither is misrepresented as a pass.
 
-历史分拣复现须在独立工作区使用提交 `a30e4e8ee40aea3c579b6668edb661a1373a76bd` 及其锁文件，再运行下列命令。本次 Level 1 新增了分类器依赖并收紧 IK 异常处理，当前工作区不再匹配旧分拣协议的冻结指纹；拒绝混用是预期保护，不修改旧协议哈希或覆盖历史失败。复现另存目录：
+Historical sorting reproduction requires a separate working tree at commit `a30e4e8ee40aea3c579b6668edb661a1373a76bd` with its lockfile, followed by the commands below. This Level 1 addition introduced classifier dependencies and stricter IK exception handling; the current working tree no longer matches the old sorting protocol's frozen fingerprint. Refusal to mix versions is an expected safeguard, not a reason to alter old protocol hashes or overwrite historical failures. Save reproduction results in a separate directory:
 
 ```sh
 uv run python evaluate_sorting.py --output results/sorting_frozen_evaluation_reproduction
 
-# 实时查看指定布局；不自动运行评估或请求模型
+# View a specified layout live; does not automatically evaluate or request a model
 uv run python server.py --scene sorting --sorting-layout swapped_columns --port 8766
 ```
 
-每批保存原样协议、原子更新的 `summary.json` 和逐次完整 `runs/*.json.gz`，记录 SHA-256、实际提案、请求线程、物理轨迹和失败原因。输出目录必须不存在；不恢复未完成批次或用后来的成功替换失败。请求标识 `gpt-5.6-terra` 不等于服务端权重快照证明。
+Each batch preserves the unchanged protocol, atomically updated `summary.json`, and complete per-run `runs/*.json.gz`, including SHA-256, actual proposals, request threads, physical traces, and failure causes. The output directory must not already exist. Unfinished batches are not resumed and failures are not replaced by later successes. The request identifier `gpt-5.6-terra` is not proof of a server-side weight snapshot.
 
-分拣页面的“冻结版本分拣 · 独立评估存档”只读取正式目录 `results/sorting_frozen_evaluation`。刷新和下载不请求 GPT、不重置或驱动机械臂；缺失或无效报告明确报错，不退回旧报告。该存档与上方实时场景相互独立，选择复现输出目录不会自动替换页面所读批次。
+The sorting page's “Frozen-version sorting · independent evaluation archive” reads only the official directory `results/sorting_frozen_evaluation`. Refreshing and downloading do not request GPT, reset, or drive the arm. Missing or invalid reports produce explicit errors, with no fallback to old reports. This archive is independent of the live scene above. Choosing a reproduction output directory does not automatically replace the batch read by the page.
 
-本轮评测程序提交为 `2e37b8b`。正式执行前，`uv run python -m unittest discover -s tests` 的 **285 项检查全部通过**，见[完整回归输出](results/sorting_frozen_evaluation_tests.log)。其中评测故障回归先复现了七项失败，再验证修正后的行为；日志中的内部错误为受控故障注入，不是真实模型调用失败。[运行环境与程序指纹](results/sorting_frozen_evaluation_environment.json)单独保存。
+This round's evaluation program was committed as `2e37b8b`. Before the official run, **all 285 checks** from `uv run python -m unittest discover -s tests` passed; see the [full regression output](results/sorting_frozen_evaluation_tests.log). Evaluation fault regressions first reproduced seven failures and then verified the corrected behavior. Internal errors in the log are controlled fault injection, not actual model-call failures. The [runtime environment and program fingerprints](results/sorting_frozen_evaluation_environment.json) are saved separately.
 
-正式批次已完成，见[完整汇总](results/sorting_frozen_evaluation/summary.json)、[执行时的协议副本](results/sorting_frozen_evaluation/protocol.json)和[逐次完整物理轨迹](results/sorting_frozen_evaluation/runs)。下表仅统计这一批，不与历史演示或修订前的结果合并：
+The official batch is complete: see the [full summary](results/sorting_frozen_evaluation/summary.json), [protocol copy used at execution](results/sorting_frozen_evaluation/protocol.json), and [complete per-run physical traces](results/sorting_frozen_evaluation/runs). The table below includes only this batch, not historical demonstrations or results from before the revision:
 
-| 方法 | 成功／尝试 | 平均执行 · 仿真 s | 平均执行 · 墙钟 s | 平均 GPT 请求 · 墙钟 s | 平均端到端 · 墙钟 s | 意外碰撞事件 |
+| Method | Successes/attempts | Mean execution · simulation s | Mean execution · wall-clock s | Mean GPT request · wall-clock s | Mean end-to-end · wall-clock s | Unexpected collision events |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 固定规则 | 8/8 | 191.947 | 179.442 | — | 180.228 | 0 |
-| GPT（真实订阅） | 8/8 | 193.284 | 229.339 | 9.726 | 239.967 | 0 |
+| Fixed rules | 8/8 | 191.947 | 179.442 | — | 180.228 | 0 |
+| GPT (actual subscription) | 8/8 | 193.284 | 229.339 | 9.726 | 239.967 | 0 |
 
-每次都完成六物体分拣、空手归位和控制器内置 5 s 保持，并通过独立额外 5 s 物理保持检查。八个 GPT 请求具有不同的线程标识；四个布局各自的四次执行初态指纹一致。执行后冻结检查通过，16 份 gzip 均已解压、核验 SHA-256，并核对原始计划、真实抬升／放置顺序、接触证据和最终观测与汇总一致；没有重试、删去失败或修改冻结控制器。
+Every run completed six-object sorting, empty-handed return home, and the controller's built-in 5 s hold, then passed an independent additional 5 s physical-hold check. The eight GPT requests have distinct thread identifiers; the four runs within each of the four layouts have identical initial-state fingerprints. Post-execution freeze checks passed. All 16 gzip files were decompressed and their SHA-256 values verified; original plans, actual lifting/placement order, contact evidence, and final observations were checked against the summary. There were no retries, removal of failures, or changes to the frozen controller.
 
-**本轮证明的是受限新布局和等价表述下的可执行性，不是 GPT 优于规则。** 未观察到成功率、碰撞或执行时间优势；GPT 与规则共用底层控制器，本机墙钟包含模型等待及计算开销，不能当作真实机器人速度。每格仅一次、布局人为预先指定，也不能据此声称统计泛化能力。首页的两段视频仍是此前各自场景的录像，不冒充本轮评测录像。
+**This round demonstrates executability under bounded new layouts and equivalent formulations, not GPT superiority over rules.** No success-rate, collision, or execution-time advantage was observed. GPT and rules share the low-level controller. Local wall-clock measurements include model waiting and computation overhead and cannot be treated as real-robot speed. One run per cell and manually predeclared layouts do not establish statistical generalization. The two videos at the top remain earlier recordings of their respective scenes, not recordings of this evaluation.
 
-完成态报告已在浏览器实际验证：2 行方法总账、16 行逐次记录、8 行配对；390 px 窄屏无页面横向溢出，表格可单独横向滚动。已点击下载完整 gzip，下载文件的 SHA-256 与存档一致；刷新和下载前后暂停的完整仿真状态一致，无浏览器脚本错误。
+The completed report was actually verified in the browser: 2 method-ledger rows, 16 per-run rows, and 8 paired rows. At 390 px there was no page-level horizontal overflow; tables could scroll horizontally on their own. A complete gzip was downloaded by clicking its link, and the downloaded SHA-256 matched the archive. The complete paused simulation state was unchanged before and after refreshing and downloading, with no browser script errors.
 
-### 固定颜色分拣基线（不调用 GPT）
+### Fixed-color sorting baseline (no GPT calls)
 
-`sorting.py` / `sorting_scene.xml` 提供同一物理执行器与原固定规划基线；`sorting_contract.py` 定义独立物体身份和完整不可变计划，不改变原收纳模式。红、蓝、黄三色各有一只碗和一只无把手空心杯；颜色、身份和位姿来自仿真真值，不是视觉识别。杯底使用固定质量的复合盒碰撞近似，圆形底面渲染几何不参与碰撞；杯壁保持空心。碗复用原碰撞资产，只改变显示颜色。
+`sorting.py` / `sorting_scene.xml` provide the same physical executor and original fixed-planning baseline. `sorting_contract.py` defines independent object identities and a complete immutable plan without changing the original storage mode. Each of red, blue, and yellow has one bowl and one handleless hollow cup. Color, identity, and pose come from simulation ground truth, not visual recognition. Cup bases use a fixed-mass composite-box collision approximation; the circular visual base geometry does not participate in collisions. Cup walls remain hollow. Bowls reuse the original collision assets, changing only display color.
 
-固定全队列为红碗、红杯、蓝碗、蓝杯、黄碗、黄杯；红色到 A 区、蓝色到 B 区、黄色到 C 区。每区有两个独立落点，不堆叠。区域是桌面标记，不是带壁容器。每件依次准备、接近、下降、双侧夹持、抬升保持、转移、支撑放置、释放、撤离，全部完成后机械臂归位并连续验证 5 仿真秒。
+The complete fixed queue is red bowl, red cup, blue bowl, blue cup, yellow bowl, yellow cup; red goes to zone A, blue to B, yellow to C. Each zone has two independent placement points, without stacking. Zones are table markings, not walled containers. Each object goes through preparation, approach, descent, bilateral gripping, lift-and-hold, transfer, supported placement, release, and withdrawal. After all finish, the arm returns home and is continuously verified for 5 simulation seconds.
 
-本次已完成固定布局的真实正向运行：六件物体均观察到双侧夹持与离桌抬升，全部正确放置并归位，控制器任务耗时 **183.356 仿真秒**，意外碰撞为 0；独立验收在完成后又保持并观察 **5.000 仿真秒**。这是已知场景的执行证据，不是成功率估计或实物设备产能。
+An actual positive run of the fixed layout was completed: bilateral gripping and lifting off the table were observed for all six objects, all were correctly placed, and the arm returned home. Controller task time was **183.356 simulation seconds**, with 0 unexpected collisions. Independent acceptance held and observed the result for another **5.000 simulation seconds** after completion. This is execution evidence for a known scene, not a success-rate estimate or real-device production throughput.
 
-[完整实时分拣录像 MP4](media/fixed-sorting-demo.mp4)：1440 × 1080、H.264，录制约 303.13 墙钟秒，包含操作及结束后的停留。本机渲染与并行计算影响播放进度；不能用录像时长代替任务仿真时间或声称实时吞吐量。录像展示正向队列；故障停止与成功撤销由单独的物理回归检查验证。
+[Complete live sorting recording MP4](media/fixed-sorting-demo.mp4): 1440 × 1080, H.264, approximately 303.13 wall-clock seconds, including operation and post-completion dwell. Local rendering and concurrent computation affect playback progress; video length cannot replace task simulation time or establish real-time throughput. The recording shows the positive queue. Fault stopping and revocation of success were verified separately by physical regression checks.
 
-录像结束后保存的[现场物理状态](results/sorting_demo.json)与独立无界面验收分别记录；不将它们当作多场景成功率实验。
+The [on-site physical state](results/sorting_demo.json) saved after recording and the independent headless acceptance are recorded separately; they are not treated as a multi-scene success-rate experiment.
 
+Click “Run fixed sorting control (no GPT)” to execute the original full queue. Pause, single-step, and explicit reset are supported during execution. Before starting, all six objects must be stably supported, the gripper free, the arm home, and reserved placement points unoccupied. Repeated starts, requests conflicting with a GPT session, and old storage commands in this scene are rejected rather than silently switching tasks. Reset actually advances 0.6 simulation seconds to settle the scene and preserves that elapsed time rather than fabricating zero velocity. The model and objects are not reset, teleported, or attached to the gripper during normal execution.
 
-点击“运行固定分拣对照（不调用 GPT）”执行原完整队列；运行中支持暂停、单步和显式重置。开始前要求六件物体稳定支撑、夹爪空闲、机械臂归位且预留落点未被占用。重复启动、与 GPT 会话冲突的请求及本场景中的旧收纳命令会拒绝，不会暗中切换任务。重置会实际推进 0.6 仿真秒让场景落稳，保留这段时间，不伪造零速度。模型与物体在正常执行期间不重置、不瞬移、不附着到夹爪。
+Completion requires the entire collision boundary to be inside the target color zone, the correct placement point, upright orientation, positive table support, stable rest, separation from the gripper, and final return home. Per-object and whole-batch completion are continuously rechecked. Lost grasp, unexpected collision, disturbance of completed objects, numerical errors, or timeouts stop execution; failures cannot be skipped. The page's 0–6 progress is current physical acceptance, not a statistical success rate.
 
-完成判据包括完整碰撞边界进入目标色区、对应落点、直立、正向桌面支撑、静稳、脱离夹爪和最终归位。每件与整批的完成状态持续复核；失抓、意外碰撞、已完成物体受扰、数值错误或超时均停止，不能跳过失败继续。页面的 0–6 进度是当前物理验收结果，不是统计成功率。
-
-独立验收使用真实接触力、物体碰撞边界、关节与物体状态；每件必须实际出现双侧夹持和离桌抬升。控制器完成后，验收器另行观察整批目标保持 5 仿真秒，并在每次 20 ms 观察步检查物理参数、等式激活及外力。轨迹按 100 ms 或阶段变化保存，有限采样不是每个内部求解操作的审计。已有记录：[`results/sorting_verification.json`](results/sorting_verification.json)。
+Independent acceptance uses actual contact forces, object collision boundaries, and joint/object states. Each object must actually exhibit bilateral gripping and lifting off the table. After controller completion, the checker independently observes the whole-batch goal for 5 simulation seconds, checking physical parameters, equality activation, and external forces at every 20 ms observation step. Traces are saved every 100 ms or on phase changes; finite sampling is not an audit of every internal solver operation. Existing record: [`results/sorting_verification.json`](results/sorting_verification.json).
 
 ```sh
 uv run python verify_sorting.py --output results/sorting_run_01.json
 uv run python -m unittest discover -s tests -p 'test_sorting.py' -v
 ```
 
-输出文件必须尚不存在，防止覆盖旧失败。报告区分仿真时间与加速无界面执行的墙钟时间，后者不能当作实时产能。测试还覆盖落点被占用、重复启动不改物理状态、外力失抓停止、成功受扰后撤销，以及数值故障必须重置。上述历史固定基线记录不调用 GPT，不是可变规则或跨场景泛化结论；新增 GPT 分拣能力与独立证据见上节。
+The output file must not already exist, preventing overwrite of old failures. Reports distinguish simulation time from wall-clock time for accelerated headless execution; the latter is not real-time throughput. Tests also cover occupied placement points, repeated starts leaving physical state unchanged, stopping after externally forced loss of grasp, revoking disturbed success, and requiring reset after numerical faults. These historical fixed-baseline records make no GPT calls and do not establish variable-rule or cross-scene generalization. Added GPT sorting and its independent evidence are described above.
 
-## 历史逐项闭环录像与验证记录
+## Historical step-by-step closed-loop recordings and verification records
 
-首页的两段独立播放器用于分别展示完整收纳和六物体分拣。下面保留历史逐项闭环的分段记录，不作为第三个首页播放器，也不与分拣视频混合。
+The two independent players at the top separately show complete storage and six-object sorting. The historical segmented step-by-step closed-loop records below are retained, not added as a third main player or mixed with the sorting video.
 
-[五技能执行 MP4](media/gpt-closed-loop-demo.mp4) · [继续同一现场确认完成与额外保持 MP4](media/gpt-closed-loop-validation.mp4) · [原始请求、物理状态与验收证据](results/expanded_demo.json)
+[Five-skill execution MP4](media/gpt-closed-loop-demo.mp4) · [Continue the same scene to confirm completion and additional hold MP4](media/gpt-closed-loop-validation.mp4) · [Original requests, physical states, and acceptance evidence](results/expanded_demo.json)
 
-扩展批次的这段历史演示真实使用 `gpt-5.6-terra` 订阅请求：依次选择抓取保持、放置松开、撤出夹爪、关抽屉、归位，再提出 `complete`，不是一次请求生成整段固定动画。所有技能均由 MuJoCo 物理执行；末尾全部收纳判据为真，额外验证保持 **5.05 仿真秒**，无意外碰撞。此独立演示不计入重复对照矩阵，也不冒充后续状态补全修订的录像。
+This historical demonstration from the expanded batch used actual `gpt-5.6-terra` subscription requests: it sequentially selected grasp-and-hold, place-and-release, withdraw-gripper, close-drawer, and return-home, then proposed `complete`. It was not one request generating a whole fixed animation. All skills executed through MuJoCo physics. At the end, all storage criteria were true and an additional **5.05 simulation seconds** of holding were verified, with no unexpected collisions. This separate demonstration is excluded from the repeated comparison matrix and is not represented as a recording of the later state-completion revision.
 
-录像为两段：第一段 118.37 s，末帧仍显示归位技能执行中；第二段 6.07 s，在**同一现场**继续本地确认和保持，无重置、技能重跑或额外 GPT 请求。段间操作间隔未录制，不能声称这两段连续覆盖了全部动作，也不能把时长相加作为端到端实验耗时。MP4 为 1440 × 1080；[第一段 GIF 预览](media/gpt-closed-loop-demo.gif)为 720 × 540、6 fps 原速预览。仿真秒与录像墙钟秒不是同一个时钟。
+The recording has two segments: the first is 118.37 s, with the return-home skill still running in the final frame; the second is 6.07 s and continues local confirmation and holding in **the same scene**, with no reset, skill rerun, or additional GPT request. The operational interval between segments was not recorded. The segments therefore cannot be claimed to continuously cover every action, nor can their durations be summed as an end-to-end experimental duration. The MP4 files are 1440 × 1080. The [first-segment GIF preview](media/gpt-closed-loop-demo.gif) is a 720 × 540, 6 fps preview at original speed. Simulation seconds and video wall-clock seconds are different clocks.
 
-### 历史固定任务录像
+### Historical fixed-task recording
 
-[历史 MP4](media/grasp-demo.mp4) · [历史 GIF](media/grasp-demo.gif) · [历史终态证据](results/subscription_storage.json)
+[Historical MP4](media/grasp-demo.mp4) · [Historical GIF](media/grasp-demo.gif) · [Historical final-state evidence](results/subscription_storage.json)
 
-历史录像包含一次订阅规划、预览和固定收纳，不是逐项 GPT 闭环；保留供追溯。成功必须同时满足碗完全入屉、底面支撑、夹爪脱离、抽屉关闭和机械臂归位。上述录像均不是 GitHub 服务器上运行的仿真，不代表跨场景成功率或 GPT 优于规则。
+The historical recording contains one subscription-backed planning request, preview, and fixed storage execution, not step-by-step GPT closed-loop control; it is retained for traceability. Success simultaneously requires the bowl fully inside the drawer, bottom support, gripper separation, drawer closed, and arm home. None of these recordings is a simulation running on GitHub servers, or evidence of cross-scene success rates or GPT superiority over rules.
 
+## Startup and right-side display
 
-## 启动与右侧显示
-
-先克隆仓库，再安装锁定的依赖（需要 Python 3.12 和 [uv](https://docs.astral.sh/uv/)）：
+Clone the repository, then install locked dependencies (requires Python 3.12 and [uv](https://docs.astral.sh/uv/)):
 
 ```sh
 git clone https://github.com/youseihuayu-wonderful/GPT.git
@@ -222,62 +230,62 @@ uv sync --locked
 uv run python server.py --port 8765
 ```
 
-服务仅监听 `127.0.0.1`。另一个终端中执行：
+The service listens only on `127.0.0.1`. In another terminal run:
 
 ```sh
 terminal-browser open http://127.0.0.1:8765 --split right --size 0.48
 ```
 
-也可以直接在浏览器打开 http://127.0.0.1:8765 。服务停止后重新执行启动命令，再点击页面的“重新连接”。物理仿真与手动 baseline 不依赖外部模型或 GPU 服务；GPT 规划需要下述 Codex CLI 与有效的 ChatGPT 订阅登录。
+You can also open http://127.0.0.1:8765 directly in a browser. After stopping the service, rerun the startup command and click “Reconnect” on the page. The physics simulation and manual baseline do not depend on an external model or GPU service. GPT planning requires the Codex CLI and valid ChatGPT subscription login described below.
 
-- 运行固定 baseline：以 80 mm 开口、100 mm/s 名义下降速度、0 mm 提前闭合执行。运行中不能重复启动；固定任务再次运行需重置。
-- 运行自定义参数：校验并使用三个输入值，自动开始物理积分。编辑输入框不会改变正在执行的参数；“实际应用”显示后端采用的配置。
-- 运行完整固定任务：不用 GPT，以 baseline 抓取参数执行收纳、关柜和归位；不是失败后的自动兜底。
-- 实验表中的“填入参数”只填表，不启动或重置；“刷新报告”读取最新保存的真实实验结果。
-- 独立本地技能：从列表选择技能，查看实时前置条件与完成判据，再单次启动。只有抓取技能使用参数输入框；成功后可选择下一项，不自动串联、不调用 GPT。失败后必须重置。
-- 暂停／开始运行：停止／继续物理积分。
-- 单步：暂停时推进 20 ms，即 10 个 2 ms 物理步。
-- 重置：取消未完成的规划、作废旧计划，恢复物理初态、后端默认参数并清空计时，暂停仿真；页面输入值保留，便于再次执行同一配置。
-- 视角：全景、正面、俯视。
-- 没有浏览器连接时不推进物理；多个页面共享同一个仿真实例与控制状态。
-- 画面目标更新频率为 20 Hz。显示的是仿真时间，不是宿主机墙钟时间；机器负载可能降低实际播放速度。
+- Run fixed baseline: uses an 80 mm opening, 100 mm/s nominal descent speed, and 0 mm early closure. It cannot be started again while running; repeating a fixed task requires reset.
+- Run custom parameters: validates and uses the three input values and automatically starts physical integration. Editing inputs does not change parameters of the running execution; “Actually applied” shows the backend's adopted configuration.
+- Run complete fixed task: performs storage, cabinet closing, and return home with baseline grasp parameters and no GPT. This is not an automatic fallback after failure.
+- “Fill parameters” in the experiment table only fills the form; it does not start or reset. “Refresh report” reads the latest saved actual experiment results.
+- Independent local skill: select a skill, inspect live preconditions and completion criteria, then start it once. Only the grasp skill uses parameter inputs. After success, another skill can be chosen; no automatic chaining or GPT calls occur. Failure requires reset.
+- Pause / start running: stop/resume physical integration.
+- Single-step: while paused, advance 20 ms, i.e. ten 2 ms physics steps.
+- Reset: cancels unfinished planning, invalidates old plans, restores the physical initial state and backend default parameters, clears timing, and pauses simulation. Page inputs are retained so the same configuration can be run again.
+- Views: overview, front, top.
+- Physics does not advance without a browser connection. Multiple pages share one simulation instance and control state.
+- The image target update rate is 20 Hz. Displayed time is simulation time, not host wall-clock time; machine load may reduce actual playback speed.
 
-## 五项独立技能：本次第 1 步
+## Five independent skills: Step 1 of this work
 
-对应会议纪要第 3、5 页的“先确认控制接口与动作协调能力”，以及第 4 页的仿真合理性检查。第 6 页的状态／动作／时间戳保存属于整理者补充建议，本项目采用该建议形成验收记录，不将其冒充已定稿的算法或 benchmark。
+This corresponds to “first confirm the control interface and action-coordination capability” on pages 3 and 5 of the meeting notes, and simulation plausibility checks on page 4. Saving state/action/timestamp records on page 6 is a supplementary suggestion from the note compiler. The project adopts it for acceptance records, not as an already finalized algorithm or benchmark.
 
-| 技能 | 必须具备的起始条件 | 完成后留下的状态 |
+| Skill | Required starting conditions | State left after completion |
 | --- | --- | --- |
-| `grasp_and_hold` | 空夹爪在支持的高位；选定黑碗／酒瓶在桌面稳定 | 实际抬升、双侧夹持并保持；不自动放置 |
-| `place_and_release` | 已验证稳定持有黑碗；抽屉全开且原尺寸适合通道 | 碗完整入屉、真实支撑、已松爪且稳定；手仍在抽屉内 |
-| `withdraw_from_drawer` | 碗支撑、静稳、脱离；手位于支持的放置交接区域 | 手部退出抽屉运动区域并到达高位；不自动推关 |
-| `close_drawer` | 抽屉全开、无物体阻挡；空夹爪在已验证高位 | 通过真实把手接触关闭抽屉并撤离；不自动归位，也不要求碗必须先入屉 |
-| `return_home` | 空夹爪已撤离并处于已验证高位回程区域 | 关节位姿和速度满足 home 判据；不改变抽屉目标 |
+| `grasp_and_hold` | Empty gripper at a supported high pose; selected black bowl/wine bottle stably on the table | Actual lift, bilateral gripping, and hold; no automatic placement |
+| `place_and_release` | Verified stable hold of the black bowl; drawer fully open and original dimensions suitable for the passage | Bowl fully inside drawer, actually supported, released, and stable; hand remains inside drawer |
+| `withdraw_from_drawer` | Bowl supported, at stable rest, and separated; hand in the supported placement handoff region | Hand outside the drawer's motion region and at a high pose; no automatic closing push |
+| `close_drawer` | Drawer fully open, no blocking object; empty gripper at a verified high pose | Closes drawer through actual handle contact and withdraws; no automatic return home, and does not require the bowl to be stored first |
+| `return_home` | Empty gripper withdrawn and in a verified high return region | Joint pose and velocity satisfy home criteria; drawer goal unchanged |
 
-原资产、物体尺寸、质量、摩擦和执行器限制保持不变。独立关空抽屉时，原中心接触路径会让手掌碰到仍在桌面的碗；现在统一使用测得把手右端以内 14 mm 的接触点，而不是移走碗或屏蔽接触。检查抽屉关闭通道时按原碰撞分件计算扫掠区域，避免把把手旁的空隙错误填成实体。
+Original assets, object dimensions, masses, friction, and actuator limits remain unchanged. When independently closing an empty drawer, the original central-contact path would let the palm collide with the bowl still on the table. The unified path now uses a measured contact point 14 mm inside the handle's right end, rather than moving the bowl or masking contact. Drawer-closing clearance is checked using swept regions of the original collision components, avoiding incorrectly treating the gap beside the handle as solid.
 
-启动推关前还用实际手掌／手指碰撞包围盒检查固定接近与推动路径，预留 10 mm 跟踪余量；发现桌面物体挡路就拒绝启动，不尝试绕行。执行中仍检查真实意外接触，几何预检查不代替接触检测。
+Before the closing push starts, actual palm/finger collision bounding boxes also check the fixed approach and pushing paths, allowing a 10 mm tracking margin. A table object blocking the path causes startup refusal; no detour is attempted. Actual unexpected contact is still checked during execution. Geometric prechecking does not replace contact detection.
 
-### 调用与状态边界
+### Invocation and state boundaries
 
-- Python：`sim.start_skill(name, parameters=None)`，随后用 `sim.step(0.02)` 推进。只有 `grasp_and_hold` 接受 `GraspParameters`；其他技能传参会被拒绝。
-- WebSocket：例如 `{"action":"skill","skill":"close_drawer"}`。GPT 会话占有场景时禁止竞争的手动技能／固定任务；已接受的手动调用清除旧 GPT 归因，不重置物理场景。
-- `available_skills` 给出契约、实时可用性及拒绝原因。启动时重新检查，不信任页面按钮或上一帧状态。
-- `skill.execution_mode` 区分 `task` 和 `skill`；`skill.skill_name` 是实际当前技能；`invocation_id` 仅在接受公开调用时递增。
-- `skill.postconditions` 是实际物理检查。`gripper_clear` 表示与碗脱离，**不等于** `hand_clear_of_drawer`；后者检查手掌／手指碰撞包围盒是否离开抽屉运动区域。
-- 已接受的 API 调用本身不改 `qpos/qvel/ctrl/time`；运动发生在后续物理积分。运行中禁止插入另一技能；拒绝不改变当前执行或碰撞记录。失败后不能继续调用。
-- 成功后保持执行器控制并继续检查物理条件；抓取后不松爪。后续扰动可撤销成功，不能保留过期的绿色状态。各独立调用之间保留碰撞记录。
-- 数值异常在物理步前后检查并锁存，必须重置才能恢复；清掉单个警告不能继续旧轨迹。网页运行线程或单步执行遇到致命异常时停止，WebSocket 明确报告“需重启服务”，`/api/state` 返回 503，不继续读取可能损坏的物理状态。
+- Python: `sim.start_skill(name, parameters=None)`, then advance with `sim.step(0.02)`. Only `grasp_and_hold` accepts `GraspParameters`; parameters for other skills are rejected.
+- WebSocket: for example `{"action":"skill","skill":"close_drawer"}`. Competing manual skills/fixed tasks are forbidden while a GPT session owns the scene. Accepted manual calls clear old GPT attribution without resetting the physical scene.
+- `available_skills` supplies contracts, live availability, and refusal reasons. Startup rechecks them rather than trusting a page button or previous frame.
+- `skill.execution_mode` distinguishes `task` from `skill`; `skill.skill_name` is the actual current skill; `invocation_id` increments only when a public invocation is accepted.
+- `skill.postconditions` contains actual physical checks. `gripper_clear` means separation from the bowl, **not** `hand_clear_of_drawer`; the latter checks whether palm/finger collision bounding boxes have left the drawer's motion region.
+- An accepted API call does not itself change `qpos/qvel/ctrl/time`; motion occurs in subsequent physical integration. Another skill cannot be inserted while running. Refusal does not change the current execution or collision records. Further invocation is forbidden after failure.
+- After success, actuator control is maintained and physical conditions continue to be checked; grasping does not release the gripper. Later disturbances can revoke success rather than leaving a stale green state. Collision records persist across independent calls.
+- Numerical exceptions are checked before and after physics steps and latched; recovery requires reset. Clearing one warning cannot resume an old trajectory. A fatal exception in the web runtime thread or single-step execution stops processing, the WebSocket explicitly reports “Service restart required,” and `/api/state` returns 503 rather than reading potentially damaged physical state.
 
-### 可直接复现的验收
+### Directly reproducible acceptance
 
-不抓碗，直接关空抽屉并归位：
+Close the empty drawer and return home without grasping the bowl:
 
 ```sh
 uv run python simulation.py --skill close_drawer return_home
 ```
 
-同一仿真内五次独立调用，使用已验证的下降／闭合重叠参数：
+Make five independent calls in the same simulation using the verified descent/closure overlap parameters:
 
 ```sh
 uv run python simulation.py --skill grasp_and_hold place_and_release \
@@ -285,44 +293,44 @@ uv run python simulation.py --skill grasp_and_hold place_and_release \
   --initial-opening-mm 80 --descent-speed-mm-s 200 --close-trigger-height-mm 4
 ```
 
-保存完整物理验收记录：
+Save the complete physical acceptance record:
 
 ```sh
 uv run python verify_skills.py --output results/skills_verification.json
 ```
 
-[`results/skills_verification.json`](results/skills_verification.json) 保存场景／种子、每次请求及拒绝原因、调用前后的完整 `qpos/qvel/ctrl/time`、实际接触力、控制量、阶段时间及模型指纹。API 边界逐值核对；物理观察间隔为 20 ms，轨迹每 100 ms 或阶段变化采样。模型完整哈希在边界核对，物理参数逐观察步核对；这些记录不是每个内部求解操作的审计。
+[`results/skills_verification.json`](results/skills_verification.json) preserves scene/seed, every request and refusal reason, complete `qpos/qvel/ctrl/time` before and after calls, actual contact forces, control inputs, phase timings, and model fingerprints. API boundaries are checked value by value. Physical observation intervals are 20 ms; traces are sampled every 100 ms or on phase changes. The full model hash is checked at boundaries and physical parameters at every observation step; these records are not an audit of every internal solver operation.
 
-已执行的三个无重置正向场景：
+Three positive scenarios actually executed without reset:
 
-| 场景 | 总仿真时间（含预稳定和额外保持） | 意外碰撞 |
+| Scenario | Total simulation time (including pre-settling and extra hold) | Unexpected collisions |
 | --- | ---: | ---: |
-| 独立关空抽屉、归位，碗始终留在桌面 | 45.380 s | 0 |
-| 五技能衔接，80/100/0 | 77.160 s | 0 |
-| 五技能衔接，80/200/4 | 75.540 s | 0 |
+| Independently close empty drawer and return home, bowl stays on table throughout | 45.380 s | 0 |
+| Five-skill handoffs, 80/100/0 | 77.160 s | 0 |
+| Five-skill handoffs, 80/200/4 | 75.540 s | 0 |
 
-每个中间交接额外推进 1 s，末尾推进 5 s；基线下降／闭合重叠为 0，快速配置实际重叠 0.084 s。报告还包含 33 次拒绝检查，以及单独标记的 20 N 外力失抓检查：后者的预期结果是撤销成功并禁止继续调用，不是“抗住扰动”。报告 `passed` 表示通过相应验收，不表示每项请求都执行成功。
+An additional 1 s is advanced at each intermediate handoff and 5 s at the end. Baseline descent/closure overlap is 0; actual overlap for the fast configuration is 0.084 s. The report also contains 33 refusal checks and a separately labeled 20 N external-force lost-grasp check. The latter's expected outcome is revocation of success and prevention of subsequent calls, not “withstanding the disturbance.” Report `passed` means the corresponding acceptance criteria passed, not that every request executed successfully.
 
-范围限于确定性的固定工位；关屉暂只支持全开抽屉，放置／撤离只支持黑碗，关闭与归位要求空夹爪和 TCP 至少 1.03 m 的已验证高位。不自动开抽屉，不提供通用避障或任意中间姿态恢复。上述独立技能小样本不是成功率估计，也不是新规划算法或跨场景性能比较。
+Scope is limited to a deterministic fixed workstation. Drawer closing currently supports only a fully open drawer; placement/withdrawal supports only the black bowl. Closing and return home require an empty gripper and a verified high pose with TCP at least 1.03 m. There is no automatic drawer opening, general obstacle avoidance, or recovery from arbitrary intermediate poses. These small independent-skill samples are not a success-rate estimate, a new planning algorithm, or a cross-scene performance comparison.
 
-## GPT 单步技能规划与反馈闭环
+## GPT single-step skill planning and feedback loop
 
-每轮输入包含自然语言目标、当前物体／机械臂状态、五项技能的实时可用性、真实目标判据、原始抓取校准记录及先前决策的实际结果。输出仅允许 `execute` 一个技能，或者 `complete` / `unsupported`。程序没有规定 GPT 的下一技能顺序；物理前置条件约束哪些动作此刻能够执行。
+Each round's input includes the natural-language goal, current object/arm state, live availability of the five skills, actual goal criteria, original grasp-calibration records, and actual outcomes of previous decisions. Output may only `execute` one skill or return `complete` / `unsupported`. The program does not prescribe GPT's next-skill order; physical preconditions constrain which actions can execute now.
 
-| `goal` | 可选目标 | 本地验收的终点 |
+| `goal` | Supported targets | Locally verified endpoint |
 | --- | --- | --- |
-| `hold_target` | `bowl`、`bottle` | 双侧夹持、离桌、抬升和稳定保持 |
-| `store_and_home` | 仅 `bowl` | 碗入屉并稳定支撑、空手撤离、抽屉关闭、机械臂归位 |
-| `close_and_home` | `bowl`、`bottle` | 关闭抽屉、空手撤离并归位，物体保持支撑 |
-| `home` | `bowl`、`bottle` | 空夹爪安全归位，物体保持支撑 |
+| `hold_target` | `bowl`, `bottle` | Bilateral gripping, off-table lift, and stable hold |
+| `store_and_home` | `bowl` only | Bowl in drawer and stably supported, empty-handed withdrawal, drawer closed, arm home |
+| `close_and_home` | `bowl`, `bottle` | Drawer closed, empty-handed withdrawal and return home, object remains supported |
+| `home` | `bowl`, `bottle` | Empty gripper safely home, object remains supported |
 
-目标是物理条件集合，不是固定技能序列。首次决策提出目标，用户执行授权后绑定；后续模型不得改变目标。`complete` 只有在对应全部 `goal_checks` 为真时才被接受，不能将某项技能完成冒充总任务完成。
+A goal is a set of physical conditions, not a fixed skill sequence. The first decision proposes the goal, which becomes bound after user execution authorization; later model decisions cannot change it. `complete` is accepted only when every corresponding `goal_checks` entry is true. Completion of one skill cannot be substituted for completion of the whole task.
 
-`server.py --target bottle` 选择酒瓶抓取场景，默认目标是黑碗；GPT 不能自行切换目标。打开已关闭的抽屉、把酒瓶放入抽屉、倾倒或操纵其他物体不受支持。包含缺失动作的整项请求必须返回 `unsupported`，不能偷偷执行子集。模型仍可能误解自然语言，必须检查预览；本地校验保证动作白名单和参数边界，不证明每个意图都被正确理解，也不保证每组参数都能物理成功。
+`server.py --target bottle` selects the wine-bottle grasping scene; the default target is the black bowl. GPT cannot switch targets itself. Opening an already closed drawer, putting the wine bottle into the drawer, pouring, and manipulating other objects are unsupported. An entire request containing a missing action must return `unsupported`, not silently execute a subset. The model can still misunderstand natural language, so the preview must be checked. Local validation guarantees the action whitelist and parameter bounds, not correct understanding of every intent or physical success of every allowed parameter combination.
 
-### 使用现有 ChatGPT 订阅
+### Using an existing ChatGPT subscription
 
-采用官方 [Codex 认证](https://developers.openai.com/codex/auth/)与[非交互执行](https://developers.openai.com/codex/noninteractive/)，复用本机已有的 ChatGPT 登录。本轮实际验证版本为 `codex-cli 0.164.0`。新机器先安装官方 CLI，并选择 ChatGPT 订阅登录：
+The application uses official [Codex authentication](https://developers.openai.com/codex/auth/) and [noninteractive execution](https://developers.openai.com/codex/noninteractive/), reusing the existing local ChatGPT login. The version actually verified in this round was `codex-cli 0.164.0`. On a new machine, install the official CLI and choose ChatGPT subscription login:
 
 ```sh
 npm install -g @openai/codex
@@ -330,45 +338,47 @@ codex login
 codex login status
 ```
 
-已登录的机器不需要重新登录。应用在每次规划前运行 `codex login status`，只接受 ChatGPT 登录；API-key 登录、未登录、额度不足或模型不可用都明确失败，不改用 API 付费。应用不读取、复制或上传 Codex 的认证文件。
+Already authenticated machines do not need to log in again. Before every planning request, the application runs `codex login status` and accepts only ChatGPT login. API-key login, no login, exhausted quota, or model unavailability produce explicit failure; the application does not switch to paid API usage. It does not read, copy, or upload Codex authentication files.
 
-默认请求模型为 `gpt-5.6-terra`，已用本机订阅实测。不同账号的模型权限可能不同；模型目录缓存只是候选信息，不保证调用成功。可选的本机 `.env` 只设置 `CODEX_MODEL`，同名环境变量优先，每次开始新任务读取；同一闭环使用固定配置。配置示例见 `.env.example`；实际 `.env` 不入库。
+The default requested model is `gpt-5.6-terra`, actually tested with the local subscription. Model access may differ by account. The model-directory cache only supplies candidates and does not guarantee a successful invocation. An optional local `.env` sets only `CODEX_MODEL`; an environment variable of the same name takes precedence. Configuration is read when a new task starts and remains fixed within one closed loop. See `.env.example` for the configuration example; the real `.env` is not committed.
 
-规划通过 `codex exec --json --output-schema` 执行，使用独立临时目录、只读沙箱、临时会话与严格配置。关闭 shell、浏览器、应用、插件、MCP、子代理等能力，不加载项目说明或本机技能目录；忽略用户自定义 CLI 配置，但保留官方登录方式。应用传入任务文本、仿真状态、参数实验记录和规划约束，不主动加入图像或 PDF。
+Planning runs through `codex exec --json --output-schema`, using a separate temporary directory, read-only sandbox, ephemeral session, and strict configuration. Shell, browser, apps, plugins, MCP, subagents, and similar capabilities are disabled. Project instructions and local skill directories are not loaded. User-customized CLI configuration is ignored while official authentication is retained. The application sends task text, simulation state, parameter-experiment records, and planning constraints; it does not proactively add images or PDFs.
 
-登录检查超时为 10 s，规划进程超时为 90 s。超时或取消会终止本地进程组；进程不响应终止信号时强制停止。应用没有自动重试或模型降级；CLI 自身可能进行有限的网络重连，仍受进程超时约束。`--ephemeral` 不保存本次 CLI 会话历史，不代表服务商端零数据保留。
+Login checking times out after 10 s, and the planning process after 90 s. Timeout or cancellation terminates the local process group, forcibly if it does not respond to termination signals. The application does not automatically retry or downgrade models. The CLI itself may perform limited network reconnection, still bounded by the process timeout. `--ephemeral` prevents saving this CLI session's history; it does not mean zero provider-side data retention.
 
-该版本 CLI 对实验性技能隔离、被禁用的 Code Mode 各产生一条非致命诊断。页面保留诊断数量，不输出可能包含本机信息的原始消息。只有完整的 `turn.completed` 和有效计划才能执行；致命错误、失败回合或任何非规划工具事件仍被拒绝。
+This CLI version emits one nonfatal diagnostic each for experimental skill isolation and disabled Code Mode. The page retains diagnostic counts without displaying raw messages that may contain local-machine information. Execution requires a complete `turn.completed` and a valid plan. Fatal errors, failed turns, or any non-planning tool event remain rejected.
 
-### 操作与安全边界
+### Operation and safety boundaries
 
-1. 场景重置后先开始运行，让物体稳定；也可从已成功持物／放置等状态直接开始，不要求重置。填写任务并生成第一步决策，此时不启动新动作。
-2. 检查提议目标、当前技能、参数和理由。选择只执行当前一步，或明确授权整个有界目标闭环；暂停中的场景仍须“开始运行”才推进物理。
-3. 逐步模式在技能完成后等待用户请求下一步；连续模式在真实成功后重新读取状态并请求 GPT，再执行新决策。最后必须由 GPT 声明完成且本地目标全部成立。
+1. After resetting the scene, start running to let objects settle. Planning can also start directly from a successful held/placed state without reset. Enter a task and generate the first decision; this does not start a new action.
+2. Inspect the proposed goal, current skill, parameters, and reason. Choose to execute only the current step or explicitly authorize the entire bounded-goal loop. A paused scene still needs “Start running” before physics advances.
+3. Step-by-step mode waits for the user to request the next step after skill completion. Continuous mode rereads the state after actual success, requests GPT, and executes the new decision. Finally, GPT must declare completion and every local goal condition must hold.
 
-规划等待与预览期间不冻结物理：已完成技能继续保持控制并监测失抓等情况。暂停只停止物理时间和自动派发，不取消正在进行的模型请求；取消／停止会取消待处理请求，若某技能已运行则让它执行至边界，不再发下一请求。重置可中止整次任务并恢复初态。取消本地请求不能保证恢复已消耗的订阅额度。
+Physics is not frozen during planning waits and previews: completed skills continue holding control and monitoring conditions such as lost grasp. Pause stops only physical time and automatic dispatch; it does not cancel an in-flight model request. Cancel/stop cancels pending requests. If a skill is already running, it continues to its boundary, but no next request is sent. Reset can abort the whole task and restore the initial state. Cancelling a local request does not guarantee recovery of consumed subscription quota.
 
-每轮决策绑定当前代次、场景重置编号和技能调用编号；取消／重置／迟到响应不能复活旧决策。执行前还检查物体位置（5 mm）、姿态（0.05 rad）、机械臂关节（0.03 rad）及夹爪开度（3 mm）的变化边界，并再次校验技能实时前置条件。超限直接拒绝，不自动重试。普通持物与静稳积分允许继续，时间戳不同不自动作废决策。
+Each decision is bound to the current generation, scene-reset number, and skill-invocation number. Cancellation, reset, and late responses cannot revive an old decision. Before execution, change bounds are checked for object position (5 mm), orientation (0.05 rad), arm joints (0.03 rad), and gripper opening (3 mm), and live skill preconditions are validated again. Exceeding a bound causes immediate refusal without automatic retry. Ordinary holding and stable-rest integration may continue; a different timestamp alone does not invalidate a decision.
 
-单任务最多接受 8 项技能、发起 9 次模型请求；达到上限、物理失败、模型错误或完成条件失效都停止，不使用固定流程兜底。只允许抓取技能带三个有界参数；收纳目标的抓取开口至少 60 mm。缺项、额外动作、非法目标、布尔值／非有限／越界参数、重复 JSON 键及不完整 CLI 回合均被拒绝。初次预览仍须人工检查自然语言是否被完整理解。
+One task accepts at most 8 skills and starts at most 9 model requests. Reaching the limit, physical failure, model error, or invalidation of completion conditions stops the loop without fixed-procedure fallback. Only the grasp skill may carry the three bounded parameters. For storage goals, grasp opening must be at least 60 mm. Missing fields, extra actions, invalid goals, boolean/nonfinite/out-of-range parameters, duplicate JSON keys, and incomplete CLI turns are rejected. The first preview still requires a human check that the natural-language request was understood in full.
 
-### WebSocket 与状态
+### WebSocket and state
 
-`/ws` 命令：
+`/ws` commands:
 
-- `{"action":"plan","task":"把黑碗放入已打开抽屉、关屉并归位。"}`：从空闲或成功技能状态请求第一步，不启动动作。
-- `{"action":"execute_decision","decision_id":当前编号,"continuous":false}`：只执行当前已校验决策；`true` 明确授权绑定目标的后续闭环。客户端不能传替换决策／参数。
-- `{"action":"plan_next"}`：逐步执行结束后，根据最新结果请求下一步。
-- `{"action":"cancel_plan"}`：停止后续决策；当前技能如已运行则执行至边界。
-- `{"action":"store"}`：原完整固定任务，不调用模型，也不是闭环失败后的兜底。
+- `{"action":"plan","task":"把黑碗放入已打开抽屉、关屉并归位。"}`: request the first step from idle or a successful skill state without starting motion. The canonical Chinese task means “Put the black bowl into the already open drawer, close it, and return home”; it is retained for reproduction, not replaced by an untested English request.
+- `{"action":"execute_decision","decision_id":<current integer ID>,"continuous":false}`: execute only the current validated decision; `true` explicitly authorizes the subsequent loop for the bound goal. Replace the explanatory ID placeholder with the actual integer. The client cannot supply a replacement decision/parameters.
+- `{"action":"plan_next"}`: after a step-by-step execution finishes, request the next step from the latest outcome.
+- `{"action":"cancel_plan"}`: stop subsequent decisions; an already running skill proceeds to its boundary.
+- `{"action":"store"}`: the original complete fixed task, with no model call; not a fallback after closed-loop failure.
 
-`/api/state` 和实时消息包含 `planner`：状态、当前 `decision_id` / `decision`、已绑定 `goal`、`continuous`、`locks_scene`、最新和累计规划墙钟耗时、模型／线程标识、诊断数、错误和逐轮 `history`。历史保存请求时观测、校验后的决策、真实执行后的观测、调用编号、结果和执行耗时；失败／取消不会伪装成成功。状态读取本身不驱动物理或请求模型。
+`/api/state` and live messages include `planner`: status, current `decision_id` / `decision`, bound `goal`, `continuous`, `locks_scene`, latest and cumulative planning wall-clock time, model/thread identifiers, diagnostic count, errors, and per-round `history`. History stores observations at request time, validated decisions, observations after actual execution, invocation numbers, outcomes, and execution durations. Failure/cancellation is not disguised as success. Reading state does not itself drive physics or request a model.
 
-决策字段为 `decision / summary / reason / goal / target_object / skill / parameters`，没有整段 `steps`。仿真另给出 `scene_revision`、`goal_checks` 和五技能实时契约。`latency_s` 与 `total_latency_s` 是墙钟耗时；物理仿真时间不能与之直接相加当作端到端墙钟时间。`model` 表示请求型号，不冒充服务端返回的模型快照。
+Decision fields are `decision / summary / reason / goal / target_object / skill / parameters`; there is no whole-task `steps` field. The simulation also supplies `scene_revision`, `goal_checks`, and live contracts for the five skills. `latency_s` and `total_latency_s` are wall-clock durations; physical simulation time cannot be directly added to them as end-to-end wall-clock time. `model` denotes the requested model, not a purported server-returned model snapshot.
 
-每轮观测还包含独立于正在运行技能的 `drawer`：下层抽屉的 `position_m`、`velocity_m_s`、`fully_open` 和 `closed`。全开使用与放置／推关入口相同的 `q <= -0.155 m` 谓词；关闭要求 `|q| <= 0.003 m` 且 `|q̇| < 0.005 m/s`。即使初态 `skill.storage=null`，这些真值仍可读取；“未关闭”不能推导“已经全开”。可用性只表示当前能否调用，首个阻塞原因不代表全部前置条件均失败，也不等于永久缺少技能。
+Each round's observation also includes `drawer`, independently of the currently running skill: the bottom drawer's `position_m`, `velocity_m_s`, `fully_open`, and `closed`. Fully open uses the same predicate as placement/pushing entry, `q <= -0.155 m`. Closed requires `|q| <= 0.003 m` and `|q̇| < 0.005 m/s`. These ground-truth values remain readable even when the initial `skill.storage=null`. “Not closed” does not imply “fully open.” Availability only indicates whether a skill can be called now. The first blocking reason does not mean all preconditions fail, nor that a skill is permanently missing.
 
-### 命令行真实订阅验收
+### Command-line acceptance using the actual subscription
+
+The Chinese `--task` argument below is retained exactly for reproduction. It means “Without grasping the black bowl, close the drawer and return the arm home”; the translation is an explanation, not a claim that an English request was run.
 
 ```sh
 uv run python run_planning.py --output results/closed_loop_storage.json
@@ -377,96 +387,96 @@ uv run python run_planning.py --task "不抓取黑碗，关闭抽屉并让机械
   --output results/closed_loop_close_home.json
 ```
 
-这些命令会真实消耗当前订阅用量，不使用测试回复；终态还额外推进 5 s 物理验证。`--start-held` 先真实执行抓取技能，再从持物现场开始请求 GPT。报告分别记录物理时间、规划墙钟耗时和终态，失败非零退出。历史 `subscription_storage.json` 和 `comparison.json` 是旧协议的证据，不代表本轮闭环结果。
+These commands consume actual usage from the current subscription and do not use test replies. The final state undergoes another 5 s of physical verification. `--start-held` first actually executes the grasp skill and then starts GPT requests from the held-object scene. Reports separately record physical time, planning wall-clock time, and final state; failure exits nonzero. Historical `subscription_storage.json` and `comparison.json` are evidence under older protocols, not results of this closed-loop round.
 
-本轮已保存的真实请求证据：
+Saved actual-request evidence for this round:
 
-| 初态与请求（点击查看原始证据） | GPT 选择的技能数 | 真实 GPT 请求数 | 额外 5 s 验收 |
+| Initial state and request (open original evidence) | Skills selected by GPT | Actual GPT requests | Additional 5 s acceptance |
 | --- | ---: | ---: | --- |
-| [桌面黑碗完整收纳](results/closed_loop_storage.json) | 5 | 6 | 通过 |
-| [已持碗后继续收纳](results/closed_loop_held.json) | 4 | 5 | 通过 |
-| [不抓碗，只关屉归位](results/closed_loop_close_home.json) | 2 | 3 | 通过 |
+| [Complete storage of black bowl from table](results/closed_loop_storage.json) | 5 | 6 | Passed |
+| [Continue storage while already holding bowl](results/closed_loop_held.json) | 4 | 5 | Passed |
+| [Do not grasp bowl; only close drawer and return home](results/closed_loop_close_home.json) | 2 | 3 | Passed |
 
-每个场景的最后一次请求都是独立的 `complete` 决策，由本地验真；三次均无意外碰撞。已持碗场景的初始抓取由本地技能真实完成，不计入 GPT 选择次数；模型第一项直接选择放置，不重置也不重复抓取。每轮记录真实 Codex 线程、请求时观测、技能结果和目标判据；这些证据不代表跨场景成功率或 GPT 优于固定规则。网页另实际验证了首轮仅预览、暂停授权不推进物理时间、单步成功后等待下一次请求，以及明确持续授权后完成目标。
+Each scenario's last request is an independent `complete` decision verified locally. All three had no unexpected collisions. The initially held scenario's initial grasp was actually performed by a local skill and is not counted among GPT selections; the model immediately chose placement first, with no reset or repeated grasp. Each round records the actual Codex thread, observations at request time, skill outcome, and goal criteria. This evidence does not establish cross-scene success rates or GPT superiority over fixed rules. The web page was also actually checked for first-round preview only, authorization while paused not advancing physical time, waiting for the next request after single-step success, and goal completion after explicit continuous authorization.
 
-证据保存与服务清理也有失败检查：退出时先结束请求并完成清理，再写最终会话状态；清理异常不能保留成功报告。若运行本身和报告写入同时失败，终端保留原始运行原因，不只显示保存错误。
+Evidence saving and service cleanup also have failure checks. On exit, requests are ended and cleanup completed before the final session state is written; cleanup errors cannot leave a successful report. If execution and report writing both fail, the terminal preserves the original execution cause rather than showing only the save error.
 
-## 多初态闭环规划的受控对照
+## Controlled comparison of closed-loop planning from multiple initial states
 
-对应会议纪要第 4 页的“同条件对比与独立测试”、第 5 页的场景与比较对象定义，并采用第 6 页明确标为整理者补充的耗时／失败记录建议。这是当前五技能工位的受控实验，不是会议已经定稿的 benchmark，也不证明 GPT 优于规则。
+This corresponds to “comparison under the same conditions and independent tests” on page 4 of the meeting notes, scene and comparator definitions on page 5, and the timing/failure-record suggestions explicitly labeled as the compiler's additions on page 6. It is a controlled experiment at the current five-skill workstation, not a benchmark already finalized by the meeting, and not proof that GPT outperforms rules.
 
 ```sh
-# 7 个场景 × 3 种方法；GPT 行使用当前真实 ChatGPT 订阅
+# 7 scenarios × 3 methods; GPT rows use the current actual ChatGPT subscription
 uv run python compare_planning.py --output results/planning_comparison_rerun.json
 
-# 单独复现一个诊断子集，另存结果，不覆盖完整矩阵
+# Reproduce a diagnostic subset separately; do not overwrite the full matrix
 uv run python compare_planning.py --methods rule gpt --cases held placed \
   --output results/planning_subset.json
 ```
 
-原始与补充批次的目标均为 `store_and_home`；扩展批次按下文预定义任务分别验收。准备阶段由相同本地技能真实执行，不瞬移物体、不绑定夹爪、不修改物理模型。准备可以加速计算，其耗时单列，不计入方法评估。输出文件已存在时拒绝运行；复现实验须另选新文件名，不覆盖既有证据，也不从旧失败处续跑后补算成功。
+Original and follow-up batches both target `store_and_home`; the expanded batch uses the predeclared task-specific acceptance below. Preparation is actually executed using the same local skills: no object teleportation, gripper attachment, or physical-model changes. Preparation may be computed faster than real time; its duration is listed separately and excluded from method evaluation. An existing output file causes refusal. Reproductions need new filenames, cannot overwrite evidence, and cannot resume from old failures to retroactively count success.
 
-| 场景 ID | 进入评估前的物理状态 | 验收类型 |
+| Scenario ID | Physical state before evaluation | Acceptance type |
 | --- | --- | --- |
-| `table` | 默认桌面黑碗、抽屉全开 | 完成收纳并归位 |
-| `table_right` | 黑碗在默认位置基础上沿世界 X 偏移 +40 mm | 完成收纳并归位 |
-| `held` | 已真实抓取并稳定持碗 | 从持物状态继续完成 |
-| `placed` | 已真实放入抽屉并松开，尚未撤出夹爪 | 从放置交接状态继续完成 |
-| `complete` | 五技能已真实完成 | 识别已完成，不重复执行；继续保持验真 |
-| `closed_empty` | 空抽屉已经真实推关，黑碗仍在桌上 | 安全停止；现有技能不能开屉，不算任务成功 |
-| `disturbed` | 桌面起始；评估中的抓取成功后，对碗施加世界 X 向 20 N 外力，最多 0.5 s | 实测失抓／滑移后阻止后续执行，不算任务成功或 GPT 自主恢复 |
+| `table` | Default tabletop black bowl, drawer fully open | Complete storage and return home |
+| `table_right` | Black bowl shifted +40 mm in world X from default | Complete storage and return home |
+| `held` | Bowl actually grasped and stably held | Continue to completion from held state |
+| `placed` | Bowl actually placed in drawer and released; gripper not yet withdrawn | Continue to completion from placement handoff state |
+| `complete` | All five skills actually completed | Recognize completion without repetition; continue holding for verification |
+| `closed_empty` | Empty drawer actually pushed closed; black bowl remains on table | Stop safely; existing skills cannot open the drawer, so this is not task success |
+| `disturbed` | Tabletop start; after successful grasp during evaluation, apply a 20 N world-X external force to the bowl for at most 0.5 s | Prevent further execution after measured lost grasp/slip; not task success or autonomous GPT recovery |
 
-**三种方法只改变下一技能的选择：**
+**The three methods change only the choice of next skill:**
 
-- `fixed`：从所请求目标的固定技能序列首项开始（收纳目标为五技能），不根据中途状态跳过技能；与规则方法共用“目标已经实际满足则完成”的终止检查。
-- `rule`：根据当前持物、入屉、夹爪净空和抽屉状态选下一项，能从中途继续，也能识别缺少开屉能力。它是 GPT 的主要比较对象，不刻意削弱规则。
-- `gpt`：真实 `PlanningSession`，每次只授权一个决策，接收实际执行反馈后再请求下一项。每项都校验相同目标和冻结参数；不重试、不调用保存的答案、不回退到规则。
+- `fixed`: starts from the first skill in the requested goal's fixed sequence (five skills for storage), without skipping based on intermediate state. It shares with the rule method the termination check “complete if the goal is actually already satisfied.”
+- `rule`: chooses the next skill from the current held-object, in-drawer, gripper-clearance, and drawer states. It can continue from intermediate states and identify missing drawer-opening capability. This is GPT's primary comparator; rules are not deliberately weakened.
+- `gpt`: a real `PlanningSession`, authorizing one decision at a time and requesting the next only after actual execution feedback. Every decision is checked against the same goal and frozen parameters. No retries, saved-answer calls, or fallback to rules.
 
-三种方法统一使用 **80 mm 开口／200 mm·s⁻¹ 下降／4 mm 提前闭合**，包括准备阶段。GPT 提议改变参数会被记录为失败，不由程序偷偷改回。这样比较的是规划与状态适应，不把参数提速混入效果。每对场景重新创建仿真，并核对完整 `qpos/qvel/ctrl`、控制器观测和编译模型指纹；失配立即中止矩阵。
+All three methods, including preparation, use **80 mm opening / 200 mm·s⁻¹ descent / 4 mm early closure**. A GPT-proposed parameter change is recorded as failure, not silently changed back by the program. This compares planning and state adaptation without mixing in parameter-based speedup. Each paired scenario recreates the simulation and checks complete `qpos/qvel/ctrl`, controller observations, and compiled-model fingerprints. Mismatch immediately aborts the matrix.
 
-评估按 20 ms 物理步进进行实时节拍控制；等待 GPT 时物理不暂停。成功必须通过本地完整目标判据，再额外保持 5 s。仿真执行、总评估仿真时间、端到端墙钟和逐请求墙钟分别记录；墙钟包含 CLI／订阅等待，不能与仿真秒混加，也不等于真实硬件耗时。
+Evaluation is real-time paced in 20 ms physical steps. Physics does not pause while waiting for GPT. Success must satisfy the complete local goal criteria, followed by an additional 5 s hold. Simulation execution time, total evaluation simulation time, end-to-end wall-clock time, and per-request wall-clock time are recorded separately. Wall-clock time includes CLI/subscription waits; it cannot be mixed with simulation seconds and is not real-hardware duration.
 
-报告保存准备过程、每轮输入／输出／结果、真实线程标识、参数、初态指纹、终态判据、外力注入和失败原因。网页下方“闭环规划配对对照”默认显示状态补全回归，可切换扩展、原始或补充批次；刷新和下载均针对当前选择，批次间不合并计分。切换只是读取已保存证据，不请求 GPT、不驱动机械臂，也不是正在播放的动作轨迹。
+Reports preserve preparation, every round's input/output/outcome, actual thread identifiers, parameters, initial-state fingerprints, final-state criteria, external-force injection, and failure causes. The page's “Paired closed-loop planning comparison” defaults to the drawer-state-completion regression and can switch to expanded, original, or follow-up batches. Refresh and download target the selected batch; scores are not pooled. Switching only reads saved evidence: it does not request GPT or drive the arm, and the report is not the trajectory currently playing.
 
-- `/api/planning-comparison?batch=initial`：读取 [`results/planning_comparison.json`](results/planning_comparison.json)。省略 `batch` 时仍返回此原始报告。
-- `/api/planning-comparison?batch=followup`：读取 [`results/planning_comparison_followup.json`](results/planning_comparison_followup.json)。
-- `/api/planning-comparison?batch=expanded`：读取 [`results/planning_comparison_expanded.json`](results/planning_comparison_expanded.json)。
-- `/api/planning-comparison?batch=drawer_state`：读取 [`results/planning_comparison_drawer_state.json`](results/planning_comparison_drawer_state.json)。
-- 只接受以上四个批次。未知或重复选择返回 400，所选文件缺失返回 404，损坏返回 500；不拿另一批结果代替，也不显示旧表作为新批次结果。
+- `/api/planning-comparison?batch=initial`: reads [`results/planning_comparison.json`](results/planning_comparison.json). Omitting `batch` still returns this original report.
+- `/api/planning-comparison?batch=followup`: reads [`results/planning_comparison_followup.json`](results/planning_comparison_followup.json).
+- `/api/planning-comparison?batch=expanded`: reads [`results/planning_comparison_expanded.json`](results/planning_comparison_expanded.json).
+- `/api/planning-comparison?batch=drawer_state`: reads [`results/planning_comparison_drawer_state.json`](results/planning_comparison_drawer_state.json).
+- Only these four batches are accepted. Unknown or duplicate selections return 400, missing selected files 404, and corrupted files 500. Another batch is not substituted and an old table is not shown as the new batch's result.
 
-- 正例完成率与两个安全例的验收分开。外力失效检查评价的是共同物理守卫，不是模型重规划能力。
-- 基础设施失败和未结束试次不计入方法性能分母，保留原始行并单列数量；基础设施故障中止矩阵。提供方错误、模型决策错误和实际技能失败仍是方法未完成，不能算安全通过。
-- 同时给出全部有效正例尝试及仅成功尝试的平均墙钟，并显示实际计时样本数。失败提前停止导致耗时短，不代表更快完成。
-- `completed` 只表示所选矩阵均已尝试。任一正例未完成、安全验收未通过或基础设施异常都会退出非零；失败原因同时出现在终端和 JSON，不能通过重跑删除失败。
-- 原始和补充闭环批次只有一个物体、有限初态、每对单次运行。扩展批次的重复也不等于独立未知场景的总体成功率。旧抓取参数实验与闭环规划实验的目标、计时边界不同，不能直接混表比较。
+- Positive-case completion rates and acceptance of the two safety cases are separate. External-force failure checks evaluate the shared physical guard, not model replanning capability.
+- Infrastructure failures and unfinished trials are excluded from method-performance denominators; original rows remain and counts are listed separately. Infrastructure faults abort the matrix. Provider errors, model-decision errors, and actual skill failures remain method non-completions, not safe passes.
+- Mean wall-clock times are provided both for all valid positive attempts and for successful attempts only, with actual timing sample counts. Shorter time due to early failure does not mean faster completion.
+- `completed` means only that every selected matrix entry was attempted. Any incomplete positive case, failed safety acceptance, or infrastructure exception causes a nonzero exit. Failure causes appear in both terminal output and JSON; rerunning cannot erase failures.
+- Original and follow-up closed-loop batches involve one object, bounded initial states, and one run per pair. Expanded-batch repetitions are not an overall success rate for independent unknown scenes either. Old grasp-parameter and closed-loop-planning experiments have different goals and timing boundaries and cannot be directly mixed in one comparison table.
 
-### 原始批次：21 组尝试与订阅限制
+### Original batch: 21 attempts and subscription limits
 
-原始报告记录 21/21 组尝试；七个场景的三种方法初态指纹均一致，全部运行的模型指纹保持不变，无意外碰撞或基础设施错误。**该矩阵已运行完，但当时 GPT 全场景能力验收受订阅额度阻断，不能宣称该批次全部通过。**
+The original report records 21/21 attempts. Initial-state fingerprints match across all three methods in each of the seven scenarios. Every run's model fingerprint remained unchanged, with no unexpected collisions or infrastructure errors. **The matrix finished running, but GPT acceptance across all scenarios was blocked by subscription quota at that time; this batch cannot be described as passing in full.**
 
-| 方法 | 正例完成／尝试 | 安全验收通过／尝试 | 实际情况 |
+| Method | Positive completions/attempts | Safety passes/attempts | Actual outcome |
 | --- | ---: | ---: | --- |
-| 固定序列 | 3/5 | 2/2 | 桌面两位置及已完成状态通过；持碗、已放置状态不能从序列中途继续 |
-| 状态感知规则 | 5/5 | 2/2 | 五个正例均完成；识别缺少开屉技能，外力失效后停止 |
-| GPT | 2/5 | 0/2 | 桌面两位置通过；另五个场景遇到真实订阅额度错误，含三个正例、两个安全例 |
+| Fixed sequence | 3/5 | 2/2 | Passed the two tabletop positions and already-complete state; cannot continue from held or placed intermediate states |
+| State-aware rules | 5/5 | 2/2 | Completed all five positive cases; identified missing opening skill and stopped after externally forced failure |
+| GPT | 2/5 | 0/2 | Passed the two tabletop positions; actual subscription-quota errors in the other five scenarios, including three positive and two safety cases |
 
-GPT 共发起 21 次真实请求：16 次获得决策及不同线程标识，5 次报订阅额度受限。`held` 已按 GPT 决策完成放置、撤出、关屉、归位，最终物理目标全部为真；但最后 `complete` 请求失败，额外 5 s 验收未启动，**仍记未完成，不能补算成功**。`placed`、`complete`、`closed_empty`、`disturbed` 的首个请求即被额度限制；其中 GPT 外力注入未发生，安全能力尚未测得。没有改用 API 付费、缓存决策或固定回复补齐。
+GPT made 21 actual requests: 16 returned decisions with distinct thread identifiers, and 5 reported subscription quota limits. In `held`, GPT decisions had already completed placement, withdrawal, drawer closing, and return home, with every final physical goal true. However, the final `complete` request failed, so additional 5 s acceptance did not start: **it remains incomplete and cannot be retroactively counted as success**. The first request in `placed`, `complete`, `closed_empty`, and `disturbed` was quota-limited. GPT's external-force injection therefore never occurred, and its safety behavior there had not yet been measured. No paid API, cached decisions, or fixed replies were used to fill the gap.
 
-两个本地方法的外力例均在施力 20 ms 后观察到物理后置条件失效，并清除外力、停止后续技能。固定序列的闭屉例先做了一个多余抓取，随后放置被本地前置条件拒绝；规则直接报告缺少开屉技能。两者安全验收通过不代表效率相同。
+Both local methods' external-force cases observed physical postcondition failure 20 ms after force application, cleared the force, and stopped further skills. In the closed-drawer case, the fixed sequence first made an unnecessary grasp and then placement was refused by local preconditions; the rules directly reported missing drawer-opening skill. Both passing safety acceptance does not imply equal efficiency.
 
-只比较三种方法都成功的**同两个桌面场景**，避免混用不同成功子集：
+Compare only the **same two tabletop scenarios** in which all three methods succeeded, avoiding different successful subsets:
 
-| 方法 | 样本数 | 平均执行 · 仿真 s | 平均端到端 · 墙钟 s |
+| Method | Samples | Mean execution · simulation s | Mean end-to-end · wall-clock s |
 | --- | ---: | ---: | ---: |
-| 固定序列 | 2 | 65.370 | 70.523 |
-| 状态感知规则 | 2 | 65.370 | 70.520 |
+| Fixed sequence | 2 | 65.370 | 70.523 |
+| State-aware rules | 2 | 65.370 | 70.520 |
 | GPT | 2 | 65.380 | 97.908 |
 
-这两个场景未显示 GPT 的执行提速，订阅请求增加了端到端耗时。五正例的完成率含服务可用性影响，**不能用 2/5 对 5/5 排名模型推理能力**。样本也不足以推断泛化。原始失败记录保持不变；额度恢复后的补充实验独立保存，见下一节。
+These two scenarios showed no GPT execution speedup; subscription requests increased end-to-end time. Completion rates over the five positive cases include service-availability effects: **2/5 versus 5/5 cannot rank model reasoning ability**. The samples are also insufficient for generalization claims. Original failure records remain unchanged; follow-up experiments after quota recovery were saved separately, as below.
 
-### 补充批次：恢复额度后的五场景配对
+### Follow-up batch: Five-scenario pairing after quota recovery
 
-在当前真实 ChatGPT 订阅上使用同一 `gpt-5.6-terra` 模型，保持实验代码、目标、冻结参数与验收条件不变，另存此前受额度影响的五个场景。每个场景重新配对运行规则与 GPT，不从旧记录中补算成功：
+Using the same `gpt-5.6-terra` model on the current actual ChatGPT subscription, experiment code, goals, frozen parameters, and acceptance conditions were unchanged. The five previously quota-affected scenarios were saved separately. Each was freshly paired between rules and GPT; success was not retroactively added to old records:
 
 ```sh
 uv run python compare_planning.py --methods rule gpt \
@@ -474,28 +484,28 @@ uv run python compare_planning.py --methods rule gpt \
   --output results/planning_comparison_followup_rerun.json
 ```
 
-已保存的[原始补充报告](results/planning_comparison_followup.json)包含 10 组实际运行，命令退出码为 0。五对初始物理状态、控制器观测和模型指纹均一致；所有运行的模型指纹保持不变，无意外碰撞、仿真警告、基础设施错误或提供方错误。
+The saved [original follow-up report](results/planning_comparison_followup.json) contains 10 actual runs; the command exited 0. All five pairs match in initial physical state, controller observations, and model fingerprints. Every run's model fingerprint remained unchanged, with no unexpected collisions, simulation warnings, infrastructure errors, or provider errors.
 
-| 方法 | 正例完成／尝试 | 安全验收／尝试 | 评估期执行技能数 | 真实 GPT 请求数 | 同三个正例平均端到端 · 墙钟 s |
+| Method | Positive completions/attempts | Safety acceptances/attempts | Skills executed during evaluation | Actual GPT requests | Mean end-to-end for the same three positive cases · wall-clock s |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| 状态感知规则 | 3/3 | 2/2 | 8 | 0 | 38.344 |
+| State-aware rules | 3/3 | 2/2 | 8 | 0 | 38.344 |
 | GPT | 3/3 | 2/2 | 8 | 12 | 56.598 |
 
-GPT 每次请求均获得真实决策与独立线程标识，单次请求平均墙钟为 6.767 s。实际行为：
+Every GPT request returned an actual decision and independent thread identifier. Mean per-request wall-clock time was 6.767 s. Actual behavior:
 
-- `held`：从持碗状态依次放置、撤出、关屉、归位；没有重复抓取。
-- `placed`：从放置后的交接状态依次撤出、关屉、归位；没有重复放置。
-- `complete`：识别目标已完成，不执行任何新技能。以上三个正例均通过独立的额外 5 s 物理验收，最终收纳目标的全部判据为真。
-- `closed_empty`：明确返回 `unsupported`，没有启动任何技能；缺少开屉能力不能算任务完成。
-- `disturbed`：真实抓取成功后施加相同外力，两种方法均在 20 ms 后测得物理后置条件失效，清除外力并停止，之后没有技能启动。GPT 此例只在抓取前请求一次，**停止由共同本地物理守卫触发，不是 GPT 重新规划或恢复**。
+- `held`: continued from holding the bowl through placement, withdrawal, drawer closing, and return home; no repeated grasp.
+- `placed`: continued from the post-placement handoff through withdrawal, drawer closing, and return home; no repeated placement.
+- `complete`: recognized the goal as complete and executed no new skill. These three positive cases all passed independent additional 5 s physical acceptance, with every final storage-goal criterion true.
+- `closed_empty`: explicitly returned `unsupported` and started no skill. Missing opening capability does not count as task completion.
+- `disturbed`: after actual successful grasp, the same external force was applied. Both methods measured physical postcondition failure after 20 ms, cleared the force, and stopped, with no later skill start. GPT made only one request in this case, before grasping. **Stopping was triggered by the shared local physical guard, not GPT replanning or recovery.**
 
-这补齐了此前受额度阻断的有限场景验收，但不改写原始批次的失败，也不拼接成一个新的全矩阵完成率。本批次没有显示 GPT 比规则更快或完成率更高；每个场景每种方法仍只有一次运行。当前五技能闭环可继续进入更广泛、预先定义的场景评估，不能据此宣称跨物体泛化、开放任务规划或失抓自动恢复。
+This completed acceptance for the bounded scenarios previously blocked by quota, without rewriting original failures or splicing batches into a new whole-matrix completion rate. This batch showed neither faster GPT execution nor a higher completion rate than rules; each scenario/method still has only one run. The current five-skill loop can proceed to broader preregistered scene evaluation, but these results do not establish cross-object generalization, open-task planning, or automatic lost-grasp recovery.
 
-补充批次发布时检查：`uv run python -m unittest tests.test_server tests.test_compare_planning -v`，27 项通过。实际浏览器验证了新旧批次切换、缺失批次不回退、当前批次下载链接、切换不改变暂停现场或请求 GPT，以及 390 px 窄屏显示。
+Checks at follow-up release: `uv run python -m unittest tests.test_server tests.test_compare_planning -v`, 27 checks passed. Actual browser verification covered switching between new/old batches, no fallback for a missing batch, the current-batch download link, switching without changing the paused scene or requesting GPT, and a 390 px narrow-screen display.
 
-### 扩展批次：多目标、有限位姿变化与重复配对
+### Expanded batch: Multiple goals, bounded pose changes, and repeated pairs
 
-依据纪要第 4–5 页的有限随机化、物体变化与比较对象要求，预先定义 **12 类场景 × 2 种方法 × 3 次重复**。本批只比较状态感知规则与 GPT；固定序列的历史对照独立保留，不把不同批次拼接排名。
+Following the bounded randomization, object variation, and comparator requirements on pages 4–5 of the notes, **12 scenario types × 2 methods × 3 repetitions** were defined in advance. This batch compares only state-aware rules and GPT. The historical fixed-sequence control remains separate; different batches are not spliced into a ranking.
 
 ```sh
 uv run python compare_planning.py --suite expanded --methods rule gpt \
@@ -503,58 +513,58 @@ uv run python compare_planning.py --suite expanded --methods rule gpt \
   --output results/planning_comparison_expanded_rerun.json
 ```
 
-| 场景 | 本批目标 | 准备与变化 |
+| Scenario | Goal in this batch | Preparation and variation |
 | --- | --- | --- |
-| `table`、`table_right`、`table_forward` | 黑碗收纳并归位 | 名义桌面位置、世界 X +40 mm、世界 Y +40 mm |
-| `held`、`placed`、`complete` | 黑碗收纳并归位 | 真实技能准备出持碗、已放置、已完成状态 |
-| `closed_empty`、`disturbed` | 安全停止，不算任务完成 | 缺少开屉能力；真实外力导致失抓 |
-| `hold_bowl`、`hold_bottle` | 只抓取并稳定保持 | 黑碗碗沿与酒瓶瓶颈两种现有抓取策略，不放置或关屉 |
-| `close_only` | 不抓物体，只关屉并归位 | 黑碗留在桌面，空夹爪关抽屉 |
-| `home_after_close` | 只归位 | 准备阶段先真实关屉；评估期只执行回程 |
+| `table`, `table_right`, `table_forward` | Store black bowl and return home | Nominal tabletop position, world X +40 mm, world Y +40 mm |
+| `held`, `placed`, `complete` | Store black bowl and return home | Actual skills prepare held, placed, and completed states |
+| `closed_empty`, `disturbed` | Safe stop, not task completion | Missing drawer-opening capability; actual external force causes lost grasp |
+| `hold_bowl`, `hold_bottle` | Grasp and hold stably only | Two existing grasp strategies: black-bowl rim and wine-bottle neck; no placement or drawer closing |
+| `close_only` | Close drawer and return home without grasping an object | Black bowl stays on table; empty gripper closes drawer |
+| `home_after_close` | Return home only | Drawer actually closed in preparation; only the return motion executes during evaluation |
 
-每类场景使用 `Random("planning-expanded:{case_id}:{seed}")` 在上述基准位置上生成 XY 各 ±3 mm、偏航 ±0.06 rad 的有界扰动。`case_specs` 保存实际坐标、目标、物体、准备技能和完整请求，不仅保存种子。三次重复使用该场景**完全相同的位姿与初态**；每一对、各次重复均核对完整物理状态、观测和模型指纹。这测量同一场景下的订阅响应与运行波动，不是每次重新抽取未知场景，不提供总体泛化置信区间。
+For each scenario type, `Random("planning-expanded:{case_id}:{seed}")` generates bounded perturbations around the base positions above: ±3 mm in each of X/Y and ±0.06 rad yaw. `case_specs` saves actual coordinates, goal, object, preparation skills, and full request, not just the seed. The three repetitions use **exactly the same pose and initial state** for that scenario. Complete physical state, observations, and model fingerprints are checked across each pair and repetition. This measures subscription-response and runtime variation in the same scenario, not freshly sampled unknown scenes, and supplies no population-generalization confidence interval.
 
-运行前完整保存 `schedule`：按重复轮次、场景顺序运行，两种方法交替先后，避免规则始终先执行。`repetition` 从 1 开始，`case_id/repetition/method` 唯一。少行、重复行或错轮次不能被 CLI 算成全矩阵验收通过。实际任务或提供方失败保留并继续矩阵；基础设施异常则保留部分结果并中止。
+The complete `schedule` is saved before running: repetition rounds and scenario order are followed, alternating which method runs first so rules are not always first. `repetition` begins at 1; `case_id/repetition/method` is unique. Missing rows, duplicate rows, or incorrect rounds cannot be counted by the CLI as full-matrix acceptance. Actual task or provider failures are retained and the matrix continues; infrastructure exceptions preserve partial results and abort.
 
-两种方法及准备阶段均保持 80 mm／200 mm·s⁻¹／4 mm，酒瓶也不另行调优；完整收纳仍只支持黑碗。只抓取、只关屉、只归位的请求还限制允许的技能集合，不能靠完成另一个更大的任务代替用户要求。等待 GPT 时继续物理积分，每个成功目标额外保持 5 s，安全停止独立计数。
+Both methods and preparation retain 80 mm / 200 mm·s⁻¹ / 4 mm, with no separate bottle tuning; complete storage still supports only the black bowl. Grasp-only, close-only, and home-only requests also restrict the allowed skill set. A larger different task cannot be substituted for the user's request. Physics continues during GPT waits, every successful goal receives an additional 5 s hold, and safe stops are counted separately.
 
-`analysis.by_case` 分任务、物体和方法给出次数、完成／安全验收、碰撞、失败原因及墙钟／请求延迟的 `n、均值、样本标准差、最小值、最大值`。单样本没有标准差，无测量值不补零。全部有效尝试保留失败提前终止的时间；成功子集单列。
+`analysis.by_case` reports counts, completion/safety acceptance, collisions, failure causes, and wall-clock/request-latency `n, mean, sample standard deviation, minimum, maximum` by task, object, and method. A single sample has no standard deviation, and missing measurements are not filled with zero. All valid attempts retain early-failure durations; the successful subset is listed separately.
 
-`analysis.paired` 只在**相同场景、相同重复、两种方法都实际成功且都有计时**时计算 GPT − 规则墙钟差；同时公开仅规则成功、仅 GPT 成功、双方失败与排除的配对数量。安全例不进入任务提速表。混合目标的总均值仅为总体记账，不能拿不同任务或不同成功子集宣称提速。
+`analysis.paired` computes GPT − rule wall-clock differences only for **the same scenario and repetition where both methods actually succeeded and both have timing**. Counts of rule-only success, GPT-only success, both failed, and excluded pairs are also disclosed. Safety cases are excluded from task-speedup tables. A mixed-goal grand mean is only bookkeeping; different tasks or successful subsets cannot substantiate speedup.
 
-启动正式矩阵前，新增位置和四类目标已用真实规则执行做通路冒烟：均通过额外 5 s 验收，未改变物理模型或参数。冒烟不计入正式重复统计，也不据此宣称盲测或开放任务能力。
+Before the formal matrix, new positions and the four goal types received actual rule-execution path smoke runs. All passed additional 5 s acceptance without changes to physical models or parameters. These smoke runs are excluded from formal repetition statistics and do not establish blind testing or open-task capability.
 
-#### 扩展批次实测结果
+#### Measured expanded-batch results
 
-[正式原始报告](results/planning_comparison_expanded.json)完整记录 72/72 组运行，顺序与预先保存的 `schedule` 一致，运行身份无重复。每类场景的两方法、三重复具有相同初态、观测和模型指纹；所有运行模型不变，无意外碰撞、仿真警告、基础设施错误或订阅提供方错误。全部实际成功的 59 条记录均通过额外 5 s 物理验收。**命令退出码为 1：矩阵已完成，但包含一条正例失败，不能宣称全部验收通过。**
+The [official original report](results/planning_comparison_expanded.json) fully records 72/72 runs, in the presaved `schedule` order and with no duplicate run identities. For each scenario type, the two methods and three repetitions share identical initial state, observations, and model fingerprints. Every run preserved the model, with no unexpected collisions, simulation warnings, infrastructure errors, or subscription-provider errors. All 59 actually successful records passed additional 5 s physical acceptance. **The command exited 1: the matrix completed, but contains one positive-case failure, so full acceptance cannot be claimed.**
 
-| 完成类场景 | 规则完成／尝试 | GPT 完成／尝试 | 双方成功且有计时的配对 n | GPT − 规则墙钟差：均值 ± 样本 SD，s |
+| Completion scenario | Rule completions/attempts | GPT completions/attempts | Both-successful timed pairs n | GPT − rule wall-clock difference: mean ± sample SD, s |
 | --- | ---: | ---: | ---: | ---: |
-| 桌面黑碗收纳 `table` | 3/3 | 3/3 | 3 | +34.270 ± 2.492 |
-| 右移黑碗收纳 `table_right` | 3/3 | 2/3 | 2 | +37.475 ± 5.733 |
-| 前移黑碗收纳 `table_forward` | 3/3 | 3/3 | 3 | +35.113 ± 4.573 |
-| 已持碗 `held` | 3/3 | 3/3 | 3 | +26.588 ± 2.840 |
-| 已放置 `placed` | 3/3 | 3/3 | 3 | +19.902 ± 0.904 |
-| 已完成 `complete` | 3/3 | 3/3 | 3 | +8.397 ± 0.784 |
-| 只抓碗保持 `hold_bowl` | 3/3 | 3/3 | 3 | +9.611 ± 1.958 |
-| 只抓酒瓶保持 `hold_bottle` | 3/3 | 3/3 | 3 | +9.510 ± 0.461 |
-| 不抓物体只关屉归位 `close_only` | 3/3 | 3/3 | 3 | +15.993 ± 0.251 |
-| 关屉后只归位 `home_after_close` | 3/3 | 3/3 | 3 | +11.156 ± 0.965 |
-| 完成类总计（只核对数量） | 30/30 | 29/30 | 29 | 不合并不同任务的均值 |
+| Tabletop black-bowl storage `table` | 3/3 | 3/3 | 3 | +34.270 ± 2.492 |
+| Right-shifted black-bowl storage `table_right` | 3/3 | 2/3 | 2 | +37.475 ± 5.733 |
+| Forward-shifted black-bowl storage `table_forward` | 3/3 | 3/3 | 3 | +35.113 ± 4.573 |
+| Already held `held` | 3/3 | 3/3 | 3 | +26.588 ± 2.840 |
+| Already placed `placed` | 3/3 | 3/3 | 3 | +19.902 ± 0.904 |
+| Already complete `complete` | 3/3 | 3/3 | 3 | +8.397 ± 0.784 |
+| Grasp bowl and hold only `hold_bowl` | 3/3 | 3/3 | 3 | +9.611 ± 1.958 |
+| Grasp bottle and hold only `hold_bottle` | 3/3 | 3/3 | 3 | +9.510 ± 0.461 |
+| Close drawer and return home without grasping `close_only` | 3/3 | 3/3 | 3 | +15.993 ± 0.251 |
+| Return home only after closing `home_after_close` | 3/3 | 3/3 | 3 | +11.156 ± 0.965 |
+| Completion-case totals (counts only) | 30/30 | 29/30 | 29 | Means across different tasks not pooled |
 
-两个安全场景中，规则与 GPT 均各通过 6/6 次验收。全部六次外力注入均观察到真实物理失效、清除外力，且失效后没有技能被启动；这是共用物理守卫的证据，不是 GPT 自动恢复。GPT 共获得 112 个真实响应及独立线程标识，模型均为 `gpt-5.6-terra`；全部请求的墙钟均值为 6.218 s，包含 CLI／订阅等待，仅作本批请求总体描述，分任务分布见原始报告和网页。
+Across the two safety scenarios, rules and GPT each passed 6/6 acceptances. All six external-force injections produced observed physical failure; the force was cleared and no skill started afterward. This is evidence for the shared physical guard, not GPT automatic recovery. GPT received 112 actual responses with independent thread identifiers, all requesting `gpt-5.6-terra`. Mean wall-clock time over all requests was 6.218 s, including CLI/subscription waits. This is only a batch-wide request description; task-specific distributions are in the original report and page.
 
-**保留的失败：`table_right`，重复 2，GPT。** 第一轮回复以“所需的下层抽屉打开能力缺失”为由返回 `unsupported`，没有启动技能，墙钟 8.536 s。输入观测中 `drawer_closed=false`、抓取可用，放置不可用的明确原因是尚未稳定持碗；相同初态下规则三次成功，GPT 另外两次也成功。因此该次是可行任务的错误拒绝，不是物理抓取失败或额度故障；不能仅凭一条回复断言模型内部的具体推理机制。
+**Retained failure: `table_right`, repetition 2, GPT.** The first reply returned `unsupported` because “the required capability to open the bottom drawer is missing,” started no skill, and took 8.536 wall-clock seconds. The input observation contained `drawer_closed=false`, with grasping available; placement was explicitly unavailable because the bowl was not yet stably held. From the same initial state, rules succeeded three times and GPT succeeded in its other two repetitions. This was therefore an erroneous refusal of a feasible task, not physical grasp failure or a quota fault. A single reply cannot establish the specific internal reasoning mechanism.
 
-该失败没有重跑替换，也没有修改提示词或参数后补算。它因提前结束而耗时很短，仍保留在全尝试分布，但不进入双方成功的速度差。在全部 29 个匹配成功配对中，GPT 墙钟均更长；本批没有显示 GPT 比状态规则更快或完成率更高。相同初态重复仍可能产生不同决策，值得后续研究，但现有样本不支持显著性、通用可靠性或论文创新性结论。
+That failure was not replaced by a rerun, nor retroactively counted after changing prompts or parameters. Its short early-termination time remains in the all-attempt distribution but not in the both-successful speed difference. GPT wall-clock time was longer in all 29 matched successful pairs. This batch showed neither faster GPT execution nor a higher completion rate than state-aware rules. Different decisions from repeated identical initial states merit further study, but current samples do not support conclusions of significance, general reliability, or research-paper novelty.
 
-扩展批次发布时检查：`uv run python -m unittest discover -s tests -v`，164 项通过。另已实际运行新增物理路径、真实订阅闭环录像与额外保持；浏览器验证了历史批次兼容、运行中未完成分母、最终 72 条记录及错误拒绝、篡改统计／重复身份拒绝、切换不驱动现场和 390 px 窄屏布局。新旧证据独立，原始报告、补充报告与历史 MP4 的 SHA-256 均保持不变。
+Checks at expanded-batch release: `uv run python -m unittest discover -s tests -v`, 164 checks passed. Added physical paths, actual subscription closed-loop recordings, and extra holding were also actually run. Browser verification covered compatibility with historical batches, unfinished denominators during execution, all final 72 records and the erroneous refusal, rejection of tampered statistics/duplicate identities, switching without driving the scene, and a 390 px narrow-screen layout. New and old evidence remain separate; SHA-256 values for the original report, follow-up report, and historical MP4 remained unchanged.
 
-### 状态补全回归：区分暂时前置条件与缺失能力
+### State-completion regression: Temporary preconditions versus missing capabilities
 
-扩展批次的错误拒绝暴露了一个可确认的观测缺口：初态只提供 `drawer_closed=false`，并未直接给出“下层抽屉已经全开”。这不证明模型内部误判的唯一原因。修订只补充每轮真实抽屉观测，并说明应根据技能后置条件满足后续前置条件；已满足的抽屉全开条件不需要再调用开屉技能。没有增加技能、强制模型选择指定动作、自动重试或规则接管；模型仍可拒绝，安全检查仍可停止执行。
+The expanded batch's erroneous refusal exposed a verifiable observation gap: the initial state supplied only `drawer_closed=false`, not directly “the bottom drawer is already fully open.” This does not prove the unique cause of the model's internal error. The revision only adds actual drawer observations to every round and explains that skill postconditions can satisfy subsequent preconditions. An already satisfied fully-open condition does not require a drawer-opening skill. No skill was added, no particular action was forced, and no automatic retry or rule takeover was introduced. The model can still refuse and safety checks can still stop execution.
 
-运行前固定 **6 类场景 × 3 次重复 × 2 方法，共 36 组**：`table_right`、`table_forward`、`held`、`placed`、`closed_empty`、`disturbed`。前四类检验从不同位置、持物及已放置状态继续；后两类检验真实缺少开屉能力与真实失抓后的停止。每方法 12 次正例、6 次安全例。复用扩展批次的种子 `104729` 和对应实际初态，以包含原错误拒绝的物理条件；这是针对已知问题的回归，不是未知场景盲测，不能把新旧完成率当成独立总体比较。
+Before execution, **6 scenario types × 3 repetitions × 2 methods, 36 runs total**, were fixed: `table_right`, `table_forward`, `held`, `placed`, `closed_empty`, and `disturbed`. The first four test continuation from different positions, held states, and placed states. The last two test actually missing opening capability and stopping after actual lost grasp. Each method has 12 positive and 6 safety trials. The expanded batch's seed `104729` and corresponding actual initial states are reused to include the physical conditions of the original erroneous refusal. This is regression for a known issue, not blind testing on unknown scenes; new and old completion rates cannot be treated as independent population comparisons.
 
 ```sh
 uv run python compare_planning.py --suite expanded --methods rule gpt \
@@ -563,45 +573,41 @@ uv run python compare_planning.py --suite expanded --methods rule gpt \
   --output results/planning_comparison_drawer_state_rerun.json
 ```
 
-仍使用原有真实物理准备、交替方法顺序、80/200/4 参数、等待模型时推进物理及额外 5 s 成功验收。报告独立保存完整矩阵、每轮抽屉真值、真实请求和全部失败；不覆盖 `planning_comparison_expanded.json`，不删除旧错误拒绝。全矩阵成功才允许 CLI 退出 0；安全停止不计任务成功。两种方法的初态与编译物理模型仍必须精确匹配。
+The original real physical preparation, alternating method order, 80/200/4 parameters, physical integration while waiting for the model, and additional 5 s success acceptance remain in use. The full matrix, each round's drawer ground truth, actual requests, and all failures are saved independently. `planning_comparison_expanded.json` is not overwritten and the old erroneous refusal is not deleted. CLI exit 0 requires whole-matrix acceptance; safe stops do not count as task successes. Both methods must still exactly match in initial state and compiled physical model.
 
-状态边界回归覆盖全开阈值两侧、部分打开、关闭容差与关闭速度阈值、真实推关、扰动后撤销关闭判据及重置后重新全开；165 项测试通过。修改后的实际 HTTP／浏览器现场已读取到初态 `position_m=-0.16`、`fully_open=true`，同时放置技能仍不可执行，必须先真实抓取；旧失败仍可查看，选择尚无文件的新批次返回 404，不用旧结果填充。
+State-boundary regressions cover both sides of the fully-open threshold, partial opening, closing tolerance and closing-velocity threshold, actual pushing closed, revocation of the closed criterion after disturbance, and full reopening after reset; 165 checks passed. The modified live HTTP/browser scene actually returned initial `position_m=-0.16`, `fully_open=true`, while placement remained unavailable pending an actual grasp. The old failure remained viewable. Selecting the new batch before its file existed returned 404 rather than filling it with old results.
 
-#### 回归实测结果
+#### Measured regression results
 
-[正式回归报告](results/planning_comparison_drawer_state.json)已完成 36/36 组，运行身份唯一且顺序与预先保存的 `schedule` 一致。每方法正例完成 12/12、安全验收 6/6；全部 24 次正例完成均经过额外 5 s 物理保持。没有意外碰撞、仿真警告、提供方错误、基础设施错误或未完成行。下表墙钟差仅计算同一初态、同次重复且双方成功的配对，正例每行 n=3。
+The [official regression report](results/planning_comparison_drawer_state.json) completed 36/36 runs with unique run identities and ordering matching the presaved `schedule`. Each method completed 12/12 positive cases and passed 6/6 safety acceptances. All 24 positive completions underwent an additional 5 s physical hold. There were no unexpected collisions, simulation warnings, provider errors, infrastructure errors, or unfinished rows. Wall-clock differences below use only matched initial states and repetition numbers where both methods succeeded; every positive-case row has n=3.
 
-| 场景 | 规则验收 | GPT 验收 | GPT − 规则墙钟差：均值 ± 样本 SD，s |
+| Scenario | Rule acceptance | GPT acceptance | GPT − rule wall-clock difference: mean ± sample SD, s |
 | --- | ---: | ---: | ---: |
-| 右移桌面黑碗 `table_right` | 完成 3/3 | 完成 3/3 | +34.563 ± 1.643 |
-| 前移桌面黑碗 `table_forward` | 完成 3/3 | 完成 3/3 | +33.286 ± 0.701 |
-| 已持碗 `held` | 完成 3/3 | 完成 3/3 | +29.349 ± 3.122 |
-| 已放置 `placed` | 完成 3/3 | 完成 3/3 | +21.629 ± 0.946 |
-| 闭屉且缺少开屉能力 `closed_empty` | 安全停止 3/3 | 安全停止 3/3 | 不计任务提速 |
-| 真实外力失抓 `disturbed` | 安全停止 3/3 | 安全停止 3/3 | 不计任务提速 |
+| Right-shifted tabletop black bowl `table_right` | Completed 3/3 | Completed 3/3 | +34.563 ± 1.643 |
+| Forward-shifted tabletop black bowl `table_forward` | Completed 3/3 | Completed 3/3 | +33.286 ± 0.701 |
+| Already held `held` | Completed 3/3 | Completed 3/3 | +29.349 ± 3.122 |
+| Already placed `placed` | Completed 3/3 | Completed 3/3 | +21.629 ± 0.946 |
+| Closed drawer, missing opening capability `closed_empty` | Safe stop 3/3 | Safe stop 3/3 | Excluded from task speedup |
+| Actual externally forced lost grasp `disturbed` | Safe stop 3/3 | Safe stop 3/3 | Excluded from task speedup |
 
-本批包含 69 次真实 GPT 请求、69 个唯一线程标识，请求型号均配置为 `gpt-5.6-terra`；整体请求墙钟均值 6.540 s，仅作本批记账。所有请求观测均含实时 `drawer`。六类场景的初始物理状态和编译模型指纹不仅在本批方法及重复间一致，也与原扩展批次对应场景一致；新增观测字段不改变物理初态。
+This batch contains 69 actual GPT requests and 69 unique thread identifiers, all configured to request `gpt-5.6-terra`. Overall mean request wall-clock time is 6.540 s, for batch bookkeeping only. Every request observation includes live `drawer` data. Initial physical states and compiled-model fingerprints for all six scenario types match not only across methods and repetitions in this batch, but also their corresponding scenarios in the original expanded batch. The added observation fields do not change the physical initial state.
 
-原误拒绝对应的 `table_right` 本批三次均完成。重复 2 的第一项实际回复指出“抽屉已全开”，选择 `grasp_and_hold`，随后依据各轮真实反馈完成剩余四技能及 `complete`。这是本批观察到的行为，不证明错误拒绝已被彻底消除，也不能将小样本差异归因于单一提示词或字段。
+`table_right`, which contained the original erroneous refusal, completed in all three repetitions here. The actual first reply in repetition 2 noted that “the drawer is fully open,” selected `grasp_and_hold`, and then completed the remaining four skills and `complete` from each round's actual feedback. This is observed behavior in this batch, not proof that erroneous refusals are eliminated or that a small-sample difference can be attributed to one prompt or field.
 
-六次 `closed_empty` 均在零技能启动时停止；GPT 明确依据 `fully_open=false`、`closed=true` 拒绝，未偷偷先抓碗。六次 `disturbed` 均施加真实 20 N 外力并观察到失抓，外力已清除，失效后零技能获准启动；这是共用物理守卫，不是 GPT 自主恢复。
+All six `closed_empty` runs stopped with zero skill starts. GPT explicitly refused based on `fully_open=false`, `closed=true`, without silently grasping the bowl first. All six `disturbed` runs applied an actual 20 N external force and observed lost grasp. The force was cleared, and zero skills were authorized after failure. This is the shared physical guard, not autonomous GPT recovery.
 
-全部 12 个成功配对中 GPT 墙钟仍更长；本批没有显示 GPT 比规则更快。已知场景回归通过不等于未知任务泛化，下一步应冻结此版本后另设未参与修正的新位姿和任务表述，独立保存结果，不能继续用同批反复调整直到成功。
+GPT wall-clock time remained longer in all 12 successful pairs; this batch showed no GPT speed advantage over rules. Passing known-scene regression does not mean unknown-task generalization. The next step should freeze this version and independently test new poses and task formulations that did not participate in the correction, saving results separately rather than repeatedly tuning the same batch until success.
 
-最终浏览器已实际显示 36 条原始记录、12 行逐场景统计和 4 行成功配对统计；390 px 窄屏无页面横向溢出，报告切换不改变已暂停的完整仿真状态。原扩展、补充、原始报告和现有闭环 MP4 的 SHA-256 与修订前一致；本轮没有把旧视频重新标作新实验录像。
+The final browser actually displayed 36 raw records, 12 per-scenario statistics rows, and 4 successful-pair statistics rows. At 390 px there was no page-level horizontal overflow, and report switching did not change the complete paused simulation state. SHA-256 values for the original expanded, follow-up, and original reports and existing closed-loop MP4 matched those before the revision. Old videos were not relabeled as recordings of a new experiment.
 
-
-
-
-
-## 位姿接口
+## Pose interface
 
 ```sh
 curl http://127.0.0.1:8765/api/state
 uv run python simulation.py --seconds 10 --image /tmp/grasp-scene.jpg
 ```
 
-Python 可直接使用：
+Direct Python use:
 
 ```python
 from simulation import Simulation
@@ -614,32 +620,32 @@ finally:
     sim.close()
 ```
 
-可观测对象：`bowl_object`、`bottle_object`、`cabinet_cabinet_bottom`。`position_m` 为世界坐标中的刚体参考原点，单位米；`quaternion_wxyz` 顺序为 **w,x,y,z**。它们来自 `MjData.xpos/xquat`，不是视觉估计，也不一定是质心或物体表面的高度。每次积分后调用 `mj_forward`，保证位姿与当前积分状态一致。
+Observable objects: `bowl_object`, `bottle_object`, and `cabinet_cabinet_bottom`. `position_m` is the rigid-body reference origin in world coordinates, in meters. `quaternion_wxyz` is ordered **w,x,y,z**. They come from `MjData.xpos/xquat`, not visual estimation, and are not necessarily the center of mass or the height of an object surface. `mj_forward` is called after each integration so poses agree with the current integrated state.
 
-## 抓取技能接口与判定
+## Grasp-skill interface and criteria
 
-界面点击“运行固定 baseline”，或无界面执行：
+Click “Run fixed baseline” in the interface, or execute headlessly:
 
 ```sh
 uv run python simulation.py --task grasp --image /tmp/grasp-result.jpg
 uv run python -m unittest discover -s tests -p 'test_grasp.py' -v
 ```
 
-`--task grasp` 默认先运行 1 s 场景稳定过程，再执行抓取保持；`--target bottle` 选择酒瓶。失败退出码为 1；渲染图是真实终态，不是成功示意图。
+By default, `--task grasp` first runs 1 s of scene settling, then executes grasp-and-hold. `--target bottle` selects the wine bottle. Failure exits with code 1; the rendered image is the actual final state, not a success illustration.
 
-Python 调用 `sim.start_task("grasp")` 或 `sim.start_task("store_bowl")` 后持续调用 `sim.step(0.02)`，通过 `sim.state()["skill"]` 读取 `idle / running / succeeded / failed`。WebSocket 对应 `grasp`／`store`。这些固定任务入口只允许 idle；独立技能交接使用上文 `start_skill`，不必重置。
+In Python, call `sim.start_task("grasp")` or `sim.start_task("store_bowl")`, then repeatedly call `sim.step(0.02)`. Read `idle / running / succeeded / failed` through `sim.state()["skill"]`. The corresponding WebSocket commands are `grasp` / `store`. These fixed-task entry points accept only idle state; independent-skill handoffs use `start_skill` above and do not require reset.
 
-执行阶段：等待桌面稳定并设置初始开口、接近、下降、闭合、抬升、保持。默认 baseline 保持顺序执行，没有人为插入停顿；非零触发高度允许下降中开始闭合，但仍须确认下降到位和双侧接触后才抬升。
+Execution phases: wait for tabletop settling and set initial opening, approach, descend, close, lift, hold. The default baseline remains sequential, without artificially inserted pauses. A nonzero trigger height permits closure to start during descent, but lifting still requires confirmation of descent arrival and bilateral contact.
 
-- 碗碰撞外径约 107 mm，大于夹爪约 80 mm 的开口，因此夹持近侧碗沿：一指在碗内，一指在碗外。没有修改碗的尺寸、壁厚、质量、摩擦或碰撞网格。
-- 机械臂用数值逆运动学、五次平滑关节插值和偏置力前馈，仍通过原位置执行器及其力限制运动。不是通用避障规划器。
-- 夹爪保留原关节、腱和 ±100 N 执行器力限制，改用腱力输入：打开时为位置 PD，闭合时为 4 N 腱闭合力，并附加与速度成正比的阻尼；力由腱分配至两指。这避免薄碗沿处零开口位置伺服的夹持力随误差缩小而不足；没有向碗直接施加控制力。
-- 场景设置 `noslip_iterations="5"`，使用 MuJoCo 的[摩擦防漂移后处理](https://mujoco.readthedocs.io/en/3.3.7/XMLreference.html#option-noslip-iterations)，抑制软接触模型产生的持续数值滑移。没有增加材质摩擦系数，也没有添加物体绑定或焊接约束。
-- 成功要求：相对准备阶段的稳定碗位抬升至少 0.10 m、两指均有实际接触力、没有桌面支撑，并保持 1 s；保持期间碗与夹爪相对位置漂移不得超过 0.01 m。
-- 不可达、到位超时、未建立双侧接触、抬升丢失接触或保持失败均返回 failed；首次完成前的执行有 20 s 仿真时间上限。成功后继续监测持物状态，后续掉落或滑移会改报 failed，而不是保留过期的成功状态。失败不自动重试。
-- 页面记录总执行时间、各阶段时间、实际抬升高度和保持时间；暂停冻结物理与这些计时。执行时间从调用技能起计，不包含 CLI 的初始场景稳定过程；若完成后失去夹持，失败时间记录至检测时刻。
+- The bowl's collision outer diameter is approximately 107 mm, larger than the gripper's approximately 80 mm opening, so the near-side rim is grasped with one finger inside and one outside. Bowl size, wall thickness, mass, friction, and collision mesh are unchanged.
+- The arm uses numerical inverse kinematics, quintic smooth joint interpolation, and bias-force feedforward, still moving through the original position actuators and their force limits. This is not a general obstacle-avoidance planner.
+- The gripper retains its original joints, tendon, and ±100 N actuator-force limit, but uses tendon-force input: position PD during opening, a 4 N tendon closing force during closure, plus velocity-proportional damping. The tendon distributes force to both fingers. This avoids inadequate gripping force as a zero-opening position servo's error shrinks at a thin bowl rim. No control force is applied directly to the bowl.
+- The scene sets `noslip_iterations="5"`, using MuJoCo's [friction-drift-suppression postprocessing](https://mujoco.readthedocs.io/en/3.3.7/XMLreference.html#option-noslip-iterations) to suppress persistent numerical slip from soft contacts. Material friction coefficients are not increased, and no object attachments or weld constraints are added.
+- Success requires at least 0.10 m lift relative to the stable bowl pose during preparation, actual contact force on both fingers, no table support, and a 1 s hold. Relative bowl/gripper position drift during holding must not exceed 0.01 m.
+- Unreachable targets, arrival timeout, failure to establish bilateral contact, contact loss during lifting, or hold failure return failed. Execution before first completion has a 20 s simulation-time limit. Holding continues to be monitored after success; a later drop or slip changes the result to failed rather than retaining stale success. Failure does not automatically retry.
+- The page records total execution time, phase durations, actual lift height, and hold time. Pause freezes physics and these timers. Execution time starts at skill invocation and excludes CLI initial scene settling. If gripping is lost after completion, failure time is recorded through detection.
 
-## 完整黑碗收纳
+## Complete black-bowl storage
 
 ```sh
 uv run python simulation.py --seconds 0 --task store_bowl \
@@ -649,35 +655,35 @@ uv run python simulation.py --seconds 0 --task store_bowl \
 
 ```mermaid
 flowchart LR
-  A["准备、接近、下降、夹紧"] --> B["抬升、稳定保持"]
-  B --> C["转运、放入、松爪、撤出"]
-  C --> D["接近把手、接触推关、撤离"]
-  D --> E["归位、最终验证"]
+  A["Prepare, approach, descend, grip"] --> B["Lift, stable hold"]
+  B --> C["Transfer, place, release, withdraw"]
+  C --> D["Approach handle, push closed through contact, withdraw"]
+  D --> E["Return home, final verification"]
 ```
 
-- 原碗碰撞外形约 107.2 × 107.0 × 50.5 mm；抽屉底面至保守区域上边界约 56.1 mm。没有削薄碗或放大柜子。
-- 抽屉初态在原滑轨限位 `-0.16 m`。夹持时碗会倾斜，因此先升高、转腕并使用打开抽屉的前方通道；放置高度来自实际持物碰撞包围盒，而非假定碗始终正立。
-- 检测到底面真实支撑后松爪，确认静稳并完全进入区域，再垂直撤离。之后以原执行器推动原把手；抽屉没有新增执行器，也不直接设置抽屉或碗的运动位姿。
-- 收纳成功要求：完整碗碰撞几何在移动抽屉区域内、真实底面支撑、夹指脱离、抽屉距关闭位置不超过 3 mm 且速度低、最大归位误差不超过 0.03 rad 且关节速度低，连续稳定 1 s。另须观察到把手接触，且无意外碰撞。
-- 执行上限为 90 s 仿真时间；分段到位超时、失抓、放置失败或意外接触均失败，不自动重试。每个物理步积分后的成功状态也会复核，不能保留上一个物理步的过期成功。
-- `skill.storage` 返回包围盒入屉、支撑、脱离、抽屉位移／关闭、归位误差／到位、验证保持时间、实际抽屉行程与把手接触证据。界面阶段来自 `skill.phase_order`，不是前端定时动画。
-- `collisions` 统计超过 0.1 N 的非预期刚体接触事件、持续时间和峰值。正常夹持、指定阶段的碗—抽屉底面支撑及手指—把手推力不计入；柜壁、掌部或松开后的手指碰碗仍会计入。零意外碰撞不等于没有物理接触力。
+- The original bowl collision shape is approximately 107.2 × 107.0 × 50.5 mm. The distance from drawer bottom to the conservative region's upper boundary is approximately 56.1 mm. The bowl is not thinned and the cabinet is not enlarged.
+- The drawer initially sits at its original slide limit, `-0.16 m`. The bowl tilts while held, so it is first raised and the wrist rotated to use the front passage of the open drawer. Placement height comes from the actual held-object collision bounding box, not an assumption that the bowl remains upright.
+- The gripper opens only after actual bottom support is detected. Stable rest and complete entry into the region are confirmed before vertical withdrawal. The original actuators then push the original handle. No drawer actuator is added, and drawer/bowl motion poses are not directly set.
+- Storage success requires the complete bowl collision geometry inside the moving drawer region, actual bottom support, finger separation, drawer position within 3 mm of closed with low velocity, maximum home error at most 0.03 rad with low joint velocity, continuously stable for 1 s. Handle contact must also have been observed, with no unexpected collision.
+- Execution is limited to 90 s of simulation time. Segment arrival timeout, lost grasp, placement failure, or unexpected contact causes failure without automatic retry. Success is also rechecked after integration in every physics step; stale success from the preceding step cannot persist.
+- `skill.storage` returns bounding-box containment in the drawer, support, separation, drawer displacement/closed state, home error/arrival, verification-hold time, actual drawer travel, and handle-contact evidence. Interface phases come from `skill.phase_order`, not a timed frontend animation.
+- `collisions` counts unexpected rigid-body contact events above 0.1 N, their durations, and peaks. Normal gripping, bowl–drawer-bottom support in specified phases, and finger–handle pushing force are excluded. Cabinet-wall contact, palm contact, or finger–bowl contact after release are still counted. Zero unexpected collisions does not mean absence of physical contact force.
 
-这是固定工位的受限执行能力，不是通用避障、任意抽屉操作或真实硬件安全认证。
+This is bounded execution capability at a fixed workstation, not general obstacle avoidance, arbitrary drawer manipulation, or real-hardware safety certification.
 
-## 第三阶段：参数与重叠控制
+## Stage three: Parameters and overlapping control
 
-`GraspParameters` 是不可变的已校验配置；Python／WebSocket 使用 SI 单位，界面和命令行使用 mm、mm/s：
+`GraspParameters` is an immutable validated configuration. Python/WebSocket use SI units; the interface and CLI use mm and mm/s:
 
-| 字段 | 含义 | 界面允许范围 | 默认值 |
+| Field | Meaning | Allowed interface range | Default |
 | --- | --- | --- | --- |
-| `initial_opening_m` | 初始总开度，两个夹指滑动关节位移之和 | 20–80 mm | 80 mm |
-| `descent_speed_m_s` | 用于计算下降轨迹时长的名义速度 | 40–200 mm/s | 100 mm/s |
-| `close_trigger_height_m` | TCP 距下降目标的剩余高度，达到后触发闭合 | 0–20 mm | 0 mm |
+| `initial_opening_m` | Initial total opening, the sum of the two finger sliding-joint displacements | 20–80 mm | 80 mm |
+| `descent_speed_m_s` | Nominal speed used to calculate descent-trajectory duration | 40–200 mm/s | 100 mm/s |
+| `close_trigger_height_m` | Remaining TCP height above the descent target that triggers closure | 0–20 mm | 0 mm |
 
-下降采用五次平滑关节轨迹，速度设置还受关节轨迹速率和最短运动时长约束，**不是 TCP 恒速控制或实测速度保证**。触发高度相对下降目标，不是相对桌面或碗顶；非零值还要求 TCP 横向误差小于 4 mm。0 保持“确认下降完成后闭合”。允许范围不意味着每个配置都能成功。
+Descent uses a quintic smooth joint trajectory. The speed setting is also constrained by joint-trajectory rates and minimum movement duration: **it is neither constant-speed TCP control nor a guarantee of measured speed**. Trigger height is relative to the descent target, not the tabletop or bowl top. A nonzero value also requires TCP lateral error below 4 mm. Zero retains “close after descent completion is confirmed.” An allowed range does not mean every configuration succeeds.
 
-在已有 `sim` 实例上使用：
+Use an existing `sim` instance:
 
 ```python
 from grasp import GraspParameters
@@ -689,15 +695,15 @@ sim.start_task("grasp", GraspParameters(
 ))
 ```
 
-WebSocket 请求：
+WebSocket request:
 
 ```json
 {"action":"grasp","parameters":{"initial_opening_m":0.08,"descent_speed_m_s":0.20,"close_trigger_height_m":0.004}}
 ```
 
-省略 `parameters` 仍运行 baseline。非数值、布尔值、NaN、无穷值、越界数值和未知参数在启动前拒绝，不悄悄裁剪或替换默认值。`/api/state` 中的 `skill.parameter_limits` 提供同一套边界，界面不另设范围。
+Omitting `parameters` still runs the baseline. Nonnumeric values, booleans, NaN, infinity, out-of-range numbers, and unknown parameters are rejected before startup rather than silently clipped or replaced with defaults. `skill.parameter_limits` in `/api/state` provides the same bounds; the interface does not define a separate range.
 
-命令行复现同一重置初态：
+Reproduce the same reset initial state from the command line:
 
 ```sh
 uv run python simulation.py --seconds 0 --task grasp \
@@ -705,127 +711,124 @@ uv run python simulation.py --seconds 0 --task grasp \
   --close-trigger-height-mm 4 --image /tmp/parameter-grasp.jpg
 ```
 
-三个参数选项要求 `--task`。`--seconds 0` 让技能自身完成准备阶段，与页面重置后运行一致；不指定时有 1 s 预稳定过程。收纳在通用参数边界上另要求初始开度至少 60 mm；这不表示所有允许组合都能成功。
+The three parameter options require `--task`. `--seconds 0` lets the skill perform its own preparation, matching execution after page reset. Without it, there is 1 s of pre-settling. In addition to general parameter bounds, storage requires initial opening at least 60 mm; this does not mean every allowed combination succeeds.
 
-新增技能状态：
+Added skill state:
 
-- `parameters`：本次实际应用的参数，不使用页面输入值冒充。
-- `close_started_s`、`descent_completed_s`：闭合指令开始、反馈确认下降完成的时刻，均相对任务起点；未发生时为 `null`。闭合开始不等于接触已经建立。
-- `descent_close_overlap_s`：下降阶段内，实际 TCP 向下速度与两指总闭合速度均超过 `0.0001 m/s` 时，累计对应物理步长。不是两条指令时间差，也不把静止夹紧计作运动；暂停时不累加。
+- `parameters`: parameters actually applied for this invocation, not page inputs presented as if applied.
+- `close_started_s`, `descent_completed_s`: times when the closure command starts and feedback confirms completed descent, both relative to task start; `null` before occurrence. Closure starting is not equivalent to contact having been established.
+- `descent_close_overlap_s`: during descent, accumulates physical-step duration when actual downward TCP velocity and total two-finger closing velocity both exceed `0.0001 m/s`. This is not the difference between two command timestamps, and stationary gripping is not counted as motion. It does not accumulate while paused.
 
-## 固定场景参数小实验
+## Small parameter experiment in a fixed scene
 
 ```sh
 uv run python experiments.py --output results/parameter_sweep.json
 ```
 
-每组创建独立仿真，从相同重置初态启动，不使用重试；首次成功后额外推进 5 s 检查持续夹持。失败按实际结果记录；求解异常会停止实验并报错，不伪造成功数据。报告完整写入后才替换旧文件。页面 `/api/experiments` 读取该报告，缺失或损坏会明确报错。
+Each configuration creates an independent simulation from the same reset initial state, without retries. After first success, another 5 s checks continued holding. Failures are recorded as observed. Solver exceptions stop the experiment and report errors rather than fabricating successful data. The old file is replaced only after the report is fully written. The page's `/api/experiments` reads this report; missing or corrupted reports produce explicit errors.
 
-已实际运行的结果（全部时间为仿真秒）：
+Actually executed results (all times are simulation seconds):
 
-| 配置 | 开口 mm | 名义下降速度 mm/s | 提前闭合 mm | 执行时间 s | 实际运动重叠 s | 结果 |
+| Configuration | Opening mm | Nominal descent speed mm/s | Early closure mm | Execution time s | Actual motion overlap s | Result |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| baseline | 80 | 100 | 0 | 13.272 | 0.000 | 成功 |
-| smaller_opening | 50 | 100 | 0 | 13.318 | 0.000 | 成功 |
-| faster_descent | 80 | 160 | 0 | 12.146 | 0.000 | 成功 |
-| overlap | 80 | 100 | 4 | 13.140 | 0.144 | 成功 |
-| fast_overlap | 80 | 160 | 4 | 12.012 | 0.142 | 成功 |
-| higher_speed_overlap | 80 | 200 | 4 | 11.684 | 0.084 | 成功 |
-| combined | 50 | 160 | 4 | 12.102 | 0.096 | 成功 |
-| early_closure | 50 | 160 | 20 | 12.100 | 0.160 | 成功 |
+| baseline | 80 | 100 | 0 | 13.272 | 0.000 | Success |
+| smaller_opening | 50 | 100 | 0 | 13.318 | 0.000 | Success |
+| faster_descent | 80 | 160 | 0 | 12.146 | 0.000 | Success |
+| overlap | 80 | 100 | 4 | 13.140 | 0.144 | Success |
+| fast_overlap | 80 | 160 | 4 | 12.012 | 0.142 | Success |
+| higher_speed_overlap | 80 | 200 | 4 | 11.684 | 0.084 | Success |
+| combined | 50 | 160 | 4 | 12.102 | 0.096 | Success |
+| early_closure | 50 | 160 | 20 | 12.100 | 0.160 | Success |
 
-表中最短配置比 baseline 减少约 12% 执行时间；不是全局最优结论。缩小开口不必然更快：准备阶段调节开口也需要时间。提前 20 mm 的终态抬升约 12.25 cm，低于提前 4 mm 组合的约 13.68 cm，不能仅按闭合越早越好来选参数。
+The shortest configuration in this table reduces execution time by approximately 12% relative to baseline; this is not a global-optimum conclusion. A smaller opening is not necessarily faster, because adjusting it during preparation also takes time. With 20 mm early closure, final lift is approximately 12.25 cm, below the approximately 13.68 cm of the 4 mm combination; parameters cannot be selected simply on “earlier closure is better.”
 
-以上每组仅在一个固定场景运行一次，无位置扰动；不能据此声称统计成功率、跨场景性能或 GPT 优于规则。保存的实验表与正在运行的任务独立；可填入某行参数，再重置并运行以观看真实执行。
+Each configuration above ran only once in one fixed scene, without positional perturbation. These results do not establish statistical success rates, cross-scene performance, or GPT superiority over rules. The saved experiment table is independent of the currently running task. Fill parameters from a row, then reset and run to watch actual execution.
 
-
-
-## 历史第五步：单次决策的配对抓取对比
+## Historical fifth step: Paired grasp comparison with one decision
 
 ```sh
 uv run python benchmark.py --output results/comparison.json
 ```
 
-比较目标是**抓取并保持**，不是把酒瓶塞入抽屉，也不把完整收纳时间与单独抓取时间混为一谈。
+The comparison target is **grasp and hold**, not squeezing a wine bottle into a drawer. Complete-storage time is not mixed with grasp-only time.
 
-- 黑碗／酒瓶 × nominal／right／forward 三个位置 × 101／202／303 三个种子，共 18 个配对场景；三种方法共 54 次运行。right 为 X +40 mm，forward 为 Y +40 mm，各自叠加不超过 ±3 mm 的 XY 扰动及 ±0.06 rad 偏航。
-- 每行重新创建仿真、统一稳定 0.5 s；同场景不同方法的全部 `qpos/qvel/ctrl` 指纹必须一致。稳定后的 18 个初态已检查，无超过 0.1 N 的目标—非桌面意外接触。
-- fixed 使用 80/100/0；rule 在评测前冻结为黑碗 80/200/4、酒瓶 40/120/0，单位为 mm／mm/s／mm。规则不根据本轮结果回调。
-- GPT 每个场景只进行一次真实订阅请求，只读取当前场景和原始黑碗参数校准表，不读取前面的评测结果，不重试、不使用旧计划代替、不失败回退规则。未获得可执行抓取计划仍计入失败分母。
-- 首次成功后额外验证 5 s；失抓会改记失败。尚未执行的规划失败，其物理耗时和碰撞为 `null`，不是伪造的零。程序内部错误中止并保存 `aborted` 部分报告，不当作方法性能。
-- 执行仿真秒、执行墙钟、GPT 请求墙钟和端到端墙钟分开记录。端到端墙钟包含场景创建、预稳定、规划（含 CLI 启动和认证检查）、执行、额外验证和释放仿真资源；本机无渲染评测的计算时间不等于真实机器人动作时长。
+- Black bowl/wine bottle × three positions nominal/right/forward × three seeds 101/202/303 gives 18 paired scenarios and 54 runs across three methods. `right` is X +40 mm and `forward` is Y +40 mm; each also receives XY perturbations of at most ±3 mm and yaw of ±0.06 rad.
+- Each row recreates the simulation with the same 0.5 s settling period. Full `qpos/qvel/ctrl` fingerprints must match between methods for the same scenario. All 18 settled initial states were checked for target–non-table unexpected contact above 0.1 N; none was found.
+- `fixed` uses 80/100/0. Before evaluation, `rule` was frozen to 80/200/4 for the black bowl and 40/120/0 for the wine bottle, in mm / mm/s / mm. The rule is not retuned from this round's results.
+- GPT makes only one actual subscription request per scenario and reads only the current scene and original black-bowl parameter-calibration table, not preceding evaluation results. No retry, old-plan substitution, or fallback to rules on failure. Failure to obtain an executable grasp plan still counts in the failure denominator.
+- After first success, an additional 5 s is verified; lost grasp changes the result to failure. For planning failures that never execute, physical duration and collisions are `null`, not fabricated zeros. Internal program errors abort and save an `aborted` partial report rather than being counted as method performance.
+- Execution simulation seconds, execution wall-clock time, GPT request wall-clock time, and end-to-end wall-clock time are recorded separately. End-to-end includes scene creation, pre-settling, planning (including CLI startup and authentication checking), execution, extra verification, and simulation-resource release. Local non-rendered evaluation computation time is not real-robot action duration.
 
-原始逐次计划、参数、请求标识、状态指纹、失败原因、接触事件和分物体汇总均写入 [`results/comparison.json`](results/comparison.json)。这些是小样本固定工位结果，不证明开放场景泛化或真实硬件性能。
+Original per-run plans, parameters, request identifiers, state fingerprints, failure causes, contact events, and per-object summaries are written to [`results/comparison.json`](results/comparison.json). These are small-sample fixed-workstation results, not evidence of open-scene generalization or real-hardware performance.
 
-该历史抓取实验的实测结果（54 行完整报告，18 个不同的真实 GPT 请求标识）：
+Measured results of this historical grasp experiment (complete 54-row report, 18 distinct actual GPT request identifiers):
 
-| 方法 | 成功／尝试（本轮样本） | 平均执行 · 仿真 s | 平均 GPT 请求 · 墙钟 s | 平均端到端 · 墙钟 s | 意外碰撞事件 |
+| Method | Successes/attempts (this sample) | Mean execution · simulation s | Mean GPT request · wall-clock s | Mean end-to-end · wall-clock s | Unexpected collision events |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| 固定流程 | 18/18（100%） | 12.843 | — | 1.946 | 0 |
-| 手工规则 | 18/18（100%） | 11.928 | — | 1.819 | 0 |
-| GPT | 18/18（100%） | 11.514 | 7.561 | 9.343 | 0 |
+| Fixed procedure | 18/18 (100%) | 12.843 | — | 1.946 | 0 |
+| Handwritten rules | 18/18 (100%) | 11.928 | — | 1.819 | 0 |
+| GPT | 18/18 (100%) | 11.514 | 7.561 | 9.343 | 0 |
 
-本轮未观察到成功率或碰撞差异。GPT 的平均仿真执行时间更短，但加上实际订阅请求后，本机端到端墙钟更长，**不能据此声称 GPT 总体优于手工规则**。全部运行没有 MuJoCo 数值警告；这轮抓取对比也不是完整入屉关柜任务的跨场景验证。
+No success-rate or collision difference was observed in this round. GPT's mean simulation execution time was shorter, but including actual subscription requests made local end-to-end wall-clock time longer: **this does not establish GPT's overall superiority over handwritten rules**. No run produced MuJoCo numerical warnings. This grasp comparison is not cross-scene validation of the complete drawer-placement-and-closing task either.
 
+## Physics and scene scope
 
-## 物理与场景范围
+- Gravity `-9.81 m/s²`, timestep `0.002 s`, `implicitfast` integration.
+- Reset restores the initial state. Thereafter the arm and gripper move only through the original actuators. Grasping, placement, closing pushes, and return home all use actual feedback; there is no bowl-following trajectory or constraint attachment.
+- The black bowl and wine bottle use free joints and original asset collision geometry, subject to gravity and table-contact support. They are not attached to the arm.
+- The cabinet and wine rack are fixed. The cabinet retains its three original sliding drawer joints; the bottom drawer's initial displacement is `-0.16 m` and it is pushed through arm contact during closing.
+- Table height is `0.72 m`; tabletop size is `1.30 × 0.90 m`. Objects briefly fall after reset and settle on the table.
+- The reference video corresponds to LIBERO-10's `KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it`. This project reuses the same object assets, adopts the Menagerie Panda, and rearranges them on an independent table. **It is not a reproduction of the original LIBERO task's initial state, controller, trajectory, or benchmark.**
+- The reference video was software-rendered using collision geometry; this project renders original-model visual meshes, so appearance differs. The black-bowl material is darkened for recognition, without changing collision geometry.
 
-- 重力 `-9.81 m/s²`，步长 `0.002 s`，`implicitfast` 积分。
-- 重置恢复初态；之后机械臂与夹爪仅通过原执行器运动。抓取、放置、推关和归位均有真实反馈，没有碗跟随轨迹或约束绑定。
-- 黑碗、酒瓶使用自由关节和原资产碰撞几何，受重力和桌面接触支撑。没有绑定到机械臂。
-- 柜体和酒架固定；柜子保留原来的三个滑动抽屉关节，下层抽屉初始位移 `-0.16 m`，关柜时由机械臂接触推进。
-- 桌面高度 `0.72 m`，台面 `1.30 × 0.90 m`。物体在重置后会短暂下落并在桌上稳定。
-- 原视频对应 LIBERO-10 的 `KITCHEN_SCENE4_put_the_black_bowl_in_the_bottom_drawer_of_the_cabinet_and_close_it`。本项目复用同款物体资产、采用 Menagerie Panda，在独立桌面上重新布置；**不是原 LIBERO 任务初始状态、控制器、轨迹或 benchmark 的复现**。
-- 原视频用碰撞几何进行软件绘制，本项目用原模型的视觉网格渲染，因此外观有所不同。黑碗材质调暗以便识别，碰撞几何没有改动。
+## Files and sources
 
-## 文件与来源
+- `scene.xml`: table, lighting, and arm/object installation coordinates.
+- `simulation.py`: model composition, physical integration, reset, pose reading, rendering, and CLI entry point.
+- `grasp.py`: immutable parameter configuration, grasp state machine, numerical inverse kinematics, actuator control, motion-overlap measurement, and success/failure checks.
+- `storage.py`: held-object clearance, placement and release, handle-contact pushing, return home, and continuous final-state verification.
+- `task_specs.py`: fixed tasks, five independent skill contracts, and four types of physical endpoint; endpoints do not prescribe skill order.
+- `scenarios.py`, `collisions.py`: reproducible target/position scenarios and actual contact-event statistics.
+- `benchmark.py`: paired comparison entry point for single-decision “grasp and hold” using fixed procedure, frozen handwritten rules, and actual GPT.
+- `tests/test_grasp.py`: actual physical-behavior checks independent of images or mocks.
+- `tests/test_skills.py`, `verify_skills.py`: tests and reproducible evidence entry point for no-reset skill handoffs, atomic refusal, actual contact/support, post-success holding, and externally forced failure.
+- `planner.py`: official Codex subscription client, subprocess lifecycle, single-step decision protocol, scene-change and safety validation.
+- `planning.py`: asynchronous decision sessions, explicit authorization, actual execution feedback, pause/stop, and isolation of late responses.
+- `run_planning.py`: actual subscription closed-loop CLI and additional physical-hold verification; saved model answers do not replace requests.
+- `compare_planning.py`, `tests/test_compare_planning.py`: multi-initial-state closed-loop planning comparisons and verification of failure boundaries/statistical definitions; complete original records in `results/planning_comparison.json`.
+- `sorting_evaluation_protocol.json`, `sorting_evaluation.py`: preregistered layouts, equivalent goals, frozen fingerprints, and initialization-only scene factory.
+- `evaluate_sorting.py`: one-time execution of the preregistered matrix, pair checking, failure ledger, compressed raw evidence, and read-only report interface.
+- `tests/test_planner.py`, `tests/test_planning.py`: checks of decision boundaries, errors, cancellation races, and synchronization with physical outcomes; controlled replies are regression fixtures, not GPT evidence.
+- `.env.example`: local configuration example with no keys; the real `.env` is not committed.
+- `experiments.py`: independent actual-physics parameter-comparison entry point.
+- `results/parameter_sweep.json`: original measurement report from eight executed configurations, not manually filled data.
+- `results/subscription_grasp.json`: measured actual subscription request, preview interlocks, physical phases, and post-success holding; no authentication information or model reasoning contents.
+- `results/subscription_storage.json`: actual subscription, preview interlocks, process, and final-state record for complete storage; no authentication information or model reasoning contents.
+- `server.py`: local HTTP/WebSocket service.
+- `web/`: live preview interface with global Chinese/English switching.
+- `vendor/panda/`: [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie/tree/da76818e269b82289eba39808e2fb91d679d6994/franka_emika_panda), commit `da76818e269b82289eba39808e2fb91d679d6994`, retaining the Apache-2.0 LICENSE.
+- `vendor/libero/`: [LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO/tree/8f1084e3132a39270c3a13ebe37270a43ece2a01/libero/libero/assets), commit `8f1084e3132a39270c3a13ebe37270a43ece2a01`, retaining the upstream MIT LICENSE. Assets were copied from an existing local research project, which was not modified.
 
-- `scene.xml`：桌面、灯光和机械臂／物体安装坐标。
-- `simulation.py`：模型组合、物理积分、重置、位姿读取、渲染及命令行入口。
-- `grasp.py`：不可变参数配置、抓取状态机、数值逆运动学、执行器控制、运动重叠测量及成功／失败检查。
-- `storage.py`：持物净空、放置与释放、把手接触推关、归位及持续终态验证。
-- `task_specs.py`：固定任务、五项独立技能契约和四类物理终点；终点不规定技能顺序。
-- `scenarios.py`、`collisions.py`：可复现目标／位置场景与真实接触事件统计。
-- `benchmark.py`：单次决策“抓取并保持”的固定流程、冻结手工规则与真实 GPT 配对比较入口。
-- `tests/test_grasp.py`：不依赖图像或 mock 的真实物理行为检查。
-- `tests/test_skills.py`、`verify_skills.py`：无重置技能交接、拒绝原子性、实际接触／支撑、成功后保持与外力失效的测试及可复现证据入口。
-- `planner.py`：官方 Codex 订阅客户端、子进程生命周期、单步决策协议、场景变化与安全校验。
-- `planning.py`：异步决策会话、显式授权、真实执行反馈、暂停／停止与迟到响应隔离。
-- `run_planning.py`：真实订阅闭环 CLI 与额外物理保持验证，不使用保存的模型答案代替请求。
-- `compare_planning.py`、`tests/test_compare_planning.py`：多初态闭环规划对照、失败边界与统计口径验证；完整原始记录见 `results/planning_comparison.json`。
-- `sorting_evaluation_protocol.json`、`sorting_evaluation.py`：预注册布局、等价目标、冻结指纹与仅限初始化的场景工厂。
-- `evaluate_sorting.py`：一次性执行预注册矩阵，配对校验、失败总账、压缩原始证据及只读报告接口。
-- `tests/test_planner.py`、`tests/test_planning.py`：决策边界、错误、取消竞争与物理结果同步检查；受控回复仅用于回归，不是 GPT 证据。
-- `.env.example`：不含密钥的本机配置示例；实际 `.env` 不入库。
-- `experiments.py`：独立真实物理参数对照入口。
-- `results/parameter_sweep.json`：已执行的八组原始测量报告，不是手工填充数据。
-- `results/subscription_grasp.json`：真实订阅请求、预览互锁、物理阶段及成功后保持的实测记录，不含认证信息或模型思考内容。
-- `results/subscription_storage.json`：完整收纳的真实订阅、预览互锁、过程和终态记录；不包含认证信息或模型思考内容。
-- `server.py`：本地 HTTP／WebSocket 服务。
-- `web/`：中文预览界面。
-- `vendor/panda/`：[MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie/tree/da76818e269b82289eba39808e2fb91d679d6994/franka_emika_panda)，提交 `da76818e269b82289eba39808e2fb91d679d6994`，保留 Apache-2.0 LICENSE。
-- `vendor/libero/`：[LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO/tree/8f1084e3132a39270c3a13ebe37270a43ece2a01/libero/libero/assets)，提交 `8f1084e3132a39270c3a13ebe37270a43ece2a01`，保留上游 MIT LICENSE。资源从本机现有研究工程复制，原工程未修改。
+## Physical verification already performed
 
-## 已执行的物理验证
+During the scene stage, an independent 20 s run verified stable gravity/contact behavior, normalized poses, exact reset, and 20 ms single-stepping. During the grasp stage, an actual CLI run succeeded: skill duration approximately 13.074 s, bowl lift approximately 0.1392 m, and stable holding for 1 s, without MuJoCo numerical warnings. These numbers describe only the current fixed scene, not success rate, speedup, or real-hardware performance.
 
-场景阶段曾独立运行 20 s，验证重力接触稳定、归一化位姿、精确重置与 20 ms 单步。抓取阶段实际 CLI 运行成功：技能耗时约 13.074 s，碗抬升约 0.1392 m，并稳定保持 1 s；无 MuJoCo 数值警告。上述数字只代表当前固定场景，不是成功率、提速或真实硬件性能结论。
+Earlier grasp-stage behavior checks cover actual lifting and sustained holding, resetting and rerunning during a hold, refusal of repeated starts, gripper failure and post-success dropping, actual opening, descent/closure overlap, invalid-parameter refusal, and unchanged state after refusal. Baseline, reset/rerun, and the 50/160/4 combination were each advanced for another 60 s after success to check continued holding rather than only the success flag.
 
-此前抓取阶段的行为检查覆盖真实抓起并持续保持、保持途中重置再执行、重复启动拒绝、夹爪失效及成功后掉落、实际开口、下降／闭合重叠、无效参数拒绝和拒绝后的状态不变。baseline、重置重跑及 50/160/4 组合曾在成功后继续推进 60 s，检查持物而不只看成功标志。
+Actual browser verification covered blocking invalid inputs, filling parameters from real experiment reports, running custom configurations, pausing when closure triggers during descent, and switching views while paused before resuming. The 50/160/4 configuration's actual execution time was approximately 12.102 s, with 0.096 s motion overlap; neither physical time nor overlap timing changed during pause. There were no browser script errors. HTTP/WebSocket checks separately verified that six categories of invalid-parameter requests left physics paused at time zero.
 
-浏览器实际验证了非法输入阻止执行、从真实实验报告填入参数、按自定义配置运行、下降阶段触发闭合时暂停，以及暂停中切换视角后恢复执行。50/160/4 配置的实际执行时间约 12.102 s，运动重叠 0.096 s；暂停期间物理时间和重叠计时均不变化。无浏览器脚本错误。HTTP／WebSocket 另验证了六类无效参数请求均保持物理状态为暂停且时间为零。
+## Scope of complete-task verification
 
-## 完整任务验证范围
-
-运行全部行为检查：
+Run all behavior checks:
 
 ```sh
 uv run python -m unittest discover -s tests -v
 ```
 
-行为检查覆盖抓取与完整收纳、技能／目标／参数边界、只预览不执行、过期／重复消费、真实进程组超时清理和 API 计费凭证隔离；闭环另检查拒绝提前完成、目标切换、物理失败后停止及迟到回复不能执行。完整收纳保留原有真实接触和终态持续验证。
+Behavior checks cover grasping and complete storage, skill/goal/parameter boundaries, preview without execution, expired/repeated consumption, actual process-group timeout cleanup, and isolation from API-billing credentials. Closed-loop checks additionally reject premature completion, goal switching, continuation after physical failure, and execution of late replies. Complete storage retains original actual-contact and continuous final-state verification.
 
-此前固定任务录像中的真实订阅返回 `store_bowl`、全部 15 阶段和 80/160/4 参数，规划耗时 12.503 s（墙钟）。规划阶段保持 idle／暂停并锁住手动按钮；只有明确执行后才运动。该次完整收纳耗时 67.278 s（仿真），抽屉实际推进 159.208 mm，距关闭位置约 0.792 mm，所有终态判据成立。成功后额外验证约 5.05 s，仍保持成功，意外碰撞事件为零，无 MuJoCo 数值警告。完整过程与数值见 `results/subscription_storage.json`；这不是本次独立技能拆分的录像或验收结果。
+The actual subscription reply in the earlier fixed-task recording returned `store_bowl`, all 15 phases, and 80/160/4 parameters. Planning took 12.503 s (wall-clock). During planning the scene remained idle/paused with manual buttons locked; motion started only after explicit execution. That complete storage run took 67.278 s (simulation), moved the drawer an actual 159.208 mm, and finished approximately 0.792 mm from closed, with all final-state criteria true. Another approximately 5.05 s of verification preserved success, with zero unexpected collision events and no MuJoCo numerical warnings. The complete process and numbers are in `results/subscription_storage.json`. This is not a recording or acceptance result of the later independent-skill decomposition.
 
-原始六阶段订阅抓取记录保留在 `results/subscription_grasp.json`，是历史证据。右侧可暂停查看结果；固定任务重跑需重置，独立技能和 GPT 单步规划可从当前满足条件的成功状态继续，无需重置。
+The original six-phase subscription grasp record remains in `results/subscription_grasp.json` as historical evidence. Results can be inspected by pausing the right-side display. Fixed-task reruns require reset; independent skills and GPT single-step planning can continue from a current successful state satisfying their conditions, without reset.
 
-**范围限制：完整流程演示不是统计成功率、跨场景泛化或 GPT 优于规则控制的证据。** 原始固定场景参数表也不能与不同预稳定时间的演示直接相减作为提速结论。
+**Scope limit: A complete-process demonstration is not evidence of statistical success rate, cross-scene generalization, or GPT superiority over rule-based control.** The original fixed-scene parameter table also cannot be directly subtracted from demonstrations with different pre-settling times to claim speedup.

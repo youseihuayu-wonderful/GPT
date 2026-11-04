@@ -140,6 +140,8 @@ const checkLabels = {
   bowl_settled: "黑碗已静稳", hand_empty: "夹爪为空",
   hand_clear_of_drawer: "手部已安全退出抽屉", support_preserved: "物体保持稳定支撑",
   drawer_closed: "抽屉已关闭", home_reached: "机械臂已归位",
+  gripper_detached: "已与夹爪分离", elevated_handoff: "已到达高位交接区域",
+  push_contact_seen: "已测得推动把手的接触", drawer_moved: "抽屉已移动至少 150 mm",
 };
 
 function checksSummary(checks) {
@@ -187,11 +189,11 @@ function updateParameterControls(ready, skill) {
     if (limits) {
       input.min = String(limits[key].min * 1000);
       input.max = String(limits[key].max * 1000);
-      range.textContent = `${input.min}–${input.max} ${unit}`;
+      setText(range, `${input.min}–${input.max} ${unit}`);
     } else {
       input.removeAttribute("min");
       input.removeAttribute("max");
-      range.textContent = "等待后端有效范围";
+      setText(range, "等待后端有效范围");
     }
   });
 }
@@ -235,7 +237,7 @@ function renderExperimentRun(run) {
   row.dataset.status = run.status;
   const texts = [
     `${run.name}\n${parameterMode(run.parameters)}\n${parameterSummary(run.parameters)}`,
-    `${run.status === "succeeded" ? "成功" : "失败"}${run.failure_reason ? `\n原因：${run.failure_reason}` : run.status === "failed" ? "\n后端未报告失败原因" : ""}`,
+    `${run.status === "succeeded" ? "成功" : "失败"}${run.failure_reason ? `\n原因：${backendText(run.failure_reason)}` : run.status === "failed" ? "\n后端未报告失败原因" : ""}`,
     `${number(run.elapsed_s, 3)} / ${number(run.validation_elapsed_s, 3)}`,
     `${number(run.lift_height_m * 100, 2)} / ${number(run.hold_elapsed_s, 3)}`,
     number(run.descent_close_overlap_s, 3),
@@ -244,22 +246,22 @@ function renderExperimentRun(run) {
   ];
   texts.forEach((text) => {
     const cell = document.createElement("td");
-    cell.textContent = text;
+    setText(cell, text);
     row.append(cell);
   });
   const actionCell = document.createElement("td");
   const copy = document.createElement("button");
   copy.type = "button";
-  copy.textContent = "填入参数";
-  copy.setAttribute("aria-label", `将实验 ${run.name} 的参数填入输入框，不运行`);
+  setText(copy, "填入参数");
+  setLocalizedAttribute(copy, "aria-label", `将实验 ${run.name} 的参数填入输入框，不运行`);
   copy.addEventListener("click", () => {
     parameterFields.forEach(({ key, input }) => {
       input.value = String(run.parameters[key] * 1000);
       input.removeAttribute("aria-invalid");
     });
-    ui.parameterError.textContent = "";
+    setText(ui.parameterError, "");
     ui.parameterError.hidden = true;
-    ui.experimentsStatus.textContent = `已填入「${run.name}」的参数，尚未运行或重置。仅连接且任务待开始时可运行；已有结果须先重置。`;
+    setText(ui.experimentsStatus, `已填入「${run.name}」的参数，尚未运行或重置。仅连接且任务待开始时可运行；已有结果须先重置。`);
   });
   actionCell.append(copy);
   row.append(actionCell);
@@ -268,7 +270,7 @@ function renderExperimentRun(run) {
 
 async function loadExperiments() {
   ui.experimentsRefresh.disabled = true;
-  ui.experimentsStatus.textContent = "正在读取已存储实验报告…";
+  setText(ui.experimentsStatus, "正在读取已存储实验报告…");
   ui.experimentsError.hidden = true;
   ui.experimentsReport.hidden = true;
   ui.experimentRuns.replaceChildren();
@@ -283,15 +285,15 @@ async function loadExperiments() {
         || !Array.isArray(report.runs) || !report.runs.every(validExperimentRun)) {
       throw new Error("实验报告格式或运行字段不完整；无法显示可信对照数据。");
     }
-    ui.experimentsMeta.textContent = `报告生成：${report.generated_at} · 独立验证保持：${number(report.validation_hold_s, 1)} s。${report.note}`;
+    setText(ui.experimentsMeta, `报告生成：${report.generated_at} · 独立验证保持：${number(report.validation_hold_s, 1)} s。${report.note}`);
     ui.experimentRuns.replaceChildren(...report.runs.map(renderExperimentRun));
     ui.experimentsReport.hidden = false;
-    ui.experimentsStatus.textContent = report.runs.length
+    setText(ui.experimentsStatus, report.runs.length
       ? `已读取 ${report.runs.length} 组已存储单次运行。填入参数不会自动启动任务。`
-      : "报告存在，但没有运行记录；未生成替代结果。";
+      : "报告存在，但没有运行记录；未生成替代结果。");
   } catch (error) {
-    ui.experimentsStatus.textContent = "实验数据不可用；实时仿真仍独立显示。";
-    ui.experimentsError.textContent = error.message;
+    setText(ui.experimentsStatus, "实验数据不可用；实时仿真仍独立显示。");
+    setText(ui.experimentsError, error.message);
     ui.experimentsError.hidden = false;
   } finally {
     ui.experimentsRefresh.disabled = false;
@@ -576,7 +578,7 @@ function comparisonRow(texts) {
   const row = document.createElement("tr");
   for (const text of texts) {
     const cell = document.createElement("td");
-    cell.textContent = text;
+    setText(cell, text);
     row.append(cell);
   }
   return row;
@@ -589,7 +591,7 @@ function renderComparisonAnalysis(report) {
   const caseLabel = (caseId) => {
     const metadata = comparisonCaseMetadata(caseId);
     const label = report.protocol.case_specs?.find((spec) => spec.case_id === caseId)?.label || caseId;
-    return `${label} (${caseId})\n${goalLabels[metadata.goal]} (${metadata.goal})\n物体：${metadata.target_object}`;
+    return `${label} (${caseId})\n${goalLabels[metadata.goal]} (${metadata.goal})\n物体：${objectLabel(metadata.target_object)}`;
   };
   comparisonUi["by-case"].replaceChildren(...report.protocol.cases.flatMap((caseId) => report.protocol.methods.map((method) => {
     const item = report.analysis.by_case.find((entry) => entry.case_id === caseId && entry.method === method);
@@ -599,7 +601,7 @@ function renderComparisonAnalysis(report) {
       `${caseLabel(caseId)}\n${comparisonMethods[method]}`,
       `${item.expected_outcome === "safe_stop" ? `安全通过 ${item.safety_passes}` : `任务完成 ${item.successes}`} / ${item.attempts}\n基础设施 ${item.infrastructure_failures} / 进行中 ${item.pending_runs} / 尚未记录 ${missing}`,
       distribution(item.wall_s), distribution(item.success_wall_s), distribution(item.request_latency_s),
-      `碰撞试次：${item.collision_runs === null ? "未测量" : item.collision_runs}\n${item.failure_reasons.map((entry) => `${entry.count} × ${entry.reason}`).join("\n") || "无记录的非预期失败原因"}`,
+      `碰撞试次：${item.collision_runs === null ? "未测量" : item.collision_runs}\n${item.failure_reasons.map((entry) => `${entry.count} × ${backendText(entry.reason)}`).join("\n") || "无记录的非预期失败原因"}`,
     ]);
   })));
   const pairedRows = ["rule", "gpt"].every((method) => report.protocol.methods.includes(method))
@@ -619,12 +621,12 @@ function renderComparisonAnalysis(report) {
 
 async function loadPlanningComparison() {
   const batch = comparisonUi.batch.value;
-  const label = comparisonUi.batch.selectedOptions[0].textContent;
+  const label = localizedSource(comparisonUi.batch.selectedOptions[0]);
   const reportUrl = `/api/planning-comparison?batch=${encodeURIComponent(batch)}`;
   comparisonUi.refresh.disabled = true;
   comparisonUi.batch.disabled = true;
   comparisonUi.download.href = reportUrl;
-  comparisonUi.status.textContent = `正在读取「${label}」；不会启动运行…`;
+  setText(comparisonUi.status, `正在读取「${label}」；不会启动运行…`);
   comparisonUi.error.hidden = true;
   comparisonUi.report.hidden = true;
   comparisonUi.summary.replaceChildren();
@@ -644,9 +646,9 @@ async function loadPlanningComparison() {
     const mixed = report.protocol.goal === "mixed";
     const pending = report.summary.reduce((sum, item) => sum + item.pending_runs, 0);
     const infrastructure = report.summary.reduce((sum, item) => sum + item.infrastructure_failures, 0);
-    comparisonUi.status.textContent = `「${label}」${{ running: "未完成 · 运行中", failed: "未完成 / 执行失败 · 保留原始记录", completed: "所选矩阵已完成（不代表全部成功）" }[report.status]}：已记录 ${report.runs.length} / ${total} 次；进行中 ${pending}；基础设施无效 ${infrastructure}；尚未记录 ${total - report.runs.length}。只统计当前批次，不与历史批次合并。${report.runs.length === 0 ? "暂无运行记录，不能计算成功率。" : ""}`;
+    setText(comparisonUi.status, `「${label}」${{ running: "未完成 · 运行中", failed: "未完成 / 执行失败 · 保留原始记录", completed: "所选矩阵已完成（不代表全部成功）" }[report.status]}：已记录 ${report.runs.length} / ${total} 次；进行中 ${pending}；基础设施无效 ${infrastructure}；尚未记录 ${total - report.runs.length}。只统计当前批次，不与历史批次合并。${report.runs.length === 0 ? "暂无运行记录，不能计算成功率。" : ""}`);
     const randomization = report.protocol.randomization;
-    comparisonUi.meta.textContent = `生成时间：${report.generated_at}。案例：${report.protocol.cases.join("、")}。目标：${mixed ? "多任务（逐场景分开统计）" : report.protocol.goal}。每场景/方法 ${repetitions} 次。${randomization ? `种子 ${report.protocol.seed}；XY 抖动 ±${number(randomization.xy_jitter_m * 1000, 1)} mm；偏航 ±${number(randomization.yaw_range_rad, 3)} rad；同场景各方法与重复共享同一初态，非独立场景抽样。` : "历史单次配对，不能估计重复变异。"}安全例不计入正例完成率，各批次独立统计。`;
+    setText(comparisonUi.meta, `生成时间：${report.generated_at}。案例：${report.protocol.cases.join("、")}。目标：${mixed ? "多任务（逐场景分开统计）" : report.protocol.goal}。每场景/方法 ${repetitions} 次。${randomization ? `种子 ${report.protocol.seed}；XY 抖动 ±${number(randomization.xy_jitter_m * 1000, 1)} mm；偏航 ±${number(randomization.yaw_range_rad, 3)} rad；同场景各方法与重复共享同一初态，非独立场景抽样。` : "历史单次配对，不能估计重复变异。"}安全例不计入正例完成率，各批次独立统计。`);
     comparisonUi.summary.replaceChildren(...["rule", "gpt", "fixed"]
       .filter((method) => report.protocol.methods.includes(method))
       .map((method) => {
@@ -663,28 +665,28 @@ async function loadPlanningComparison() {
       }));
     if (report.analysis) renderComparisonAnalysis(report);
     comparisonUi.runs.replaceChildren(...report.runs.map((run) => comparisonRow([
-      `${run.label} (${run.case_id}) · 重复 ${run.repetition ?? 1}/${repetitions}\n目标：${run.goal ?? "store_and_home"} · 物体：${run.target_object ?? "bowl"}\n${run.scene_case ? `位姿：${run.scene_case.position_label} · XY [${run.scene_case.offset_xy_m.map((value) => number(value, 4)).join(", ")}] m · yaw ${number(run.scene_case.yaw_rad, 4)} rad · seed ${run.scene_case.seed}\n` : ""}${comparisonMethods[run.method]}\n预期：${run.expected_outcome === "success" ? "完成任务" : "安全停止（不算任务成功）"}`,
+      `${run.label} (${run.case_id}) · 重复 ${run.repetition ?? 1}/${repetitions}\n目标：${goalLabels[run.goal ?? "store_and_home"] || run.goal} [${run.goal ?? "store_and_home"}] · 物体：${objectLabel(run.target_object ?? "bowl")}\n${run.scene_case ? `位姿：${run.scene_case.position_label} · XY [${run.scene_case.offset_xy_m.map((value) => number(value, 4)).join(", ")}] m · yaw ${number(run.scene_case.yaw_rad, 4)} rad · seed ${run.scene_case.seed}\n` : ""}${comparisonMethods[run.method]}\n预期：${run.expected_outcome === "success" ? "完成任务" : "安全停止（不算任务成功）"}`,
       `${run.status}${run.infrastructure_errors.length ? "\n基础设施失败，不计完成率" : ["setting_up", "running"].includes(run.status) ? "\n尚未结束，不计完成率" : ""}\n任务完成：${run.success ? "是（物理验证）" : "否"}\n安全验收：${run.expected_outcome === "success" ? "不适用（正例）" : run.safety_pass === null ? "未测量" : run.safety_pass ? "通过" : "未通过"}`,
       `${run.executed_skill_count} / ${run.decision_count} / ${run.gpt_request_count}`,
       `${time(run.execution_sim_s)} / ${time(run.evaluation_sim_s)} / ${time(run.validation_sim_s)}`,
       `${time(run.end_to_end_wall_s)} / ${run.gpt_request_count ? time(run.gpt_latency_s) : "无 GPT 请求"}`,
-      run.failure_reason || "未报告失败原因",
+      backendText(run.failure_reason) || "未报告失败原因",
     ])));
     comparisonUi.report.hidden = false;
     const providerFailures = report.runs.filter((run) => run.method === "gpt" && run.stop_kind === "provider_failure");
     if (report.error) {
       const errorText = typeof report.error === "string" ? report.error
         : [report.error.type, report.error.stage, report.error.message].filter(Boolean).join(" · ");
-      comparisonUi.error.textContent = `报告错误：${errorText}`;
+      setText(comparisonUi.error, `报告错误：${backendText(errorText)}`);
       comparisonUi.error.hidden = false;
     } else if (providerFailures.length) {
-      const reasons = [...new Set(providerFailures.map((run) => run.failure_reason).filter(Boolean))].join("；");
-      comparisonUi.error.textContent = `本存储批次中 ${providerFailures.length} 次 GPT 运行出现提供方失败：${reasons} 这是该批次归档证据，不表示当前账户状态。本表完成率包含当时服务可用性影响，不是模型推理能力排名；安全例未验收不能当作模型不安全的证据。`;
+      const reasons = [...new Set(providerFailures.map((run) => run.failure_reason).filter(Boolean))].map(backendText).join("；");
+      setText(comparisonUi.error, `本存储批次中 ${providerFailures.length} 次 GPT 运行出现提供方失败：${reasons} 这是该批次归档证据，不表示当前账户状态。本表完成率包含当时服务可用性影响，不是模型推理能力排名；安全例未验收不能当作模型不安全的证据。`);
       comparisonUi.error.hidden = false;
     }
   } catch (error) {
-    comparisonUi.status.textContent = "闭环对照数据不可用；实时仿真不受影响。";
-    comparisonUi.error.textContent = error.message;
+    setText(comparisonUi.status, "闭环对照数据不可用；实时仿真不受影响。");
+    setText(comparisonUi.error, error.message);
     comparisonUi.error.hidden = false;
   } finally {
     comparisonUi.refresh.disabled = false;
@@ -702,7 +704,7 @@ const evaluationOutcomes = {
 
 async function loadSortingEvaluation() {
   evaluationUi.refresh.disabled = true;
-  evaluationUi.status.textContent = "正在读取冻结评估存档；不会启动试验…";
+  setText(evaluationUi.status, "正在读取冻结评估存档；不会启动试验…");
   evaluationUi.error.hidden = true;
   evaluationUi.report.hidden = true;
   evaluationUi.summary.replaceChildren();
@@ -720,9 +722,9 @@ async function loadSortingEvaluation() {
       completed: "预注册矩阵已完成（不代表全部成功）",
       aborted: "已中止 · 未完成，保留部分证据",
     };
-    evaluationUi.status.textContent = `${statuses[report.status]}：已尝试 ${total("attempted")} / ${report.expected_runs}；成功 ${total("successes")}；任务失败 ${total("failures")}；待记录 ${total("pending")}；基础设施错误 ${total("infrastructure_failures")}。${report.passed ? "整批验收通过。" : "整批尚未通过。"}未保存结果的项可能尚未运行或正在执行，不能当作失败或成功。`;
+    setText(evaluationUi.status, `${statuses[report.status]}：已尝试 ${total("attempted")} / ${report.expected_runs}；成功 ${total("successes")}；任务失败 ${total("failures")}；待记录 ${total("pending")}；基础设施错误 ${total("infrastructure_failures")}。${report.passed ? "整批验收通过。" : "整批尚未通过。"}未保存结果的项可能尚未运行或正在执行，不能当作失败或成功。`);
     const scope = typeof report.scope === "string" ? report.scope : JSON.stringify(report.scope);
-    evaluationUi.meta.textContent = `冻结提交：${report.frozen_commit}。请求模型标识：${report.requested_model}（非服务快照证明）。协议 SHA-256：${report.protocol_sha256}。范围：${scope}`;
+    setText(evaluationUi.meta, `冻结提交：${report.frozen_commit}。请求模型标识：${report.requested_model}（非服务快照证明）。协议 SHA-256：${report.protocol_sha256}。范围：${originalText(scope)}`);
     evaluationUi.summary.replaceChildren(...report.summary.map((item) => comparisonRow([
       evaluationMethods[item.method] || item.method,
       `${item.scheduled} / ${item.attempted}`,
@@ -732,8 +734,8 @@ async function loadSortingEvaluation() {
     const runs = new Map(report.runs.map((run) => [run.run_id, run]));
     evaluationUi.runs.replaceChildren(...report.schedule.map((entry) => {
       const run = runs.get(entry.run_id);
-      const reason = run?.errors.map((error) => typeof error === "string" ? error
-        : [error.type, error.stage, error.message].filter(Boolean).join(" · ")).join("\n");
+      const reason = run?.errors.map((error) => backendText(typeof error === "string" ? error
+        : [error.type, error.stage, error.message].filter(Boolean).join(" · "))).join("\n");
       const row = comparisonRow([
         `${entry.layout_id} / ${entry.wording_id}\n${evaluationMethods[entry.method] || entry.method}\n${entry.run_id}`,
         run ? `${evaluationOutcomes[run.status] || run.status}\n${Number.isInteger(run.sorted_count) ? `${run.sorted_count} / 6` : "完成数未测量"}` : "待运行 / 尚无已保存结果",
@@ -746,10 +748,10 @@ async function loadSortingEvaluation() {
         const link = document.createElement("a");
         link.href = `/api/sorting-evaluation/runs/${encodeURIComponent(run.run_id)}`;
         link.download = `${run.run_id}.json.gz`;
-        link.textContent = "下载完整 JSON.gz";
+        setText(link, "下载完整 JSON.gz");
         evidence.append(link);
       } else {
-        evidence.textContent = run ? "记录保存失败 · 无可下载文件" : "尚无记录";
+        setText(evidence, run ? "记录保存失败 · 无可下载文件" : "尚无记录");
       }
       row.append(evidence);
       return row;
@@ -760,13 +762,13 @@ async function loadSortingEvaluation() {
       measured(pair.execution_sim_delta_s), measured(pair.execution_wall_delta_s),
     ])));
     if (report.errors.length) {
-      evaluationUi.error.textContent = `批次错误：${report.errors.join("；")}`;
+      setText(evaluationUi.error, `批次错误：${report.errors.map(backendText).join("；")}`);
       evaluationUi.error.hidden = false;
     }
     evaluationUi.report.hidden = false;
   } catch (error) {
-    evaluationUi.status.textContent = "冻结评估存档不可用；不显示旧报告，实时仿真不受影响。";
-    evaluationUi.error.textContent = error.message;
+    setText(evaluationUi.status, "冻结评估存档不可用；不显示旧报告，实时仿真不受影响。");
+    setText(evaluationUi.error, error.message);
     evaluationUi.error.hidden = false;
   } finally {
     evaluationUi.refresh.disabled = false;
@@ -796,25 +798,25 @@ function renderPlannerHistory(planner) {
       : decision?.decision === "complete" ? "提出目标完成" : decision?.decision === "unsupported" ? "不支持" : "等待模型返回";
     const resultLabel = record.status === "succeeded" ? "当前技能实测成功"
       : record.status === "complete" ? "本地目标完成检查通过" : plannerLabels[record.status] || record.status;
-    title.textContent = `决策 #${record.decision_id} · ${action} · ${resultLabel}`;
+    setText(title, `决策 #${record.decision_id} · ${action} · ${resultLabel}`);
     const timing = document.createElement("p");
-    timing.textContent = `观察时刻 ${number(record.observation?.time_s, 3)} 仿真秒 → 反馈时刻 ${number(record.result_observation?.time_s, 3)} 仿真秒\nGPT ${number(record.latency_s, 2)} 墙钟秒 · 执行 ${number(record.execution_sim_s, 3)} 仿真秒 / ${number(record.execution_wall_s, 2)} 墙钟秒`;
+    setText(timing, `观察时刻 ${number(record.observation?.time_s, 3)} 仿真秒 → 反馈时刻 ${number(record.result_observation?.time_s, 3)} 仿真秒\nGPT ${number(record.latency_s, 2)} 墙钟秒 · 执行 ${number(record.execution_sim_s, 3)} 仿真秒 / ${number(record.execution_wall_s, 2)} 墙钟秒`);
     const outcome = document.createElement("p");
     const observed = record.result_observation?.skill;
-    outcome.textContent = record.error ? `失败：${record.error}`
-      : observed ? `实测反馈：${skillLabels[observed.status] || observed.status} · ${observed.message || ""}${observed.failure_reason ? ` · ${observed.failure_reason}` : ""}`
-      : "尚无执行反馈；模型回复不是物理成功证据。";
+    setText(outcome, record.error ? `失败：${backendText(record.error)}`
+      : observed ? `实测反馈：${skillLabels[observed.status] || observed.status} · ${backendText(observed.message)}${observed.failure_reason ? ` · ${backendText(observed.failure_reason)}` : ""}`
+      : "尚无执行反馈；模型回复不是物理成功证据。");
     const goal = document.createElement("p");
-    goal.textContent = checksSummary(record.result_observation?.goal_checks?.[decision?.goal]);
+    setText(goal, checksSummary(record.result_observation?.goal_checks?.[decision?.goal]));
     const details = document.createElement("details");
     const summary = document.createElement("summary");
-    summary.textContent = "本次决策与真实请求 / 结果观测";
+    setText(summary, "本次决策与真实请求 / 结果观测");
     const payload = document.createElement("pre");
-    payload.textContent = JSON.stringify({
+    setText(payload, JSON.stringify({
       decision, model: record.model, thread_id: record.thread_id,
       invocation_id: record.invocation_id, observation: record.observation,
       result_observation: record.result_observation,
-    }, null, 2);
+    }, null, 2));
     details.append(summary, payload);
     item.append(title, timing, outcome, goal, details);
     return item;
@@ -835,15 +837,15 @@ function renderPlanner(ready) {
   ui.plannerTask.disabled = !canStart || !known || locked || pending;
   ui.planGenerate.disabled = ui.plannerTask.disabled || !task || task.length > 1000;
   ui.planExecute.disabled = !canExecute;
-  ui.planExecute.textContent = decision?.decision === "complete" ? "确认本地完成检查" : "仅执行当前一项";
+  setText(ui.planExecute, decision?.decision === "complete" ? "确认本地完成检查" : "仅执行当前一项");
   ui.planContinuous.disabled = !canExecute || decision?.decision !== "execute";
   ui.planNext.disabled = !ready || !known || planner.status !== "waiting" || pending;
   ui.planCancel.disabled = !ready || !known || !locked || planner.status === "stopping" || pending;
   ui.plannerPanel.dataset.status = !ready ? "stale" : known ? planner.status : "waiting";
-  ui.plannerStatus.textContent = known
+  setText(ui.plannerStatus, known
     ? `${plannerLabels[planner.status]}${!ready ? " · 最后状态" : state.paused ? " · 物理已暂停" : ""}`
-    : "等待决策状态";
-  ui.plannerHint.textContent = !ready
+    : "等待决策状态");
+  setText(ui.plannerHint, !ready
     ? "连接或状态不可用；仅显示最后收到的记录，不会自动重连、请求模型或执行。"
     : !known ? "等待后端决策功能状态。"
     : pending ? "操作已发送，等待后端确认；不会重复提交。"
@@ -856,37 +858,37 @@ function renderPlanner(ready) {
     : planner.status === "failed" ? "决策或物理执行失败；没有自动重试或替代动作。请查看错误与历史。"
     : planner.status === "succeeded" ? "目标已通过本地实测检查；物理仍持续验证，后续失稳会报告失败。"
     : !canStart ? "当前物理执行不能开始新决策；等待成功或检查失败原因。"
-    : "使用当前 ChatGPT 订阅，无需 API 密钥。从当前场景生成第一项决策，不执行、不重置。";
-  if (ready && state.paused) ui.plannerHint.textContent += " 当前物理时钟已停止；授权不会自动恢复，请点击「开始运行」。GPT 墙钟延迟仍真实计时。";
+    : "使用当前 ChatGPT 订阅，无需 API 密钥。从当前场景生成第一项决策，不执行、不重置。");
+  if (ready && state.paused) setText(ui.plannerHint, localizedSource(ui.plannerHint) + " 当前物理时钟已停止；授权不会自动恢复，请点击「开始运行」。GPT 墙钟延迟仍真实计时。");
   ui.plannerSetup.hidden = !known || planner.configured;
-  ui.plannerError.textContent = known ? planner.error || "" : "";
+  setText(ui.plannerError, backendText(known ? planner.error || "" : ""));
   ui.plannerError.hidden = !ui.plannerError.textContent;
-  ui.plannerModelLabel.textContent = "Codex 请求模型 · 当前 ChatGPT 订阅";
-  ui.plannerModel.textContent = known ? planner.model : "—";
-  ui.plannerLatency.textContent = number(known ? planner.latency_s : undefined, 2);
-  ui.plannerTotalLatency.textContent = number(known ? planner.total_latency_s : undefined, 2);
-  ui.plannerMode.textContent = known && planner.continuous
+  setText(ui.plannerModelLabel, "Codex 请求模型 · 当前 ChatGPT 订阅");
+  setText(ui.plannerModel, known ? planner.model : "—");
+  setText(ui.plannerLatency, number(known ? planner.latency_s : undefined, 2));
+  setText(ui.plannerTotalLatency, number(known ? planner.total_latency_s : undefined, 2));
+  setText(ui.plannerMode, known && planner.continuous
     ? `持续授权 · 同一目标最多 ${planner.max_skills} 次技能调用 / 9 次模型请求`
-    : "逐项授权 · 当前一项结束后等待人工请求";
-  ui.plannerResponse.textContent = known && planner.thread_id
-    ? `最近 Codex 会话 ID：${planner.thread_id}${planner.diagnostic_count ? ` · 非致命诊断 ${planner.diagnostic_count} 条` : ""}` : "";
+    : "逐项授权 · 当前一项结束后等待人工请求");
+  setText(ui.plannerResponse, known && planner.thread_id
+    ? `最近 Codex 会话 ID：${planner.thread_id}${planner.diagnostic_count ? ` · 非致命诊断 ${planner.diagnostic_count} 条` : ""}` : "");
   ui.plannerResponse.hidden = !ui.plannerResponse.textContent;
   ui.plannerSubmitted.hidden = !known || !planner.task;
-  ui.plannerSubmittedTask.textContent = known ? planner.task : "";
+  setText(ui.plannerSubmittedTask, known && planner.task ? originalText(planner.task) : "");
   ui.planPreview.hidden = !decision;
-  ui.planSummary.textContent = decision?.summary || "";
-  ui.planReason.textContent = decision ? `决策依据：${decision.reason}` : "";
+  setText(ui.planSummary, decision?.summary ? originalText(decision.summary) : "");
+  setText(ui.planReason, decision ? `决策依据：${originalText(decision.reason)}` : "");
   ui.planParameters.hidden = !decision?.parameters;
-  ui.planParameters.textContent = decision?.parameters ? `已校验参数：${parameterSummary(decision.parameters)}` : "";
+  setText(ui.planParameters, decision?.parameters ? `已校验参数：${parameterSummary(decision.parameters)}` : "");
   const goal = planner?.goal || decision?.goal;
-  ui.planGoal.textContent = goal ? `${planner.goal ? "已授权目标" : "待批准目标"}：${goalLabels[goal] || goal} · 目标物体 ${decision?.target_object || "—"}` : "未提出可支持目标";
-  ui.planSkill.textContent = decision?.decision === "execute" ? `唯一选定技能：${primitiveLabel(decision.skill)}`
-    : decision?.decision === "complete" ? "模型提出完成；必须由本地物理判据验证，不再调用技能。" : "无可执行技能";
-  ui.planPreviewTitle.textContent = decision?.decision === "unsupported" ? "GPT 不支持此任务"
-    : `单项决策 #${planner?.decision_id} · ${planner?.status === "ready" ? "尚未执行" : "结果见实际反馈"}`;
-  ui.plannerGoalChecks.textContent = !ready ? "连接不可用；不能确认当前目标判据。"
+  setText(ui.planGoal, goal ? `${planner.goal ? "已授权目标" : "待批准目标"}：${goalLabels[goal] || goal} · 目标物体 ${objectLabel(decision?.target_object) || "—"}` : "未提出可支持目标");
+  setText(ui.planSkill, decision?.decision === "execute" ? `唯一选定技能：${primitiveLabel(decision.skill)}`
+    : decision?.decision === "complete" ? "模型提出完成；必须由本地物理判据验证，不再调用技能。" : "无可执行技能");
+  setText(ui.planPreviewTitle, decision?.decision === "unsupported" ? "GPT 不支持此任务"
+    : `单项决策 #${planner?.decision_id} · ${planner?.status === "ready" ? "尚未执行" : "结果见实际反馈"}`);
+  setText(ui.plannerGoalChecks, !ready ? "连接不可用；不能确认当前目标判据。"
     : goal ? checksSummary(state.goal_checks?.[goal]) || "后端尚未报告此目标判据"
-    : "生成第一项决策后显示对应目标的实时物理判据。";
+    : "生成第一项决策后显示对应目标的实时物理判据。");
   renderPlannerHistory(planner);
 }
 
@@ -912,7 +914,7 @@ function renderManualSkills(ready) {
   }
   skills.forEach((skill, index) => {
     const option = ui.manualSkill.options[index];
-    option.textContent = `${skill.label || primitiveLabel(skill.name)} · ${skill.available === true ? "物理条件就绪" : "不可用"}`;
+    setText(option, `${skill.label || primitiveLabel(skill.name)} · ${skill.available === true ? "物理条件就绪" : "不可用"}`);
   });
   ui.manualSkill.disabled = !ready || skills.length === 0;
   const selected = skills.find((skill) => skill.name === ui.manualSkill.value);
@@ -920,29 +922,29 @@ function renderManualSkills(ready) {
   const hasLimits = !!parameterLimits(state?.skill);
   const locked = plannerLocksScene();
   ui.startSkill.disabled = !ready || !selected || selected.available !== true || locked || (needsParameters && !hasLimits);
-  ui.startSkill.textContent = needsParameters ? "用下方参数运行技能" : "运行所选技能";
+  setText(ui.startSkill, needsParameters ? "用下方参数运行技能" : "运行所选技能");
   ui.manualReadiness.dataset.ready = String(!ui.startSkill.disabled);
-  ui.manualReadiness.textContent = !ready ? "未连接或状态不可用；不能确认技能当前是否可运行。"
+  setText(ui.manualReadiness, !ready ? "未连接或状态不可用；不能确认技能当前是否可运行。"
     : !selected ? "等待后端技能列表；不推断可用性。"
     : locked ? "GPT 决策循环拥有场景；先停止后续决策并等待当前技能结束，不能插入手动动作。"
-    : selected.available !== true ? `不可运行：${selected.unavailable_reason || "后端未确认前置条件满足。"}`
+    : selected.available !== true ? `不可运行：${backendText(selected.unavailable_reason) || "后端未确认前置条件满足。"}`
     : needsParameters && !hasLimits ? "物理条件就绪，但后端尚未报告抓取参数范围。"
-    : "后端已确认当前物理条件可用；启动时仍会重新检查。仅执行本技能，不自动选择下一项。";
-  ui.manualParameters.textContent = needsParameters
+    : "后端已确认当前物理条件可用；启动时仍会重新检查。仅执行本技能，不自动选择下一项。");
+  setText(ui.manualParameters, needsParameters
     ? "此按钮使用下方三个输入框的当前抓取参数，不使用 GPT 参数。成功后持续物理夹持，不自动放置。"
-    : "此技能不发送抓取参数；下方输入框不会影响本次调用。完成后不会自动启动下一技能。";
+    : "此技能不发送抓取参数；下方输入框不会影响本次调用。完成后不会自动启动下一技能。");
   ui.manualContract.hidden = !selected;
   const contractKey = JSON.stringify(selected && [selected.name, selected.phases, selected.watchdog_s,
     selected.target_objects, selected.preconditions, selected.postconditions]);
   if (contractKey !== manualContractKey) {
     manualContractKey = contractKey;
-    ui.manualWatchdog.textContent = selected ? `超时上限 ${number(selected.watchdog_s, 1)} 仿真秒` : "";
-    ui.manualTargets.textContent = selected ? `支持目标：${(selected.target_objects || []).join("、") || "后端未报告"}` : "";
-    ui.manualPhases.textContent = selected ? `固定阶段：${(selected.phases || []).map((phase) => phaseLabels[phase] || phase).join(" → ")}` : "";
+    setText(ui.manualWatchdog, selected ? `超时上限 ${number(selected.watchdog_s, 1)} 仿真秒` : "");
+    setText(ui.manualTargets, selected ? `支持目标：${(selected.target_objects || []).map(objectLabel).join("、") || "后端未报告"}` : "");
+    setText(ui.manualPhases, selected ? `固定阶段：${(selected.phases || []).map((phase) => phaseLabels[phase] || phase).join(" → ")}` : "");
     for (const [element, conditions] of [[ui.manualPreconditions, selected?.preconditions], [ui.manualPostconditions, selected?.postconditions]]) {
       element.replaceChildren(...(conditions || []).map((condition) => {
         const item = document.createElement("li");
-        item.textContent = condition;
+        setText(item, backendText(condition));
         return item;
       }));
     }
@@ -958,50 +960,50 @@ function renderSkill(ready) {
   ui.taskOverlay.hidden = !ready || !known || skill.status === "idle";
   const standalone = known && skill.execution_mode === "skill";
   const currentLabel = known ? primitiveLabel(skill.skill_name) : "等待状态";
-  ui.overlayTask.textContent = known
-    ? `${standalone ? "独立技能" : taskLabels[skill.task_kind] || "物理任务"} · ${currentLabel}` : "";
-  ui.overlayPhase.textContent = known ? `${skillLabels[skill.status]} · ${phaseLabels[skill.phase] || skill.phase}` : "";
+  setText(ui.overlayTask, known
+    ? `${standalone ? "独立技能" : taskLabels[skill.task_kind] || "物理任务"} · ${currentLabel}` : "");
+  setText(ui.overlayPhase, known ? `${skillLabels[skill.status]} · ${phaseLabels[skill.phase] || skill.phase}` : "");
   updateParameterControls(ready, known ? skill : null);
   renderManualSkills(ready);
   ui.skillPanel.dataset.status = !ready ? "stale" : known ? skill.status : "waiting";
-  ui.skillResult.textContent = known
+  setText(ui.skillResult, known
     ? `${skillLabels[skill.status]}${!ready ? " · 最后状态" : skill.status === "running" && state.paused ? " · 已暂停" : ""}`
-    : "等待状态";
-  ui.skillHint.textContent = !ready
+    : "等待状态");
+  setText(ui.skillHint, !ready
     ? "未连接或状态不可用；已有数值仅为最后状态，无法确认当前执行结果。"
     : !known ? "等待后端技能状态；暂不能开始物理任务。"
     : plannerLocksScene() ? "GPT 决策循环拥有场景；停止后续决策并等待当前技能结束后，才能运行手动对照。"
     : skill.status === "idle" ? "固定任务仅可从待开始状态启动；独立技能由上方后端物理条件决定，不调用 GPT。"
     : skill.status === "running" ? "物理执行中，可暂停；不能插入其他任务或技能。"
     : skill.status === "succeeded" ? "本次执行已成功；可按上方物理条件启动下一独立技能，无需重置。固定任务重跑仍需重置。"
-    : "物理执行失败；请查看失败原因并重置，不允许从失败状态继续调用。";
-  ui.currentSkill.textContent = currentLabel;
-  ui.skillInvocation.textContent = known
+    : "物理执行失败；请查看失败原因并重置，不允许从失败状态继续调用。");
+  setText(ui.currentSkill, currentLabel);
+  setText(ui.skillInvocation, known
     ? `${standalone ? "独立技能" : "固定任务"} · ${standalone ? primitiveLabel(skill.skill_name) : taskLabels[skill.task_kind] || "尚未启动"}${Number.isInteger(skill.invocation_id) ? ` · #${skill.invocation_id}` : ""}${!ready ? " · 最后状态" : ""}`
-    : "等待状态";
-  ui.skillPhase.textContent = known ? (phaseLabels[skill.phase] || skill.phase || "未报告") : "等待状态";
-  ui.skillMessage.textContent = known ? (skill.message || "后端未提供阶段说明。") : "等待后端技能数据，不推断进度或结果。";
-  ui.skillFailure.textContent = known && skill.failure_reason ? `失败原因：${skill.failure_reason}` : "";
+    : "等待状态");
+  setText(ui.skillPhase, known ? (phaseLabels[skill.phase] || skill.phase || "未报告") : "等待状态");
+  setText(ui.skillMessage, backendText(known ? (skill.message || "后端未提供阶段说明。") : "等待后端技能数据，不推断进度或结果。"));
+  setText(ui.skillFailure, known && skill.failure_reason ? `失败原因：${backendText(skill.failure_reason)}` : "");
   ui.skillFailure.hidden = !ui.skillFailure.textContent;
-  ui.skillElapsed.textContent = number(known ? skill.elapsed_s : undefined, 2);
-  ui.skillLift.textContent = number(known && Number.isFinite(skill.lift_height_m) ? skill.lift_height_m * 100 : undefined, 1);
+  setText(ui.skillElapsed, number(known ? skill.elapsed_s : undefined, 2));
+  setText(ui.skillLift, number(known && Number.isFinite(skill.lift_height_m) ? skill.lift_height_m * 100 : undefined, 1));
   const showGraspTiming = known && (!standalone || skill.skill_name === "grasp_and_hold");
-  ui.skillHold.textContent = number(showGraspTiming ? skill.hold_elapsed_s : undefined, 2);
-  ui.skillPhaseElapsed.textContent = number(known ? skill.phase_elapsed_s : undefined, 2);
-  ui.skillOverlap.textContent = number(showGraspTiming ? skill.descent_close_overlap_s : undefined, 3);
-  ui.closeStarted.textContent = number(showGraspTiming ? skill.close_started_s : undefined, 3);
-  ui.descentCompleted.textContent = number(showGraspTiming ? skill.descent_completed_s : undefined, 3);
+  setText(ui.skillHold, number(showGraspTiming ? skill.hold_elapsed_s : undefined, 2));
+  setText(ui.skillPhaseElapsed, number(known ? skill.phase_elapsed_s : undefined, 2));
+  setText(ui.skillOverlap, number(showGraspTiming ? skill.descent_close_overlap_s : undefined, 3));
+  setText(ui.closeStarted, number(showGraspTiming ? skill.close_started_s : undefined, 3));
+  setText(ui.descentCompleted, number(showGraspTiming ? skill.descent_completed_s : undefined, 3));
   const parameters = known ? skill.parameters : null;
-  ui.appliedParameters.textContent = standalone && skill.skill_name !== "grasp_and_hold"
+  setText(ui.appliedParameters, standalone && skill.skill_name !== "grasp_and_hold"
     ? "本次独立技能不接收抓取参数；输入框和此前抓取参数不会被当作本次技能参数。"
     : validParameters(parameters)
       ? `${!ready ? "最后状态" : skill.status === "idle" ? "后端待用" : "实际应用"}：${parameterMode(parameters)}；${parameterSummary(parameters)}`
-      : "后端参数：未报告完整参数，不使用输入框数值代替。";
+      : "后端参数：未报告完整参数，不使用输入框数值代替。");
   const closingDuringDescent = ready && known && skill.status === "running"
     && skill.phase === "descend" && Number.isFinite(skill.close_started_s);
   ui.earlyClose.hidden = !closingDuringDescent;
-  ui.earlyClose.textContent = closingDuringDescent
-    ? `下降阶段已触发闭合 · 后端开始时间 ${number(skill.close_started_s, 3)} s${state.paused ? " · 已暂停" : ""}；实际运动重叠见下方测量。` : "";
+  setText(ui.earlyClose, closingDuringDescent
+    ? `下降阶段已触发闭合 · 后端开始时间 ${number(skill.close_started_s, 3)} s${state.paused ? " · 已暂停" : ""}；实际运动重叠见下方测量。` : "");
   const order = known && Array.isArray(skill.phase_order) ? skill.phase_order : [];
   const orderKey = JSON.stringify([skill?.invocation_id, skill?.execution_mode, order]);
   if (orderKey !== displayedPhaseOrder) {
@@ -1009,39 +1011,39 @@ function renderSkill(ready) {
     ui.skillStages.replaceChildren(...order.map((phase) => {
       const stage = document.createElement("li");
       stage.dataset.phase = phase;
-      stage.textContent = phaseLabels[phase] || phase;
+      setText(stage, phaseLabels[phase] || phase);
       return stage;
     }));
   }
   const storing = known && skill.task_kind === "store_bowl";
-  ui.goalCriteria.textContent = !known ? "等待后端任务与完成判据。"
+  setText(ui.goalCriteria, !known ? "等待后端任务与完成判据。"
     : standalone ? "独立技能只验证本次契约；下方布尔值来自当前物理状态，不代表其他技能或完整任务已完成。"
     : storing ? "抓取保持只是中间步骤。最终须确认碗在抽屉内并受到支撑、夹爪已与碗分离且手部安全退出、抽屉关闭、机械臂归位且状态稳定；由后端判定。"
-    : "抓取目标：实际抬升 ≥ 10 cm，双侧夹持并稳定保持 1 s；由后端判定。";
+    : "抓取目标：实际抬升 ≥ 10 cm，双侧夹持并稳定保持 1 s；由后端判定。");
   const checks = known && skill.postconditions && typeof skill.postconditions === "object"
     ? Object.entries(skill.postconditions) : [];
   ui.skillPostconditions.replaceChildren(...(checks.length ? checks : [["后端尚未报告检查", null]]).map(([name, passed]) => {
     const row = document.createElement("div");
     const label = document.createElement("dt");
     const value = document.createElement("dd");
-    label.textContent = name;
-    value.textContent = yesNo(passed);
+    setText(label, checkLabels[name] || name);
+    setText(value, yesNo(passed));
     value.dataset.passed = typeof passed === "boolean" ? String(passed) : "unknown";
     row.append(label, value);
     return row;
   }));
   const storage = known ? skill.storage : null;
   ui.storageStatus.hidden = !storage;
-  ui.storeContained.textContent = yesNo(storage?.bowl_inside_drawer);
-  ui.storeSupported.textContent = yesNo(storage?.bowl_supported);
-  ui.storeClear.textContent = yesNo(storage?.gripper_clear);
-  ui.storeHandClear.textContent = yesNo(storage?.hand_clear_of_drawer);
-  ui.storePushContact.textContent = yesNo(storage?.push_contact_seen);
-  ui.storeDrawer.textContent = number(storage?.drawer_position_m * 1000, 2);
-  ui.storeClosed.textContent = yesNo(storage?.drawer_closed);
-  ui.storeHomeError.textContent = number(storage?.home_error_rad, 4);
-  ui.storeHome.textContent = yesNo(storage?.home_reached);
-  ui.storeVerified.textContent = number(storage?.verification_hold_s, 2);
+  setText(ui.storeContained, yesNo(storage?.bowl_inside_drawer));
+  setText(ui.storeSupported, yesNo(storage?.bowl_supported));
+  setText(ui.storeClear, yesNo(storage?.gripper_clear));
+  setText(ui.storeHandClear, yesNo(storage?.hand_clear_of_drawer));
+  setText(ui.storePushContact, yesNo(storage?.push_contact_seen));
+  setText(ui.storeDrawer, number(storage?.drawer_position_m * 1000, 2));
+  setText(ui.storeClosed, yesNo(storage?.drawer_closed));
+  setText(ui.storeHomeError, number(storage?.home_error_rad, 4));
+  setText(ui.storeHome, yesNo(storage?.home_reached));
+  setText(ui.storeVerified, number(storage?.verification_hold_s, 2));
   const stages = Array.from(ui.skillStages.children);
   const current = known ? stages.findIndex((stage) => stage.dataset.phase === skill.phase) : -1;
   stages.forEach((stage, index) => {
@@ -1056,14 +1058,14 @@ function renderSkill(ready) {
     ? Object.entries(skill.phase_times_s) : [];
   if (!times.length) {
     const waiting = document.createElement("dt");
-    waiting.textContent = known ? "后端尚未报告阶段耗时" : "等待后端状态";
+    setText(waiting, known ? "后端尚未报告阶段耗时" : "等待后端状态");
     ui.phaseTimes.append(waiting);
   }
   times.forEach(([phase, elapsed]) => {
     const label = document.createElement("dt");
     const value = document.createElement("dd");
-    label.textContent = phaseLabels[phase] || phase;
-    value.textContent = `${number(elapsed, 2)} s`;
+    setText(label, phaseLabels[phase] || phase);
+    setText(value, `${number(elapsed, 2)} s`);
     ui.phaseTimes.append(label, value);
   });
 }
@@ -1072,8 +1074,8 @@ function renderSortingChecks(element, checks, labels) {
     const row = document.createElement("div");
     const label = document.createElement("dt");
     const value = document.createElement("dd");
-    label.textContent = text;
-    value.textContent = yesNo(checks?.[key]);
+    setText(label, text);
+    setText(value, yesNo(checks?.[key]));
     value.dataset.passed = typeof checks?.[key] === "boolean" ? String(checks[key]) : "unknown";
     row.append(label, value);
     return row;
@@ -1093,8 +1095,8 @@ function renderSortPlanner(ready) {
     || planner.decision?.decision !== "plan" || !Number.isInteger(planner.decision_id);
   sortUi["plan-cancel"].disabled = !ready || !known || pending || planner.can_cancel !== true;
   sortUi["planner-panel"].dataset.status = !ready ? "stale" : planner?.status || "waiting";
-  sortUi["planner-status"].textContent = `${sortPlannerLabels[planner?.status] || "等待状态"}${!ready ? " · 最后状态" : state.paused ? " · 物理已暂停" : ""}`;
-  sortUi["planner-hint"].textContent = !ready ? "连接不可用；仅显示最后记录，不能批准或确认当前结果。"
+  setText(sortUi["planner-status"], `${sortPlannerLabels[planner?.status] || "等待状态"}${!ready ? " · 最后状态" : state.paused ? " · 物理已暂停" : ""}`);
+  setText(sortUi["planner-hint"], !ready ? "连接不可用；仅显示最后记录，不能批准或确认当前结果。"
     : pending ? "操作已发送，等待后端确认；不会重复提交。"
     : planner?.status === "planning" ? "真实订阅请求进行中；只生成完整提案，不派发物理动作。"
     : planner?.status === "ready" ? "请核对下方实际映射与完整顺序。批准仅限所示编号；场景漂移会拒绝，不会静默修补。"
@@ -1103,23 +1105,23 @@ function renderSortPlanner(ready) {
     : ["failed", "unsupported", "cancelled"].includes(planner?.status) ? "没有自动重试或固定动作回退。请查看记录；再次尝试或固定对照须先重置。"
     : !planner?.configured ? "订阅工具未配置；固定对照仍可独立运行，不会调用模型。"
     : !canGenerate ? "物理启动条件尚未满足；须稳定支撑、空手归位且无正在执行的队列。"
-    : "请求使用当前仿真真值与 ChatGPT 订阅。生成不执行，批准后执行完整六物体队列。";
+    : "请求使用当前仿真真值与 ChatGPT 订阅。生成不执行，批准后执行完整六物体队列。");
   sortUi["planner-setup"].hidden = !known || planner.configured;
-  sortUi["planner-error"].textContent = planner?.error || "";
+  setText(sortUi["planner-error"], backendText(planner?.error || ""));
   sortUi["planner-error"].hidden = !planner?.error;
-  sortUi["planner-model"].textContent = planner?.model || "—";
-  sortUi["planner-calls"].textContent = Number.isInteger(planner?.calls) ? String(planner.calls) : "—";
-  sortUi["planner-latency"].textContent = number(planner?.latency_s, 2);
-  sortUi["planner-total-latency"].textContent = number(planner?.total_latency_s, 2);
-  sortUi["planner-response"].textContent = planner?.thread_id
-    ? `Codex 会话 ID：${planner.thread_id} · 非致命诊断 ${planner.diagnostic_count ?? 0} 条` : "";
-  sortUi["planner-submitted"].textContent = planner?.task ? `后端本次任务（所有客户端共享）：${planner.task}` : "";
+  setText(sortUi["planner-model"], planner?.model || "—");
+  setText(sortUi["planner-calls"], Number.isInteger(planner?.calls) ? String(planner.calls) : "—");
+  setText(sortUi["planner-latency"], number(planner?.latency_s, 2));
+  setText(sortUi["planner-total-latency"], number(planner?.total_latency_s, 2));
+  setText(sortUi["planner-response"], planner?.thread_id
+    ? `Codex 会话 ID：${planner.thread_id} · 非致命诊断 ${planner.diagnostic_count ?? 0} 条` : "");
+  setText(sortUi["planner-submitted"], planner?.task ? `后端本次任务（所有客户端共享）：${originalText(planner.task)}` : "");
   const decision = planner?.decision;
   sortUi["plan-preview"].hidden = !decision;
-  sortUi["plan-preview-title"].textContent = decision?.decision === "unsupported" ? "无可执行提案"
-    : `提案 #${planner?.decision_id} · ${planner?.status === "ready" ? "尚未批准执行" : "状态见真实记录"}`;
-  sortUi["plan-summary"].textContent = decision ? `模型摘要（非成功证据）：${decision.summary}` : "";
-  sortUi["plan-reason"].textContent = decision ? `模型依据：${decision.reason}` : "";
+  setText(sortUi["plan-preview-title"], decision?.decision === "unsupported" ? "无可执行提案"
+    : `提案 #${planner?.decision_id} · ${planner?.status === "ready" ? "尚未批准执行" : "状态见真实记录"}`);
+  setText(sortUi["plan-summary"], decision ? `模型摘要（非成功证据）：${originalText(decision.summary)}` : "");
+  setText(sortUi["plan-reason"], decision ? `模型依据：${originalText(decision.reason)}` : "");
   const objects = (ready ? state.sorting : lastSorting)?.plan || [];
   const proposalKey = JSON.stringify([decision?.steps, objects.map(({ object_id, label, color }) => [object_id, label, color])]);
   if (proposalKey !== sortProposalKey) {
@@ -1132,13 +1134,13 @@ function renderSortPlanner(ready) {
         item.dataset.color = object.color;
         mapping.set(object.color, step.destination);
       }
-      item.textContent = `${object?.label || step.object_id} [${step.object_id}] → ${step.destination} 区`;
+      setText(item, `${object?.label || step.object_id} [${step.object_id}] → ${step.destination} 区`);
       return item;
     }));
     sortUi["plan-mapping"].replaceChildren(...Array.from(mapping, ([color, destination]) => {
       const item = document.createElement("li");
       item.dataset.color = color;
-      item.textContent = `${colorLabels[color] || color} → ${destination} 区`;
+      setText(item, `${colorLabels[color] || color} → ${destination} 区`);
       return item;
     }));
   }
@@ -1151,19 +1153,19 @@ function renderSortPlanner(ready) {
       const item = document.createElement("li");
       item.dataset.status = record.status;
       const title = document.createElement("strong");
-      title.textContent = `提案 #${record.decision_id} · ${sortPlannerLabels[record.status] || record.status}`;
+      setText(title, `提案 #${record.decision_id} · ${sortPlannerLabels[record.status] || record.status}`);
       const timing = document.createElement("p");
-      timing.textContent = `GPT ${number(record.latency_s, 2)} 墙钟秒 · 执行 ${number(record.execution_sim_s, 3)} 仿真秒 / ${number(record.execution_wall_s, 2)} 墙钟秒`;
+      setText(timing, `GPT ${number(record.latency_s, 2)} 墙钟秒 · 执行 ${number(record.execution_sim_s, 3)} 仿真秒 / ${number(record.execution_wall_s, 2)} 墙钟秒`);
       const outcome = document.createElement("p");
       const observed = record.result_observation?.sorting;
-      outcome.textContent = record.error ? `错误：${record.error}`
-        : observed ? `实测反馈：${skillLabels[observed.status] || observed.status} · ${observed.message || ""}${observed.failure_reason ? ` · ${observed.failure_reason}` : ""}`
-        : "尚无执行反馈；模型回复不是物理成功证据。";
+      setText(outcome, record.error ? `错误：${backendText(record.error)}`
+        : observed ? `实测反馈：${skillLabels[observed.status] || observed.status} · ${backendText(observed.message)}${observed.failure_reason ? ` · ${backendText(observed.failure_reason)}` : ""}`
+        : "尚无执行反馈；模型回复不是物理成功证据。");
       const details = document.createElement("details");
       const summary = document.createElement("summary");
-      summary.textContent = "完整提案、请求观测与最终物理反馈";
+      setText(summary, "完整提案、请求观测与最终物理反馈");
       const payload = document.createElement("pre");
-      payload.textContent = JSON.stringify(record, null, 2);
+      setText(payload, JSON.stringify(record, null, 2));
       details.append(summary, payload);
       item.append(title, timing, outcome, details);
       return item;
@@ -1178,31 +1180,31 @@ function renderSorting(ready) {
   const mode = sorting?.mode === "planned" ? "已批准计划" : "固定对照";
   ui.sortStart.disabled = !ready || sorting?.can_start !== true || plannerLocksScene() || attempted;
   ui.sortingPanel.dataset.status = ready ? sorting.status : "stale";
-  ui.sortingStatus.textContent = `${skillLabels[sorting?.status] || "等待状态"}${!ready ? " · 最后状态" : state.paused ? " · 已暂停" : ""}`;
-  ui.sortingHint.textContent = !ready ? "连接或状态不可用；以下仅为最后状态，不能确认当前结果。"
+  setText(ui.sortingStatus, `${skillLabels[sorting?.status] || "等待状态"}${!ready ? " · 最后状态" : state.paused ? " · 已暂停" : ""}`);
+  setText(ui.sortingHint, !ready ? "连接或状态不可用；以下仅为最后状态，不能确认当前结果。"
     : sorting.status === "running" ? `${mode}队列执行中；可暂停或单步，不接受其他任务，不自动重试。`
     : ["failed", "succeeded"].includes(sorting.status) ? "本次运行已结束；再次运行必须先显式重置。"
     : attempted || plannerLocksScene() ? "GPT 请求 / 提案与固定对照互斥；固定对照须先重置，不能隐藏本次请求历史。"
     : sorting.can_start ? "当前物理条件允许开始；点击后按既定全队列执行并自动恢复物理时钟。"
-    : `暂不可开始：${sorting.start_error || "后端尚未确认物体稳定支撑。"}`;
+    : `暂不可开始：${backendText(sorting.start_error) || "后端尚未确认物体稳定支撑。"}`);
   const current = sorting?.plan?.find((item) => item.object_id === sorting.current_object_id
     && item.index === sorting.current_step_index);
   const phase = sortingPhaseLabels[sorting?.phase] || sorting?.phase || "未报告";
-  ui.sortingCurrent.textContent = current ? `#${current.index + 1} ${current.label} → ${current.destination} 区` : "无当前物体";
-  ui.sortingPhase.textContent = phase;
-  ui.sortingMessage.textContent = sorting?.message || "等待后端阶段说明，不推断进度。";
-  ui.sortingFailure.textContent = sorting?.failure_reason ? `失败原因：${sorting.failure_reason}`
-    : sorting?.status === "failed" ? "后端报告失败，但未提供失败原因。" : "";
+  setText(ui.sortingCurrent, current ? `#${current.index + 1} ${current.label} → ${current.destination} 区` : "无当前物体");
+  setText(ui.sortingPhase, phase);
+  setText(ui.sortingMessage, backendText(sorting?.message || "等待后端阶段说明，不推断进度。"));
+  setText(ui.sortingFailure, sorting?.failure_reason ? `失败原因：${backendText(sorting.failure_reason)}`
+    : sorting?.status === "failed" ? "后端报告失败，但未提供失败原因。" : "");
   ui.sortingFailure.hidden = !ui.sortingFailure.textContent;
-  ui.sortingCount.textContent = `${number(sorting?.sorted_count, 0)} / ${number(sorting?.object_count, 0)}`;
+  setText(ui.sortingCount, `${number(sorting?.sorted_count, 0)} / ${number(sorting?.object_count, 0)}`);
   if (Number.isFinite(sorting?.object_count) && sorting.object_count > 0) ui.sortingProgress.max = sorting.object_count;
   if (Number.isFinite(sorting?.sorted_count)) ui.sortingProgress.value = sorting.sorted_count;
   else ui.sortingProgress.removeAttribute("value");
-  ui.sortingElapsed.textContent = number(sorting?.elapsed_s, 2);
-  ui.sortingHold.textContent = number(sorting?.validation_hold_s, 2);
+  setText(ui.sortingElapsed, number(sorting?.elapsed_s, 2));
+  setText(ui.sortingHold, number(sorting?.validation_hold_s, 2));
   ui.taskOverlay.hidden = !ready || sorting.status === "idle";
-  ui.overlayTask.textContent = `${mode} · ${ui.sortingCount.textContent}${current ? ` · ${current.label}` : ""}`;
-  ui.overlayPhase.textContent = `${skillLabels[sorting?.status] || "未报告"} · ${phase}`;
+  setText(ui.overlayTask, `${mode} · ${ui.sortingCount.textContent}${current ? ` · ${current.label}` : ""}`);
+  setText(ui.overlayPhase, `${skillLabels[sorting?.status] || "未报告"} · ${phase}`);
   const queueKey = JSON.stringify([sorting?.plan, sorting?.current_object_id, sorting?.current_step_index]);
   if (queueKey !== sortingQueueKey) {
     sortingQueueKey = queueKey;
@@ -1214,8 +1216,8 @@ function renderSorting(ready) {
       if (entry.object_id === sorting.current_object_id && entry.index === sorting.current_step_index) item.setAttribute("aria-current", "step");
       const title = document.createElement("strong");
       const detail = document.createElement("span");
-      title.textContent = `${entry.label} · ${colorLabels[entry.color] || entry.color}${kindLabels[entry.kind] || entry.kind} → ${entry.destination} 区`;
-      detail.textContent = `${labels[entry.status] || entry.status} · 落点 XY (${(entry.slot_xy_m || []).map((value) => number(value, 3)).join(", ")}) m`;
+      setText(title, `${entry.label} · ${colorLabels[entry.color] || entry.color}${kindLabels[entry.kind] || entry.kind} → ${entry.destination} 区`);
+      setText(detail, `${labels[entry.status] || entry.status} · 落点 XY (${(entry.slot_xy_m || []).map((value) => number(value, 3)).join(", ")}) m`);
       item.append(title, detail);
       return item;
     }));
@@ -1232,7 +1234,7 @@ function renderSorting(ready) {
       card.className = "object";
       card.dataset.color = object.color;
       const title = document.createElement("h3");
-      title.textContent = `${object.label} · ${colorLabels[object.color] || object.color}${kindLabels[object.kind] || object.kind}`;
+      setText(title, `${object.label} · ${colorLabels[object.color] || object.color}${kindLabels[object.kind] || object.kind}`);
       const checks = document.createElement("dl");
       checks.className = "metadata storage-metrics";
       renderSortingChecks(checks, object, {
@@ -1253,7 +1255,7 @@ function updateSceneMode() {
   const sorting = sceneMode === "sorting";
   storageElements.forEach((element) => { element.hidden = sorting; });
   sortingElements.forEach((element) => { element.hidden = !sorting; });
-  document.title = sorting ? "GPT / 固定规划 · 彩色碗杯物理分拣" : "GPT 实时单技能决策 · 物理执行与反馈";
+  setLocalizedTitle(sorting ? "GPT / 固定规划 · 彩色碗杯物理分拣" : "GPT 实时单技能决策 · 物理执行与反馈");
   if (!sorting && !storageReportsLoaded) {
     storageReportsLoaded = true;
     loadExperiments();
@@ -1271,7 +1273,7 @@ function number(value, decimals = 4) {
 }
 
 function setStatus(text, kind) {
-  ui.status.textContent = text;
+  setText(ui.status, text);
   ui.status.dataset.kind = kind;
 }
 
@@ -1281,7 +1283,7 @@ function updateControls() {
   ui.reset.disabled = !ready;
   ui.camera.disabled = !ready;
   ui.step.disabled = !ready || !state.paused;
-  ui.toggle.textContent = state && !state.paused ? "暂停" : "开始运行";
+  setText(ui.toggle, state && !state.paused ? "暂停" : "开始运行");
   updateSceneMode();
   if (sceneMode === "sorting") {
     renderSorting(ready);
@@ -1293,7 +1295,7 @@ function updateControls() {
 }
 
 function showError(message) {
-  ui.error.textContent = message;
+  setText(ui.error, message);
   ui.error.hidden = false;
 }
 
@@ -1302,14 +1304,14 @@ function createVector(label, axes) {
   row.className = "vector";
   const title = document.createElement("span");
   title.className = "vector-label";
-  title.textContent = label;
+  setText(title, label);
   row.append(title);
   const outputs = axes.map((axis) => {
     const component = document.createElement("span");
     component.className = "component";
     component.append(document.createTextNode(axis));
     const output = document.createElement("output");
-    output.setAttribute("aria-label", `${label} ${axis}`);
+    setLocalizedAttribute(output, "aria-label", `${label} ${axis}`);
     component.append(output);
     row.append(component);
     return output;
@@ -1331,14 +1333,14 @@ function updateObjects(objects) {
       objectRows.push({ element, title, position, rotation });
     }
     const row = objectRows[index];
-    row.title.textContent = object.name;
-    row.position.outputs.forEach((output, i) => { output.textContent = number(object.position_m[i]); });
-    row.rotation.outputs.forEach((output, i) => { output.textContent = number(object.quaternion_wxyz[i]); });
+    setText(row.title, objectLabel(object.name));
+    row.position.outputs.forEach((output, i) => { setText(output, number(object.position_m[i])); });
+    row.rotation.outputs.forEach((output, i) => { setText(output, number(object.quaternion_wxyz[i])); });
   });
 }
 
 function updateJoints(positions) {
-  if (jointOutputs.length === 0) ui.joints.textContent = "";
+  if (jointOutputs.length === 0) setText(ui.joints, "");
   while (jointOutputs.length > positions.length) jointOutputs.pop().parentElement.remove();
   positions.forEach((value, index) => {
     if (!jointOutputs[index]) {
@@ -1346,12 +1348,12 @@ function updateJoints(positions) {
       component.className = "component";
       component.append(document.createTextNode(`J${index + 1}`));
       const output = document.createElement("output");
-      output.setAttribute("aria-label", `关节 ${index + 1} 位置，弧度`);
+      setLocalizedAttribute(output, "aria-label", `关节 ${index + 1} 位置，弧度`);
       component.append(output);
       ui.joints.append(component);
       jointOutputs.push(output);
     }
-    jointOutputs[index].textContent = number(value);
+    setText(jointOutputs[index], number(value));
   });
 }
 
@@ -1367,20 +1369,20 @@ function renderState(next) {
   if (state.skill) lastSkill = state.skill;
   if (state.planner) lastPlanner = state.planner;
   if (state.sorting) lastSorting = state.sorting;
-  ui.time.textContent = number(state.time_s, 3);
-  ui.scene.textContent = state.scene_name;
-  ui.sortingLayout.textContent = state.sorting_layout ?? "默认布局（非独立评估布局）";
-  ui.robot.textContent = state.robot_name;
-  ui.source.textContent = state.source;
-  ui.gripper.textContent = number(state.gripper_opening_m * 1000, 2);
-  ui.contacts.textContent = Number.isFinite(state.contacts) ? String(state.contacts) : "—";
-  ui.timestep.textContent = number(state.timestep_s * 1000, 2);
-  ui.collisionEpisodes.textContent = Number.isInteger(state.collisions?.episodes) ? String(state.collisions.episodes) : "—";
-  ui.collisionForce.textContent = number(state.collisions?.peak_force_n, 2);
-  ui.note.textContent = state.objects.length ? "世界坐标 XYZ（m）；姿态四元数按 w、x、y、z 排列。" : "后端当前未报告物体。";
+  setText(ui.time, number(state.time_s, 3));
+  setText(ui.scene, state.scene_name);
+  setText(ui.sortingLayout, state.sorting_layout ?? "默认布局（非独立评估布局）");
+  setText(ui.robot, state.robot_name);
+  setText(ui.source, state.source);
+  setText(ui.gripper, number(state.gripper_opening_m * 1000, 2));
+  setText(ui.contacts, Number.isFinite(state.contacts) ? String(state.contacts) : "—");
+  setText(ui.timestep, number(state.timestep_s * 1000, 2));
+  setText(ui.collisionEpisodes, Number.isInteger(state.collisions?.episodes) ? String(state.collisions.episodes) : "—");
+  setText(ui.collisionForce, number(state.collisions?.peak_force_n, 2));
+  setText(ui.note, state.objects.length ? "世界坐标 XYZ（m）；姿态四元数按 w、x、y、z 排列。" : "后端当前未报告物体。");
   updateObjects(state.objects);
   updateJoints(state.joint_positions_rad);
-  ui.warnings.textContent = state.warnings.join("\n");
+  setText(ui.warnings, state.warnings.join("\n"));
   ui.warnings.hidden = state.warnings.length === 0;
   setStatus(state.paused ? "已连接 · 已暂停" : "已连接 · 运行中", state.paused ? "paused" : "running");
   updateControls();
@@ -1408,7 +1410,7 @@ function connect() {
   ui.error.hidden = fatalRuntimeError === null;
   ui.reconnectPanel.hidden = true;
   ui.stale.hidden = !hasFrame;
-  ui.stale.textContent = "正在重新连接 · 最后一帧";
+  setText(ui.stale, "正在重新连接 · 最后一帧");
   setStatus("正在连接", "connecting");
   updateControls();
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
@@ -1433,7 +1435,7 @@ function connect() {
           state = null;
         }
         updateControls();
-        showError(`仿真器报告错误：${String(message.error)}`);
+        showError(`仿真器报告错误：${backendText(message.error)}`);
         setStatus(fatalRuntimeError ? "仿真线程停止 · 需重启服务" : "已连接 · 操作错误", "error");
         return;
       }
@@ -1452,7 +1454,7 @@ function connect() {
       updateControls();
       setStatus("已连接 · 数据错误", "error");
       showError(`无法显示仿真数据：${error.message}`);
-      ui.stale.textContent = "数据更新失败 · 最后一帧";
+      setText(ui.stale, "数据更新失败 · 最后一帧");
       ui.stale.hidden = !hasFrame;
     }
   });
@@ -1465,9 +1467,9 @@ function connect() {
     pendingPlannerAction = null;
     updateControls();
     setStatus(fatalRuntimeError ? "仿真线程停止 · 需重启服务" : "已断开 · 更新停止", fatalRuntimeError ? "error" : "disconnected");
-    ui.stale.textContent = fatalRuntimeError ? "仿真线程停止 · 最后一帧" : "连接已中断 · 最后一帧";
+    setText(ui.stale, fatalRuntimeError ? "仿真线程停止 · 最后一帧" : "连接已中断 · 最后一帧");
     ui.stale.hidden = !hasFrame;
-    ui.note.textContent = fatalRuntimeError || "连接已中断，下方数值为最后接收到的状态，不再实时更新。";
+    setText(ui.note, fatalRuntimeError || "连接已中断，下方数值为最后接收到的状态，不再实时更新。");
     ui.reconnectPanel.hidden = false;
     showError(fatalRuntimeError || `仿真连接已关闭（代码 ${event.code}）${event.reason ? `：${event.reason}` : "。"} 无法确认后端是否仍在运行。`);
   });
@@ -1483,7 +1485,7 @@ ui.frame.addEventListener("error", () => {
   showError("后端 JPEG 画面解码失败；未使用替代图像。请检查仿真服务输出。");
   ui.frame.hidden = true;
   ui.empty.hidden = false;
-  ui.empty.querySelector("p").textContent = "仿真画面不可用";
+  setText(ui.empty.querySelector("p"), "仿真画面不可用");
   setStatus("画面错误", "error");
 });
 ui.toggle.addEventListener("click", () => {
@@ -1516,11 +1518,11 @@ ui.graspCustom.addEventListener("click", () => {
   if (ui.graspCustom.disabled || state?.skill?.status !== "idle") return;
   try {
     const parameters = readCustomParameters();
-    ui.parameterError.textContent = "";
+    setText(ui.parameterError, "");
     ui.parameterError.hidden = true;
     send({ action: "grasp", parameters });
   } catch (error) {
-    ui.parameterError.textContent = error.message;
+    setText(ui.parameterError, error.message);
     ui.parameterError.hidden = false;
   }
 });
@@ -1532,18 +1534,18 @@ ui.startSkill.addEventListener("click", () => {
   try {
     const command = { action: "skill", skill: selected.name };
     if (selected.name === "grasp_and_hold") command.parameters = readCustomParameters();
-    ui.parameterError.textContent = "";
+    setText(ui.parameterError, "");
     ui.parameterError.hidden = true;
     send(command);
   } catch (error) {
-    ui.parameterError.textContent = error.message;
+    setText(ui.parameterError, error.message);
     ui.parameterError.hidden = false;
   }
 });
 parameterFields.forEach(({ input }) => {
   input.addEventListener("input", () => {
     input.removeAttribute("aria-invalid");
-    ui.parameterError.textContent = "";
+    setText(ui.parameterError, "");
     ui.parameterError.hidden = true;
   });
 });
@@ -1569,4 +1571,10 @@ ui.experimentsRefresh.addEventListener("click", loadExperiments);
 comparisonUi.refresh.addEventListener("click", loadPlanningComparison);
 comparisonUi.batch.addEventListener("change", loadPlanningComparison);
 evaluationUi.refresh.addEventListener("click", loadSortingEvaluation);
+initializeLanguage(() => {
+  // Invalidate render caches without touching the simulation, requests, or drafts.
+  plannerHistoryKey = manualContractKey = sortingQueueKey = sortingObjectsKey = null;
+  sortProposalKey = sortHistoryKey = null;
+  displayedPhaseOrder = "";
+}, () => Boolean(pendingPlannerAction || lastPlanner?.task));
 connect();
