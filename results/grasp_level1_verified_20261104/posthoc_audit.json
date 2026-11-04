@@ -1,0 +1,71 @@
+{
+  "directory": "/Users/shihuayu/Projects/robot-grasp-simulation/results/grasp_level1_verified_20261104",
+  "recorded_attempts": 162,
+  "valid_labels": 153,
+  "labelled_trial_mean_wall_s": 2.1892039210396153,
+  "all_attempt_mean_wall_s": 2.0872375558337133,
+  "invalid_setup_mean_wall_s": 0.3538093473333801,
+  "condition_groups_with_differing_speed_labels": [],
+  "failure_phases": [
+    {
+      "split": "training",
+      "last_phase": "descend",
+      "reason": "机械臂未在时限内到达目标位姿",
+      "count": 15
+    },
+    {
+      "split": "training",
+      "last_phase": "lift",
+      "reason": "技能执行超时",
+      "count": 1
+    },
+    {
+      "split": "training",
+      "last_phase": "hold",
+      "reason": "酒瓶掉落、滑移或未达到要求的离桌高度",
+      "count": 2
+    },
+    {
+      "split": "evaluation",
+      "last_phase": "descend",
+      "reason": "机械臂未在时限内到达目标位姿",
+      "count": 6
+    }
+  ],
+  "unexpected_contact_outcomes": [
+    {
+      "split": "training",
+      "success": true,
+      "count": 6
+    },
+    {
+      "split": "training",
+      "success": false,
+      "count": 15
+    },
+    {
+      "split": "evaluation",
+      "success": true,
+      "count": 3
+    },
+    {
+      "split": "evaluation",
+      "success": false,
+      "count": 6
+    }
+  ],
+  "selected_speed_counts": {
+    "0.2": 15,
+    "0.04": 3
+  },
+  "all_positive_traces_pass_two_second_hold": true,
+  "reproduction": {
+    "earlier_batch": "../grasp_level1_20261104",
+    "same_frozen_protocol": true,
+    "changed_physical_rows": [],
+    "same_predictions": true,
+    "same_model_sha256": true,
+    "current_source_mismatches": [],
+    "scope": "Same-protocol replay after error-boundary fixes, not another independent test set; do not pool batches."
+  }
+}

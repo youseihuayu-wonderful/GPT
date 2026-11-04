@@ -1,0 +1,84 @@
+{
+  "case": {
+    "case_id": "bowl.condition_22",
+    "target_object": "bowl",
+    "position_label": "training",
+    "seed": 5644,
+    "offset_xy_m": [
+      0.08,
+      0.0
+    ],
+    "yaw_rad": 0.0
+  },
+  "parameters": {
+    "initial_opening_m": 0.08,
+    "descent_speed_m_s": 0.2,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "83ff7c77caacfac65e5eb225b50f021ae3dea71e4d1e797d9c79ab7740ab5d11",
+  "initial_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5799999810991446,
+      -0.0800000303244,
+      0.7184049917750716
+    ],
+    "quaternion_wxyz": [
+      0.9999999999480165,
+      -8.652571714984534e-06,
+      5.3945032185192145e-06,
+      -6.0384752150368935e-12
+    ]
+  },
+  "final_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5811243639415437,
+      -0.09119392580350325,
+      0.8573741439699056
+    ],
+    "quaternion_wxyz": [
+      0.9903589705118228,
+      -0.13818126296349245,
+      -0.008111588093178036,
+      0.005408348285990684
+    ]
+  },
+  "controller_execution_sim_s": 12.108000000001047,
+  "execution_sim_s": 13.110000000001381,
+  "verified_hold_s": 2.000000000000668,
+  "required_hold_s": 2.0,
+  "wall_s": 1.7875210830025026,
+  "warnings": [],
+  "collisions": {
+    "episodes": 5,
+    "duration_s": 0.024000000000000007,
+    "peak_force_n": 1.2122200505498284,
+    "pairs": [
+      {
+        "body_a": "bowl_object",
+        "body_b": "cabinet_cabinet_bottom",
+        "episodes": 5,
+        "duration_s": 0.024000000000000007,
+        "peak_force_n": 1.2122200505498284
+      }
+    ],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bowl.condition_22.speed_200.json.gz",
+  "trial_id": "bowl.condition_22.speed_200",
+  "split": "training",
+  "measurement_wall_s": 1.7992747089956538
+}

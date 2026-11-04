@@ -1,0 +1,159 @@
+{
+  "kind": "proposal_level1_grasp_speed_pilot",
+  "status": "completed",
+  "stage": "finished",
+  "started_at": "2026-11-04T21:08:50.889064+00:00",
+  "protocol": "protocol.json",
+  "training": {
+    "attempted": 108,
+    "labelled": 99,
+    "successes": 81,
+    "failures": 18,
+    "invalid_initial_states": 9,
+    "failure_reasons": {
+      "机械臂未在时限内到达目标位姿": 15,
+      "技能执行超时": 1,
+      "酒瓶掉落、滑移或未达到要求的离桌高度": 2
+    },
+    "invalid_initial_state_reasons": {
+      "Grasp requires a target stably supported on the table": 9
+    },
+    "sum_collection_wall_s": 219.90575683701172,
+    "mean_collection_wall_s": 2.036164415157516,
+    "min_collection_wall_s": 0.32745341699774144,
+    "max_collection_wall_s": 3.2740790420066332,
+    "unexpected_contact_trials": 21,
+    "numerical_warning_trials": 0
+  },
+  "evaluation": {
+    "attempted": 54,
+    "labelled": 54,
+    "successes": 48,
+    "failures": 6,
+    "invalid_initial_states": 0,
+    "failure_reasons": {
+      "机械臂未在时限内到达目标位姿": 6
+    },
+    "invalid_initial_state_reasons": {},
+    "sum_collection_wall_s": 118.22672720804985,
+    "mean_collection_wall_s": 2.1893838371861083,
+    "min_collection_wall_s": 1.4095107079992886,
+    "max_collection_wall_s": 3.251952833998075,
+    "unexpected_contact_trials": 9,
+    "numerical_warning_trials": 0
+  },
+  "selected_execution": {
+    "attempted": 18,
+    "labelled": 18,
+    "successes": 16,
+    "failures": 2,
+    "invalid_initial_states": 0,
+    "failure_reasons": {
+      "机械臂未在时限内到达目标位姿": 2
+    },
+    "invalid_initial_state_reasons": {},
+    "sum_collection_wall_s": 35.7071167080212,
+    "mean_collection_wall_s": 1.983728706001178,
+    "min_collection_wall_s": 1.620432959003665,
+    "max_collection_wall_s": 2.962531333003426,
+    "unexpected_contact_trials": 3,
+    "numerical_warning_trials": 0
+  },
+  "development_evidence": [
+    {
+      "source": "results/grasp_level1_20261104/development/00_summary.json",
+      "copy": "development/00_00_summary.json",
+      "sha256": "e1d438b382aea3e3a71202ae0201ab6f32e746bda5a8f4eb1da9a99373dc3355",
+      "used_for_training": false,
+      "note": "Earlier feasibility/development observations, excluded from held-out evaluation; retained for cost transparency"
+    },
+    {
+      "source": "results/grasp_level1_20261104/development/01_development_trials.json",
+      "copy": "development/01_01_development_trials.json",
+      "sha256": "9c31a51f08a5fe69fd75fa0129f0e944edd871aae7b7894bedce4bd008e80083",
+      "used_for_training": false,
+      "note": "Earlier feasibility/development observations, excluded from held-out evaluation; retained for cost transparency"
+    },
+    {
+      "source": "results/grasp_level1_20261104/summary.json",
+      "copy": "development/02_summary.json",
+      "sha256": "697e2eb9148bd204b4b0fcf892ed1a2194a45b9392ca2795aeae5a81e97d497b",
+      "used_for_training": false,
+      "note": "Earlier feasibility/development observations, excluded from held-out evaluation; retained for cost transparency"
+    }
+  ],
+  "attempts_started": 162,
+  "active_trial": null,
+  "limitations": [
+    "Only two existing object assets; held-out conditions are not held-out objects",
+    "Random-forest probabilities are not calibrated and do not guarantee safety",
+    "No active-learning, D-optimal, GPT, 27B, or MRIoC comparison is performed",
+    "Controller timeouts and contact failures are retained and must be interpreted separately",
+    "Numerical/internal errors are not negative grasp labels"
+  ],
+  "elapsed_wall_s": 338.57721049999964,
+  "training_wall_s": 0.043049166997661814,
+  "model_sha256": "c9e4cf038dd38474b7f48da0004642a103636ada06b49dc9290c3a21d9db503c",
+  "recommendations": 18,
+  "unmet_threshold_recommendations": 3,
+  "prediction_metrics": {
+    "labelled": 54,
+    "accuracy_at_0_5": 0.9444444444444444,
+    "brier_score": 0.05555555555555555,
+    "true_negatives": 6,
+    "false_positives": 0,
+    "false_negatives": 3,
+    "true_positives": 45,
+    "scope": "Descriptive held-out-condition results, with three correlated speeds per condition; no unseen-object or calibrated-probability claim"
+  },
+  "speed_comparison": {
+    "matched_valid_conditions": 18,
+    "methods": {
+      "recommended": {
+        "attempted": 18,
+        "successes": 16,
+        "success_rate": 0.8888888888888888,
+        "mean_success_execution_sim_s": 13.00975000000118,
+        "meanings": "Mean duration is success-only; differing success sets are not a causal speedup comparison"
+      },
+      "0.04": {
+        "attempted": 18,
+        "successes": 16,
+        "success_rate": 0.8888888888888888,
+        "mean_success_execution_sim_s": 18.64187499999999,
+        "meanings": "Mean duration is success-only; differing success sets are not a causal speedup comparison"
+      },
+      "0.1": {
+        "attempted": 18,
+        "successes": 16,
+        "success_rate": 0.8888888888888888,
+        "mean_success_execution_sim_s": 14.138000000001721,
+        "meanings": "Mean duration is success-only; differing success sets are not a causal speedup comparison"
+      },
+      "0.2": {
+        "attempted": 18,
+        "successes": 16,
+        "success_rate": 0.8888888888888888,
+        "mean_success_execution_sim_s": 12.634000000001222,
+        "meanings": "Mean duration is success-only; differing success sets are not a causal speedup comparison"
+      }
+    },
+    "speed_dependent_outcome_conditions": [],
+    "fastest_failed_but_slower_succeeded_conditions": [],
+    "recommended_minus_fastest_on_joint_success": {
+      "pairs": 16,
+      "mean_sim_s": 0.37574999999995573
+    }
+  },
+  "level1_checks": {
+    "real_positive_and_negative_training_labels": true,
+    "trained_model_saved_and_reloaded": true,
+    "three_probabilities_for_every_evaluation_condition": true,
+    "recommendations_saved_before_evaluation": true,
+    "all_recommendations_physically_checked": true,
+    "at_least_one_recommended_grasp_physically_succeeded": true,
+    "initial_states_match_across_speeds": true
+  },
+  "level1_completed": true,
+  "finished_at": "2026-11-04T21:14:29.470831+00:00"
+}

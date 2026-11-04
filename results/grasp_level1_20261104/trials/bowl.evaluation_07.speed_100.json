@@ -1,0 +1,88 @@
+{
+  "case": {
+    "case_id": "bowl.evaluation_07",
+    "target_object": "bowl",
+    "position_label": "evaluation",
+    "seed": 5644,
+    "offset_xy_m": [
+      0.025687,
+      0.037944
+    ],
+    "yaw_rad": 0.19251
+  },
+  "parameters": {
+    "initial_opening_m": 0.08,
+    "descent_speed_m_s": 0.1,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "072a34da8473ff737a6d5f856d42c5c40bf4fdcc898016a0ee9bcf442d407842",
+  "initial_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5185890986576195,
+      -0.045569178800848716,
+      0.7184049917750714
+    ],
+    "quaternion_wxyz": [
+      0.9889033903875151,
+      -9.357965159809174e-06,
+      4.049225272377971e-06,
+      0.14856003626854083
+    ]
+  },
+  "final_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.534845709615536,
+      -0.05498464966636734,
+      0.8567597305716224
+    ],
+    "quaternion_wxyz": [
+      0.9898204972172743,
+      -0.14094116463368633,
+      -0.01964395638295071,
+      -0.0022552999520888445
+    ]
+  },
+  "controller_execution_sim_s": 13.01600000000135,
+  "execution_sim_s": 14.018000000001685,
+  "verified_hold_s": 2.000000000000668,
+  "required_hold_s": 2.0,
+  "wall_s": 1.8282794160040794,
+  "warnings": [],
+  "collisions": {
+    "episodes": 189,
+    "duration_s": 0.6680000000000005,
+    "peak_force_n": 3.5939504080418745,
+    "pairs": [
+      {
+        "body_a": "bowl_object",
+        "body_b": "cabinet_cabinet_bottom",
+        "episodes": 189,
+        "duration_s": 0.6680000000000005,
+        "peak_force_n": 3.5939504080418745
+      }
+    ],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bowl.evaluation_07.speed_100.json.gz",
+  "trial_id": "bowl.evaluation_07.speed_100",
+  "split": "evaluation",
+  "recommended": false,
+  "predicted_success_probability": 1.0,
+  "threshold": 0.9,
+  "threshold_met": true,
+  "measurement_wall_s": 1.8397594999987632
+}

@@ -1,0 +1,80 @@
+{
+  "case": {
+    "case_id": "bottle.evaluation_05",
+    "target_object": "bottle",
+    "position_label": "evaluation",
+    "seed": 5644,
+    "offset_xy_m": [
+      0.002775,
+      -0.062967
+    ],
+    "yaw_rad": 0.1516
+  },
+  "parameters": {
+    "initial_opening_m": 0.04,
+    "descent_speed_m_s": 0.2,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "ce91dbc7c91eae5e979921d0cc671052e4d4313c63bd97e1f23d16ce9cb23847",
+  "initial_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.3527749781955296,
+      -0.3029669227888332,
+      0.718865063149661
+    ],
+    "quaternion_wxyz": [
+      0.9971285549065205,
+      2.564963746295946e-05,
+      5.185025741973956e-06,
+      0.0757274342972635
+    ]
+  },
+  "final_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.35200774907520643,
+      -0.3031295944852195,
+      0.8682507829434788
+    ],
+    "quaternion_wxyz": [
+      0.9994809987625742,
+      -0.00029427182064693444,
+      -0.00010564894324558048,
+      0.03221234786480318
+    ]
+  },
+  "controller_execution_sim_s": 12.548000000001194,
+  "execution_sim_s": 13.550000000001528,
+  "verified_hold_s": 2.000000000000668,
+  "required_hold_s": 2.0,
+  "wall_s": 2.2290608330004034,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bottle.evaluation_05.speed_200.json.gz",
+  "trial_id": "bottle.evaluation_05.speed_200",
+  "split": "evaluation",
+  "recommended": true,
+  "predicted_success_probability": 1.0,
+  "threshold": 0.9,
+  "threshold_met": true,
+  "measurement_wall_s": 2.2395629999955418
+}

@@ -42,6 +42,21 @@ https://github.com/user-attachments/assets/c2c58695-b541-4502-ae3f-c1862f18cd8e
 
 收纳场景的五项技能可在同一仿真中独立调用，无需重置。该模式的 GPT 根据每轮物理状态选择技能；初态已持物时不必重新抓取。可选技能和终点均有限，这不是开放式机器人代理。
 
+## Proposal Level 1：抓取速度分类与真实执行
+
+使用上方第一个视频的原收纳工位，但只做黑碗／酒瓶的抓取、抬升与连续 2 秒保持，不混入入屉、关屉或六物分拣。新增的本地随机森林负责三档下降速度的预测与选择；这一步不使用 GPT、27B、MRIoC 或付费接口。
+
+已完成真实正负采集、训练、先保存三档预测再实际执行建议，并按同一冻结协议复验。**工程流程可行，但本批模型建议没有优于固定最快档；尚未验证主动学习或 D-optimal 的采样优势。** 具体样本数、计时、错误预测、失败阶段与研究边界见[简短验证记录](results/grasp_level1_verified_20261104/record.md)和[原始汇总](results/grasp_level1_verified_20261104/summary.json)。
+
+```sh
+uv sync --locked
+uv run --locked python run_grasp_learning.py --output results/grasp_level1_reproduction
+```
+
+输出目录必须不存在。入口为 [`run_grasp_learning.py`](run_grasp_learning.py)，物理标签采集器为 [`grasp_trial.py`](grasp_trial.py)，模型与选速规则为 [`grasp_speed_model.py`](grasp_speed_model.py)。每批保留协议、源码／资产指纹、模型、逐次物理轨迹、预测与真实结果；无效初态不当作失败，内部／数值异常中止并保留当前尝试信息，不覆盖旧证据。
+
+原实时页面仍由 `server.py` 提供，可显示黑碗／抽屉工位；页面不会自动加载这些随机森林建议。本轮模型执行走上述无画面批量入口，不把旧演示视频当作学习实验。
+
 ## 彩色碗杯分拣：GPT 提案与固定规则对照
 
 两个终端分别启动后端与右侧实时页面：
@@ -125,7 +140,7 @@ uv run python -m unittest discover -s tests -v
 - 按物理接触、抬升与放置顺序、正确区域和落点、稳定支撑、空手归位、内置及独立额外保持判定。未测量耗时保留为空；提前失败不算更快，只对两种方法都成功的配对计算耗时差。
 - 明确的模型拒绝、无效提案、目标不匹配或物理失败保留并继续；配置、未知提供方／内部错误、配对、冻结、清理或证据保存错误中止整批。中止与“全部已执行但有任务失败”分开记录，不把它们冒充通过。
 
-复现另存目录，不覆盖正式批次或旧失败：
+历史分拣复现须在独立工作区使用提交 `a30e4e8ee40aea3c579b6668edb661a1373a76bd` 及其锁文件，再运行下列命令。本次 Level 1 新增了分类器依赖并收紧 IK 异常处理，当前工作区不再匹配旧分拣协议的冻结指纹；拒绝混用是预期保护，不修改旧协议哈希或覆盖历史失败。复现另存目录：
 
 ```sh
 uv run python evaluate_sorting.py --output results/sorting_frozen_evaluation_reproduction

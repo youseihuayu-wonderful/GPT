@@ -1,0 +1,84 @@
+{
+  "case": {
+    "case_id": "bottle.condition_07",
+    "target_object": "bottle",
+    "position_label": "training",
+    "seed": 5644,
+    "offset_xy_m": [
+      -0.08,
+      0.08
+    ],
+    "yaw_rad": 0.0
+  },
+  "parameters": {
+    "initial_opening_m": 0.04,
+    "descent_speed_m_s": 0.2,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": false,
+  "controller_status": "failed",
+  "failure_reason": "机械臂未在时限内到达目标位姿",
+  "initial_state_fingerprint": "8594156275bd29b87ea2968d021df14d249d022ce23689e1734ff3b8169a39d1",
+  "initial_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.2699999901056717,
+      -0.1599999203816979,
+      0.718865063149661
+    ],
+    "quaternion_wxyz": [
+      0.9999999996576066,
+      2.5968634642270193e-05,
+      3.2277559917578713e-06,
+      4.345902622584029e-11
+    ]
+  },
+  "final_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.2699999901056717,
+      -0.1599999203816979,
+      0.7188650631497034
+    ],
+    "quaternion_wxyz": [
+      0.9999999996576066,
+      2.59686346450114e-05,
+      3.227755992096876e-06,
+      4.3459064068596796e-11
+    ]
+  },
+  "controller_execution_sim_s": 9.18200000000007,
+  "execution_sim_s": 9.18400000000007,
+  "verified_hold_s": 0.0,
+  "required_hold_s": 2.0,
+  "wall_s": 1.290763707998849,
+  "warnings": [],
+  "collisions": {
+    "episodes": 39,
+    "duration_s": 2.4239999999999546,
+    "peak_force_n": 96.95754222448956,
+    "pairs": [
+      {
+        "body_a": "rack_object",
+        "body_b": "robot_hand",
+        "episodes": 39,
+        "duration_s": 2.4239999999999546,
+        "peak_force_n": 96.95754222448956
+      }
+    ],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": false,
+    "clear_of_table": false,
+    "target_lifted": false,
+    "relative_pose_stable": false,
+    "verified_hold": false
+  },
+  "controller_verified_hold": false,
+  "trace_path": "traces/bottle.condition_07.speed_200.json.gz",
+  "trial_id": "bottle.condition_07.speed_200",
+  "split": "training",
+  "measurement_wall_s": 1.2972831660008524
+}

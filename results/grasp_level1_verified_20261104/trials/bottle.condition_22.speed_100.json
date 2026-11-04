@@ -1,0 +1,76 @@
+{
+  "case": {
+    "case_id": "bottle.condition_22",
+    "target_object": "bottle",
+    "position_label": "training",
+    "seed": 5644,
+    "offset_xy_m": [
+      0.08,
+      0.0
+    ],
+    "yaw_rad": 0.0
+  },
+  "parameters": {
+    "initial_opening_m": 0.04,
+    "descent_speed_m_s": 0.1,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "fb4702698235dfa00f3499ba05e8c4f65bbc9ac8f0b9a6f5fafac19d830940f6",
+  "initial_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.42999999010567175,
+      -0.23999992038169793,
+      0.718865063149661
+    ],
+    "quaternion_wxyz": [
+      0.9999999996576066,
+      2.5968634642269868e-05,
+      3.2277559917568866e-06,
+      4.345901255099958e-11
+    ]
+  },
+  "final_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.43028044433764545,
+      -0.2396510726782055,
+      0.86875682777155
+    ],
+    "quaternion_wxyz": [
+      0.9995938680931337,
+      0.0004210284523451586,
+      0.0002845730808769169,
+      -0.02849281705645942
+    ]
+  },
+  "controller_execution_sim_s": 12.950000000001328,
+  "execution_sim_s": 13.952000000001663,
+  "verified_hold_s": 2.000000000000668,
+  "required_hold_s": 2.0,
+  "wall_s": 2.5665687920045457,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bottle.condition_22.speed_100.json.gz",
+  "trial_id": "bottle.condition_22.speed_100",
+  "split": "training",
+  "measurement_wall_s": 2.577439708999009
+}

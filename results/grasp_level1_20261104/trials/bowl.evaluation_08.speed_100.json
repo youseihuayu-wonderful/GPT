@@ -1,0 +1,80 @@
+{
+  "case": {
+    "case_id": "bowl.evaluation_08",
+    "target_object": "bowl",
+    "position_label": "evaluation",
+    "seed": 5644,
+    "offset_xy_m": [
+      0.015143,
+      0.019508
+    ],
+    "yaw_rad": 0.039547
+  },
+  "parameters": {
+    "initial_opening_m": 0.08,
+    "descent_speed_m_s": 0.1,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "986cdeb70496d1a07509ec90a1bdba2f6b0a4b848871d6020c6b49acd0bb0b35",
+  "initial_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5151429823128792,
+      -0.06049203104782768,
+      0.7184049917750716
+    ],
+    "quaternion_wxyz": [
+      0.9998045106667174,
+      -8.757541488398048e-06,
+      5.2223681731789076e-06,
+      0.0197722114726694
+    ]
+  },
+  "final_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5180969176230843,
+      -0.07166185265091807,
+      0.8574748740285103
+    ],
+    "quaternion_wxyz": [
+      0.9903485517513455,
+      -0.13830265692586083,
+      -0.007792216968030711,
+      0.004626282090778341
+    ]
+  },
+  "controller_execution_sim_s": 13.024000000001353,
+  "execution_sim_s": 14.026000000001687,
+  "verified_hold_s": 2.000000000000668,
+  "required_hold_s": 2.0,
+  "wall_s": 1.8102756249936647,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bowl.evaluation_08.speed_100.json.gz",
+  "trial_id": "bowl.evaluation_08.speed_100",
+  "split": "evaluation",
+  "recommended": false,
+  "predicted_success_probability": 1.0,
+  "threshold": 0.9,
+  "threshold_met": true,
+  "measurement_wall_s": 1.8214714170026127
+}

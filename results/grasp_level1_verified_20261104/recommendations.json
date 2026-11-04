@@ -1,0 +1,584 @@
+{
+  "generated_at": "2026-11-04T21:12:31.155874+00:00",
+  "model_sha256": "c9e4cf038dd38474b7f48da0004642a103636ada06b49dc9290c3a21d9db503c",
+  "calibrated": false,
+  "evaluation_has_started": false,
+  "recommendations": [
+    {
+      "case": {
+        "case_id": "bowl.evaluation_00",
+        "target_object": "bowl",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.002306,
+          -0.065496
+        ],
+        "yaw_rad": 0.197565
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bowl.evaluation_01",
+        "target_object": "bowl",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.036116,
+          -0.036488
+        ],
+        "yaw_rad": 0.190623
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bowl.evaluation_02",
+        "target_object": "bowl",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.006534,
+          -0.00942
+        ],
+        "yaw_rad": -0.039921
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bowl.evaluation_03",
+        "target_object": "bowl",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.077664,
+          0.014305
+        ],
+        "yaw_rad": -0.173067
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bowl.evaluation_04",
+        "target_object": "bowl",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          0.055146,
+          -0.051812
+        ],
+        "yaw_rad": -0.048448
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bowl.evaluation_05",
+        "target_object": "bowl",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.010584,
+          -0.05869
+        ],
+        "yaw_rad": 0.135958
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bowl.evaluation_06",
+        "target_object": "bowl",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.002255,
+          -0.04516
+        ],
+        "yaw_rad": 0.041799
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bowl.evaluation_07",
+        "target_object": "bowl",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          0.025687,
+          0.037944
+        ],
+        "yaw_rad": 0.19251
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bowl.evaluation_08",
+        "target_object": "bowl",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          0.015143,
+          0.019508
+        ],
+        "yaw_rad": 0.039547
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bottle.evaluation_00",
+        "target_object": "bottle",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          0.037927,
+          0.062633
+        ],
+        "yaw_rad": 0.183044
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bottle.evaluation_01",
+        "target_object": "bottle",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          0.040107,
+          0.064759
+        ],
+        "yaw_rad": -0.077068
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bottle.evaluation_02",
+        "target_object": "bottle",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.060216,
+          -0.06602
+        ],
+        "yaw_rad": -0.16802
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 0.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 0.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 0.0
+        }
+      ],
+      "selected_speed_m_s": 0.04,
+      "selected_success_probability": 0.0,
+      "threshold": 0.9,
+      "threshold_met": false,
+      "selection_rule": "highest_probability_slower_tiebreak"
+    },
+    {
+      "case": {
+        "case_id": "bottle.evaluation_03",
+        "target_object": "bottle",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          0.061003,
+          0.010769
+        ],
+        "yaw_rad": 0.055329
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bottle.evaluation_04",
+        "target_object": "bottle",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.071709,
+          0.00338
+        ],
+        "yaw_rad": -0.031561
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 0.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 0.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 0.0
+        }
+      ],
+      "selected_speed_m_s": 0.04,
+      "selected_success_probability": 0.0,
+      "threshold": 0.9,
+      "threshold_met": false,
+      "selection_rule": "highest_probability_slower_tiebreak"
+    },
+    {
+      "case": {
+        "case_id": "bottle.evaluation_05",
+        "target_object": "bottle",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          0.002775,
+          -0.062967
+        ],
+        "yaw_rad": 0.1516
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bottle.evaluation_06",
+        "target_object": "bottle",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.039906,
+          -0.00663
+        ],
+        "yaw_rad": 0.00041
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bottle.evaluation_07",
+        "target_object": "bottle",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          0.029055,
+          -0.032759
+        ],
+        "yaw_rad": 0.164611
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 1.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 1.0
+        }
+      ],
+      "selected_speed_m_s": 0.2,
+      "selected_success_probability": 1.0,
+      "threshold": 0.9,
+      "threshold_met": true,
+      "selection_rule": "fastest_above_threshold"
+    },
+    {
+      "case": {
+        "case_id": "bottle.evaluation_08",
+        "target_object": "bottle",
+        "position_label": "evaluation",
+        "seed": 5644,
+        "offset_xy_m": [
+          -0.055066,
+          0.068137
+        ],
+        "yaw_rad": -0.151248
+      },
+      "candidates": [
+        {
+          "speed_m_s": 0.04,
+          "predicted_success_probability": 0.0
+        },
+        {
+          "speed_m_s": 0.1,
+          "predicted_success_probability": 0.0
+        },
+        {
+          "speed_m_s": 0.2,
+          "predicted_success_probability": 0.0
+        }
+      ],
+      "selected_speed_m_s": 0.04,
+      "selected_success_probability": 0.0,
+      "threshold": 0.9,
+      "threshold_met": false,
+      "selection_rule": "highest_probability_slower_tiebreak"
+    }
+  ]
+}

@@ -659,12 +659,14 @@ class SortingServerTests(unittest.IsolatedAsyncioTestCase):
         self.provider.assert_not_awaited()
 
     async def test_declared_layout_changes_real_positions_and_survives_reset(self) -> None:
-        from sorting_evaluation import load_protocol
+        from frozen_protocol_fixture import current_protocol
 
-        protocol = load_protocol()
+        protocol = current_protocol()
         layout_id = protocol["layouts"][0]["id"]
-        with patch("sorting_planning.PlannerConfig.load",
-                   return_value=PlannerConfig("/fixture/codex", protocol["requested_model"])):
+        with patch("sorting_evaluation.load_protocol", return_value=protocol), patch(
+            "sorting_planning.PlannerConfig.load",
+            return_value=PlannerConfig("/fixture/codex", protocol["requested_model"]),
+        ):
             app = server.create_app(scene="sorting", sorting_layout=layout_id)
             app[server.CONTROLS].paused = True
             client = TestClient(TestServer(app))

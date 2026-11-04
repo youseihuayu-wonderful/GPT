@@ -1,0 +1,80 @@
+{
+  "case": {
+    "case_id": "bowl.evaluation_04",
+    "target_object": "bowl",
+    "position_label": "evaluation",
+    "seed": 5644,
+    "offset_xy_m": [
+      0.055146,
+      -0.051812
+    ],
+    "yaw_rad": -0.048448
+  },
+  "parameters": {
+    "initial_opening_m": 0.08,
+    "descent_speed_m_s": 0.04,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "ab1a3d0034d0f68df7dcff14be41d27a12c96db8268b5ecdf22c05f8f3de2ef1",
+  "initial_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.555145979653015,
+      -0.13181202937387165,
+      0.7184049917750716
+    ],
+    "quaternion_wxyz": [
+      0.9997066132073741,
+      -8.519369499119464e-06,
+      5.602499941522567e-06,
+      -0.02422163094167925
+    ]
+  },
+  "final_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5544906275971948,
+      -0.14304580638254205,
+      0.8580075186757994
+    ],
+    "quaternion_wxyz": [
+      0.9901633210586351,
+      -0.13930483539986277,
+      -0.012892525181637096,
+      0.002131492151718631
+    ]
+  },
+  "controller_execution_sim_s": 18.32200000000017,
+  "execution_sim_s": 19.325999999999613,
+  "verified_hold_s": 2.0019999999988904,
+  "required_hold_s": 2.0,
+  "wall_s": 2.475688958002138,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bowl.evaluation_04.speed_040.json.gz",
+  "trial_id": "bowl.evaluation_04.speed_040",
+  "split": "evaluation",
+  "recommended": false,
+  "predicted_success_probability": 1.0,
+  "threshold": 0.9,
+  "threshold_met": true,
+  "measurement_wall_s": 2.489943000000494
+}

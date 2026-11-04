@@ -1,0 +1,88 @@
+{
+  "case": {
+    "case_id": "bottle.evaluation_02",
+    "target_object": "bottle",
+    "position_label": "evaluation",
+    "seed": 5644,
+    "offset_xy_m": [
+      -0.060216,
+      -0.06602
+    ],
+    "yaw_rad": -0.16802
+  },
+  "parameters": {
+    "initial_opening_m": 0.04,
+    "descent_speed_m_s": 0.04,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": false,
+  "controller_status": "failed",
+  "failure_reason": "机械臂未在时限内到达目标位姿",
+  "initial_state_fingerprint": "ea00ba668d51c5415cfd3d63a664f538fc18d5f4fced42dc601a92bba2bd38d6",
+  "initial_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.28978400356087464,
+      -0.3060199198463341,
+      0.718865063149661
+    ],
+    "quaternion_wxyz": [
+      0.9964732345728412,
+      2.614789429718827e-05,
+      1.037312753719964e-06,
+      -0.08391121555043583
+    ]
+  },
+  "final_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.28978400356087464,
+      -0.3060199198463341,
+      0.7188650631497036
+    ],
+    "quaternion_wxyz": [
+      0.9964732345728412,
+      2.6147894299953314e-05,
+      1.0373127538282436e-06,
+      -0.08391121555043583
+    ]
+  },
+  "controller_execution_sim_s": 16.956000000000927,
+  "execution_sim_s": 16.958000000000926,
+  "verified_hold_s": 0.0,
+  "required_hold_s": 2.0,
+  "wall_s": 2.2610703329992248,
+  "warnings": [],
+  "collisions": {
+    "episodes": 38,
+    "duration_s": 4.585999999999717,
+    "peak_force_n": 169.47101775748544,
+    "pairs": [
+      {
+        "body_a": "rack_object",
+        "body_b": "robot_link7",
+        "episodes": 38,
+        "duration_s": 4.585999999999717,
+        "peak_force_n": 169.47101775748544
+      }
+    ],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": false,
+    "clear_of_table": false,
+    "target_lifted": false,
+    "relative_pose_stable": false,
+    "verified_hold": false
+  },
+  "controller_verified_hold": false,
+  "trace_path": "traces/bottle.evaluation_02.speed_040.json.gz",
+  "trial_id": "bottle.evaluation_02.speed_040",
+  "split": "evaluation",
+  "recommended": true,
+  "predicted_success_probability": 0.0,
+  "threshold": 0.9,
+  "threshold_met": false,
+  "measurement_wall_s": 2.271772583000711
+}

@@ -1,0 +1,37 @@
+{
+  "full_suite": {
+    "command": "uv run --locked python -m unittest discover -s tests -v",
+    "tests_run": 319,
+    "elapsed_s": 1287.455,
+    "level1_tests_passed": 34,
+    "errored_test_methods": 3,
+    "errors_including_subtests": 9,
+    "error_cause": "Historical frozen protocol rejected changed working-tree fingerprints.",
+    "log": "regression_initial.log"
+  },
+  "targeted_after_test_fixture_fix": [
+    {
+      "command": "uv run --locked python -m unittest discover -s tests -p test_sorting_evaluation.py -v",
+      "tests_run": 9,
+      "elapsed_s": 9.922,
+      "result": "OK"
+    },
+    {
+      "command": "uv run --locked python -m unittest discover -s tests -p test_server.py -k declared_layout -v",
+      "tests_run": 1,
+      "elapsed_s": 1.413,
+      "result": "OK"
+    }
+  ],
+  "full_suite_rerun_after_fixture_fix": false,
+  "historical_experiment_protocol_rewritten": false,
+  "physical_smoke": {
+    "command": "uv run --locked python run_grasp_learning.py --output results/grasp_level1_verified_20261104 --development-evidence results/grasp_level1_20261104/development/00_summary.json --development-evidence results/grasp_level1_20261104/development/01_development_trials.json --development-evidence results/grasp_level1_20261104/summary.json",
+    "exit_code": 0,
+    "process_wall_s": 339.51,
+    "attempts": 162,
+    "summary": "summary.json",
+    "audit": "posthoc_audit.json"
+  },
+  "scope": "Unit fault injection and temporary synthetic unit rows are not physical training or evaluation evidence."
+}

@@ -1,0 +1,80 @@
+{
+  "case": {
+    "case_id": "bowl.evaluation_06",
+    "target_object": "bowl",
+    "position_label": "evaluation",
+    "seed": 5644,
+    "offset_xy_m": [
+      -0.002255,
+      -0.04516
+    ],
+    "yaw_rad": 0.041799
+  },
+  "parameters": {
+    "initial_opening_m": 0.08,
+    "descent_speed_m_s": 0.04,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "26071834f278045c5e633981aa3dd471438bb7d5b65ca56556d5469358aeaaad",
+  "initial_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.4977449823828139,
+      -0.12516003108772578,
+      0.7184049917750716
+    ],
+    "quaternion_wxyz": [
+      0.9997816133472782,
+      -8.763416321987232e-06,
+      5.212503872869579e-06,
+      0.020897978580417805
+    ]
+  },
+  "final_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5007278440750342,
+      -0.13630543640348408,
+      0.8575446420602748
+    ],
+    "quaternion_wxyz": [
+      0.9903731328970424,
+      -0.13814872301817083,
+      -0.007103140974968724,
+      0.005053053773350545
+    ]
+  },
+  "controller_execution_sim_s": 17.95800000000037,
+  "execution_sim_s": 18.961999999999815,
+  "verified_hold_s": 2.0019999999988904,
+  "required_hold_s": 2.0,
+  "wall_s": 2.4423222080004052,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bowl.evaluation_06.speed_040.json.gz",
+  "trial_id": "bowl.evaluation_06.speed_040",
+  "split": "evaluation",
+  "recommended": false,
+  "predicted_success_probability": 1.0,
+  "threshold": 0.9,
+  "threshold_met": true,
+  "measurement_wall_s": 2.456079374998808
+}

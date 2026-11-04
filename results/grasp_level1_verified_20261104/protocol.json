@@ -1,0 +1,650 @@
+{
+  "schema_version": 1,
+  "study": "proposal_level1_grasp_speed_pilot",
+  "seed": 5644,
+  "speeds_m_s": [
+    0.04,
+    0.1,
+    0.2
+  ],
+  "threshold": 0.9,
+  "required_hold_s": 2.0,
+  "minimum_lift_m": 0.1,
+  "settle_s": 1.0,
+  "trace_sample_period_s": 0.02,
+  "fixed_initial_opening_m": {
+    "bowl": 0.08,
+    "bottle": 0.04
+  },
+  "fixed_close_trigger_height_m": 0.0,
+  "feature_names": [
+    "target_is_bowl",
+    "target_is_bottle",
+    "offset_x_m",
+    "offset_y_m",
+    "yaw_rad",
+    "descent_speed_m_s"
+  ],
+  "forest_settings": {
+    "n_estimators": 128,
+    "criterion": "gini",
+    "max_depth": 6,
+    "min_samples_split": 2,
+    "min_samples_leaf": 1,
+    "max_features": null,
+    "bootstrap": true,
+    "class_weight": null,
+    "n_jobs": 1
+  },
+  "training_cases": [
+    {
+      "case_id": "bowl.condition_00",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        -0.08
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bowl.condition_01",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        -0.08
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bowl.condition_03",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.0
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bowl.condition_05",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.0
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bowl.condition_06",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.08
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bowl.condition_07",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.08
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bowl.condition_08",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.08
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bowl.condition_11",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.0,
+        -0.08
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bowl.condition_13",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bowl.condition_18",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        -0.08
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bowl.condition_19",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        -0.08
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bowl.condition_20",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        -0.08
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bowl.condition_21",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        0.0
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bowl.condition_22",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        0.0
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bowl.condition_23",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        0.0
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bowl.condition_24",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        0.08
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bowl.condition_25",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        0.08
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bowl.condition_26",
+      "target_object": "bowl",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        0.08
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bottle.condition_02",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        -0.08
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bottle.condition_03",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.0
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bottle.condition_04",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.0
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bottle.condition_05",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.0
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bottle.condition_07",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.08
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bottle.condition_08",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.08,
+        0.08
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bottle.condition_09",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.0,
+        -0.08
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bottle.condition_11",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.0,
+        -0.08
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bottle.condition_12",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.0,
+        0.0
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bottle.condition_13",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.0,
+        0.0
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bottle.condition_15",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.0,
+        0.08
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bottle.condition_17",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.0,
+        0.08
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bottle.condition_18",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        -0.08
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bottle.condition_19",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        -0.08
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bottle.condition_20",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        -0.08
+      ],
+      "yaw_rad": 0.2
+    },
+    {
+      "case_id": "bottle.condition_21",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        0.0
+      ],
+      "yaw_rad": -0.2
+    },
+    {
+      "case_id": "bottle.condition_22",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        0.0
+      ],
+      "yaw_rad": 0.0
+    },
+    {
+      "case_id": "bottle.condition_26",
+      "target_object": "bottle",
+      "position_label": "training",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.08,
+        0.08
+      ],
+      "yaw_rad": 0.2
+    }
+  ],
+  "evaluation_cases": [
+    {
+      "case_id": "bowl.evaluation_00",
+      "target_object": "bowl",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.002306,
+        -0.065496
+      ],
+      "yaw_rad": 0.197565
+    },
+    {
+      "case_id": "bowl.evaluation_01",
+      "target_object": "bowl",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.036116,
+        -0.036488
+      ],
+      "yaw_rad": 0.190623
+    },
+    {
+      "case_id": "bowl.evaluation_02",
+      "target_object": "bowl",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.006534,
+        -0.00942
+      ],
+      "yaw_rad": -0.039921
+    },
+    {
+      "case_id": "bowl.evaluation_03",
+      "target_object": "bowl",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.077664,
+        0.014305
+      ],
+      "yaw_rad": -0.173067
+    },
+    {
+      "case_id": "bowl.evaluation_04",
+      "target_object": "bowl",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.055146,
+        -0.051812
+      ],
+      "yaw_rad": -0.048448
+    },
+    {
+      "case_id": "bowl.evaluation_05",
+      "target_object": "bowl",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.010584,
+        -0.05869
+      ],
+      "yaw_rad": 0.135958
+    },
+    {
+      "case_id": "bowl.evaluation_06",
+      "target_object": "bowl",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.002255,
+        -0.04516
+      ],
+      "yaw_rad": 0.041799
+    },
+    {
+      "case_id": "bowl.evaluation_07",
+      "target_object": "bowl",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.025687,
+        0.037944
+      ],
+      "yaw_rad": 0.19251
+    },
+    {
+      "case_id": "bowl.evaluation_08",
+      "target_object": "bowl",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.015143,
+        0.019508
+      ],
+      "yaw_rad": 0.039547
+    },
+    {
+      "case_id": "bottle.evaluation_00",
+      "target_object": "bottle",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.037927,
+        0.062633
+      ],
+      "yaw_rad": 0.183044
+    },
+    {
+      "case_id": "bottle.evaluation_01",
+      "target_object": "bottle",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.040107,
+        0.064759
+      ],
+      "yaw_rad": -0.077068
+    },
+    {
+      "case_id": "bottle.evaluation_02",
+      "target_object": "bottle",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.060216,
+        -0.06602
+      ],
+      "yaw_rad": -0.16802
+    },
+    {
+      "case_id": "bottle.evaluation_03",
+      "target_object": "bottle",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.061003,
+        0.010769
+      ],
+      "yaw_rad": 0.055329
+    },
+    {
+      "case_id": "bottle.evaluation_04",
+      "target_object": "bottle",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.071709,
+        0.00338
+      ],
+      "yaw_rad": -0.031561
+    },
+    {
+      "case_id": "bottle.evaluation_05",
+      "target_object": "bottle",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.002775,
+        -0.062967
+      ],
+      "yaw_rad": 0.1516
+    },
+    {
+      "case_id": "bottle.evaluation_06",
+      "target_object": "bottle",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.039906,
+        -0.00663
+      ],
+      "yaw_rad": 0.00041
+    },
+    {
+      "case_id": "bottle.evaluation_07",
+      "target_object": "bottle",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        0.029055,
+        -0.032759
+      ],
+      "yaw_rad": 0.164611
+    },
+    {
+      "case_id": "bottle.evaluation_08",
+      "target_object": "bottle",
+      "position_label": "evaluation",
+      "seed": 5644,
+      "offset_xy_m": [
+        -0.055066,
+        0.068137
+      ],
+      "yaw_rad": -0.151248
+    }
+  ],
+  "planned_training_trials": 108,
+  "planned_evaluation_trials": 54,
+  "initial_sampling": "Seeded random selection of 18 of 27 condition groups per object; all three speeds within each selected group",
+  "evaluation_sampling": "Nine independently sampled continuous XY/yaw conditions per object, excluding all development/grid states",
+  "split_scope": "Held-out initial conditions of the SAME TWO objects; NOT an unseen-object test",
+  "prediction_timing": "Persist all evaluation predictions and recommendations before any evaluation execution",
+  "evaluation_order": "For each held-out condition execute the recommended speed first, then the other two speeds; never retrain on evaluation outcomes",
+  "label_rule": "Controller completes and independent physical predicates remain true for two continuous simulation seconds; physical failures are negative, invalid setup is unlabelled, numerical/internal errors abort",
+  "collision_rule": "Unexpected contacts are recorded separately; grasp-success labels are not robot-safety guarantees",
+  "uncalibrated": true,
+  "active_learning_comparison": false,
+  "d_optimal_comparison": false,
+  "physics_modified": false
+}

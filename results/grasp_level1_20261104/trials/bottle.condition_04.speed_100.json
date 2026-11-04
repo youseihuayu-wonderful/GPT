@@ -1,0 +1,91 @@
+{
+  "case": {
+    "case_id": "bottle.condition_04",
+    "target_object": "bottle",
+    "position_label": "training",
+    "seed": 5644,
+    "offset_xy_m": [
+      -0.08,
+      0.0
+    ],
+    "yaw_rad": 0.0
+  },
+  "parameters": {
+    "initial_opening_m": 0.04,
+    "descent_speed_m_s": 0.1,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": false,
+  "controller_status": "failed",
+  "failure_reason": "机械臂未在时限内到达目标位姿",
+  "initial_state_fingerprint": "25caaad5928c265fff406315001d97531405b424c474d78a50337e8907e565ba",
+  "initial_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.26542331024163507,
+      -0.23980461098898212,
+      0.7195862282982493
+    ],
+    "quaternion_wxyz": [
+      0.9984994024990759,
+      0.0011937672084417288,
+      0.025058495305603463,
+      -0.048678434053079894
+    ]
+  },
+  "final_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.26520952999271447,
+      -0.2401614388316027,
+      0.719607988181791
+    ],
+    "quaternion_wxyz": [
+      0.9987718058019358,
+      0.0011199224482050028,
+      0.025776409077680914,
+      -0.04229896504537572
+    ]
+  },
+  "controller_execution_sim_s": 11.632000000000888,
+  "execution_sim_s": 11.634000000000889,
+  "verified_hold_s": 0.0,
+  "required_hold_s": 2.0,
+  "wall_s": 1.5902453329981654,
+  "warnings": [],
+  "collisions": {
+    "episodes": 595,
+    "duration_s": 3.9579999999997857,
+    "peak_force_n": 99.62491071900331,
+    "pairs": [
+      {
+        "body_a": "bottle_object",
+        "body_b": "rack_object",
+        "episodes": 521,
+        "duration_s": 1.0420000000000007,
+        "peak_force_n": 0.1546443066340953
+      },
+      {
+        "body_a": "rack_object",
+        "body_b": "robot_hand",
+        "episodes": 74,
+        "duration_s": 3.1879999999998705,
+        "peak_force_n": 99.62491071900331
+      }
+    ],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": false,
+    "clear_of_table": false,
+    "target_lifted": false,
+    "relative_pose_stable": false,
+    "verified_hold": false
+  },
+  "controller_verified_hold": false,
+  "trace_path": "traces/bottle.condition_04.speed_100.json.gz",
+  "trial_id": "bottle.condition_04.speed_100",
+  "split": "training",
+  "measurement_wall_s": 1.6006987090004259
+}

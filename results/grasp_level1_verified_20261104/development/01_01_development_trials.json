@@ -1,0 +1,763 @@
+{
+  "purpose": "Development feasibility probes only, not held-out evaluation or classifier training",
+  "rows": [
+    {
+      "case": {
+        "case_id": "preflight.bowl.0",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "speed_m_s": 0.04,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 18.620000000000005,
+      "lift_height_m": 0.13928883885038268,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 2.3478677079983754
+    },
+    {
+      "case": {
+        "case_id": "preflight.bowl.0",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "speed_m_s": 0.2,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 12.620000000001218,
+      "lift_height_m": 0.13895532279094924,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.220952750001743
+    },
+    {
+      "case": {
+        "case_id": "preflight.bowl.1",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.08,
+          -0.08
+        ],
+        "yaw_rad": 0.2
+      },
+      "speed_m_s": 0.04,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 19.899999999999295,
+      "lift_height_m": 0.13924029364085921,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.8704050419983105
+    },
+    {
+      "case": {
+        "case_id": "preflight.bowl.1",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.08,
+          -0.08
+        ],
+        "yaw_rad": 0.2
+      },
+      "speed_m_s": 0.2,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 13.900000000001645,
+      "lift_height_m": 0.1394647905948173,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.3375042089974158
+    },
+    {
+      "case": {
+        "case_id": "preflight.bowl.2",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.08,
+          0.08
+        ],
+        "yaw_rad": -0.2
+      },
+      "speed_m_s": 0.04,
+      "status": "invalid_initial_state",
+      "success": null,
+      "reason": "Grasp requires a target stably supported on the table",
+      "wall_s": 0.2893036670066067
+    },
+    {
+      "case": {
+        "case_id": "preflight.bowl.2",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.08,
+          0.08
+        ],
+        "yaw_rad": -0.2
+      },
+      "speed_m_s": 0.2,
+      "status": "invalid_initial_state",
+      "success": null,
+      "reason": "Grasp requires a target stably supported on the table",
+      "wall_s": 0.293054084002506
+    },
+    {
+      "case": {
+        "case_id": "preflight.bowl.3",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          -0.08,
+          -0.08
+        ],
+        "yaw_rad": -0.2
+      },
+      "speed_m_s": 0.04,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 19.179999999999694,
+      "lift_height_m": 0.1385452940834595,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.8097243750016787
+    },
+    {
+      "case": {
+        "case_id": "preflight.bowl.3",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          -0.08,
+          -0.08
+        ],
+        "yaw_rad": -0.2
+      },
+      "speed_m_s": 0.2,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 13.180000000001405,
+      "lift_height_m": 0.1381834734496299,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.2566654160036705
+    },
+    {
+      "case": {
+        "case_id": "preflight.bowl.4",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          -0.08,
+          0.08
+        ],
+        "yaw_rad": 0.2
+      },
+      "speed_m_s": 0.04,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 18.000000000000348,
+      "lift_height_m": 0.13935231495621314,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.7285074589963187
+    },
+    {
+      "case": {
+        "case_id": "preflight.bowl.4",
+        "target_object": "bowl",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          -0.08,
+          0.08
+        ],
+        "yaw_rad": 0.2
+      },
+      "speed_m_s": 0.2,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 12.00000000000101,
+      "lift_height_m": 0.13918665165274402,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.1841821249981876
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.0",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "speed_m_s": 0.04,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 18.659999999999982,
+      "lift_height_m": 0.14993831517113576,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 2.258918999999878
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.0",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.0,
+          0.0
+        ],
+        "yaw_rad": 0.0
+      },
+      "speed_m_s": 0.2,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 12.640000000001224,
+      "lift_height_m": 0.1490207906853913,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.71674258299754
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.1",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.08,
+          -0.08
+        ],
+        "yaw_rad": 0.2
+      },
+      "speed_m_s": 0.04,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 19.759999999999373,
+      "lift_height_m": 0.1499095769638502,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 2.207024334005837
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.1",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.08,
+          -0.08
+        ],
+        "yaw_rad": 0.2
+      },
+      "speed_m_s": 0.2,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 13.760000000001599,
+      "lift_height_m": 0.14934385550543217,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.6080046249990119
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.2",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.08,
+          0.08
+        ],
+        "yaw_rad": -0.2
+      },
+      "speed_m_s": 0.04,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 17.42000000000067,
+      "lift_height_m": 0.14993793498532737,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 2.1166256249998696
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.2",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          0.08,
+          0.08
+        ],
+        "yaw_rad": -0.2
+      },
+      "speed_m_s": 0.2,
+      "status": "succeeded",
+      "success": true,
+      "reason": null,
+      "execution_sim_s": 11.40000000000081,
+      "lift_height_m": 0.1491889633235982,
+      "controller_hold_s": 1.0000000000000007,
+      "postconditions": {
+        "bilateral_grip": true,
+        "clear_of_table": true,
+        "target_lifted": true,
+        "relative_pose_stable": true,
+        "verified_hold": true
+      },
+      "collisions": {
+        "episodes": 0,
+        "duration_s": 0.0,
+        "peak_force_n": 0.0,
+        "pairs": [],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.5285673749967827
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.3",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          -0.08,
+          -0.08
+        ],
+        "yaw_rad": -0.2
+      },
+      "speed_m_s": 0.04,
+      "status": "failed",
+      "success": false,
+      "reason": "机械臂未在时限内到达目标位姿",
+      "execution_sim_s": 17.320000000000725,
+      "lift_height_m": 1.84543752205224e-05,
+      "controller_hold_s": 0.0,
+      "postconditions": {
+        "bilateral_grip": false,
+        "clear_of_table": false,
+        "target_lifted": false,
+        "relative_pose_stable": false,
+        "verified_hold": false
+      },
+      "collisions": {
+        "episodes": 1253,
+        "duration_s": 8.195999999999406,
+        "peak_force_n": 274.82076605249114,
+        "pairs": [
+          {
+            "body_a": "bottle_object",
+            "body_b": "rack_object",
+            "episodes": 1082,
+            "duration_s": 2.1639999999999833,
+            "peak_force_n": 0.20589271524123948
+          },
+          {
+            "body_a": "rack_object",
+            "body_b": "robot_hand",
+            "episodes": 147,
+            "duration_s": 1.9000000000000015,
+            "peak_force_n": 124.77547395112155
+          },
+          {
+            "body_a": "rack_object",
+            "body_b": "robot_left_finger",
+            "episodes": 23,
+            "duration_s": 0.6600000000000005,
+            "peak_force_n": 12.070738754436611
+          },
+          {
+            "body_a": "rack_object",
+            "body_b": "robot_link7",
+            "episodes": 1,
+            "duration_s": 4.359999999999742,
+            "peak_force_n": 274.82076605249114
+          }
+        ],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.7221850420028204
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.3",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          -0.08,
+          -0.08
+        ],
+        "yaw_rad": -0.2
+      },
+      "speed_m_s": 0.2,
+      "status": "failed",
+      "success": false,
+      "reason": "机械臂未在时限内到达目标位姿",
+      "execution_sim_s": 11.320000000000784,
+      "lift_height_m": 1.185977852757869e-05,
+      "controller_hold_s": 0.0,
+      "postconditions": {
+        "bilateral_grip": false,
+        "clear_of_table": false,
+        "target_lifted": false,
+        "relative_pose_stable": false,
+        "verified_hold": false
+      },
+      "collisions": {
+        "episodes": 785,
+        "duration_s": 3.817999999999801,
+        "peak_force_n": 320.96028538239807,
+        "pairs": [
+          {
+            "body_a": "bottle_object",
+            "body_b": "rack_object",
+            "episodes": 707,
+            "duration_s": 1.414000000000001,
+            "peak_force_n": 0.2026145267272611
+          },
+          {
+            "body_a": "rack_object",
+            "body_b": "robot_hand",
+            "episodes": 55,
+            "duration_s": 0.2960000000000002,
+            "peak_force_n": 143.0630228276335
+          },
+          {
+            "body_a": "rack_object",
+            "body_b": "robot_left_finger",
+            "episodes": 14,
+            "duration_s": 0.09200000000000007,
+            "peak_force_n": 26.939559363767607
+          },
+          {
+            "body_a": "rack_object",
+            "body_b": "robot_link7",
+            "episodes": 9,
+            "duration_s": 2.357999999999962,
+            "peak_force_n": 320.96028538239807
+          }
+        ],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.1509512499978882
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.4",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          -0.08,
+          0.08
+        ],
+        "yaw_rad": 0.2
+      },
+      "speed_m_s": 0.04,
+      "status": "failed",
+      "success": false,
+      "reason": "机械臂未在时限内到达目标位姿",
+      "execution_sim_s": 15.2000000000019,
+      "lift_height_m": 0.0,
+      "controller_hold_s": 0.0,
+      "postconditions": {
+        "bilateral_grip": false,
+        "clear_of_table": false,
+        "target_lifted": false,
+        "relative_pose_stable": false,
+        "verified_hold": false
+      },
+      "collisions": {
+        "episodes": 63,
+        "duration_s": 4.839999999999689,
+        "peak_force_n": 86.30863039338095,
+        "pairs": [
+          {
+            "body_a": "rack_object",
+            "body_b": "robot_hand",
+            "episodes": 63,
+            "duration_s": 4.839999999999689,
+            "peak_force_n": 86.30863039338095
+          }
+        ],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 1.5251843340010964
+    },
+    {
+      "case": {
+        "case_id": "preflight.bottle.4",
+        "target_object": "bottle",
+        "position_label": "development_preflight",
+        "seed": 2026,
+        "offset_xy_m": [
+          -0.08,
+          0.08
+        ],
+        "yaw_rad": 0.2
+      },
+      "speed_m_s": 0.2,
+      "status": "failed",
+      "success": false,
+      "reason": "机械臂未在时限内到达目标位姿",
+      "execution_sim_s": 9.200000000000076,
+      "lift_height_m": 0.0,
+      "controller_hold_s": 0.0,
+      "postconditions": {
+        "bilateral_grip": false,
+        "clear_of_table": false,
+        "target_lifted": false,
+        "relative_pose_stable": false,
+        "verified_hold": false
+      },
+      "collisions": {
+        "episodes": 39,
+        "duration_s": 2.4239999999999546,
+        "peak_force_n": 96.94431154415632,
+        "pairs": [
+          {
+            "body_a": "rack_object",
+            "body_b": "robot_hand",
+            "episodes": 39,
+            "duration_s": 2.4239999999999546,
+            "peak_force_n": 96.94431154415632
+          }
+        ],
+        "force_threshold_n": 0.1
+      },
+      "warnings": [],
+      "wall_s": 0.9505757090009865
+    }
+  ]
+}

@@ -12,6 +12,7 @@ from unittest.mock import patch
 import mujoco
 import numpy as np
 
+from frozen_protocol_fixture import current_protocol
 from compare_sorting import pairing_evidence
 from sorting import SortingSimulation
 from sorting_contract import OBJECTS
@@ -22,7 +23,7 @@ from verify_sorting import observe_sorting
 
 class EvaluationProtocolTests(unittest.TestCase):
     def setUp(self):
-        self.protocol = load_protocol()
+        self.protocol = current_protocol()
 
     def test_missing_or_duplicate_schedule_cells_are_rejected(self):
         missing = deepcopy(self.protocol)
@@ -80,6 +81,7 @@ class EvaluationProtocolTests(unittest.TestCase):
                 load_protocol(path)
 
     def test_freeze_rejects_controller_policy_inventory_and_model_drift(self):
+        assert_frozen(self.protocol)
         for kind in ("controller", "policy", "inventory"):
             with self.subTest(kind=kind):
                 changed = deepcopy(self.protocol)
@@ -103,7 +105,7 @@ class EvaluationProtocolTests(unittest.TestCase):
 
 class EvaluationInitialPhysicsTests(unittest.TestCase):
     def test_declared_poses_settle_supported_without_changing_compiled_model(self):
-        protocol = load_protocol()
+        protocol = current_protocol()
         baseline = SortingSimulation()
         self.addCleanup(baseline.close)
         frozen_model = model_fingerprint(baseline)
@@ -134,7 +136,7 @@ class EvaluationInitialPhysicsTests(unittest.TestCase):
                     sim.close()
 
     def test_fresh_creation_and_reset_reproduce_the_entire_paired_initial_state(self):
-        protocol = load_protocol()
+        protocol = current_protocol()
         for layout in protocol["layouts"]:
             with self.subTest(layout=layout["id"]):
                 first = make_simulation(protocol, layout["id"])

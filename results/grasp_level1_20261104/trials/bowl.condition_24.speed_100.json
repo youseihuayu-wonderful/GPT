@@ -1,0 +1,76 @@
+{
+  "case": {
+    "case_id": "bowl.condition_24",
+    "target_object": "bowl",
+    "position_label": "training",
+    "seed": 5644,
+    "offset_xy_m": [
+      0.08,
+      0.08
+    ],
+    "yaw_rad": -0.2
+  },
+  "parameters": {
+    "initial_opening_m": 0.08,
+    "descent_speed_m_s": 0.1,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "invalid_initial_state",
+  "success": null,
+  "controller_status": "idle",
+  "failure_reason": "Grasp requires a target stably supported on the table",
+  "initial_state_fingerprint": "393964c1c9c91b95ff2c37cdc3afa8dd90eb81ac324d3af7e3af0879666ee2ba",
+  "initial_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5798125938057183,
+      0.0008997044901180955,
+      0.7694547882773768
+    ],
+    "quaternion_wxyz": [
+      0.9945317637563675,
+      0.02504753889978746,
+      0.004812866123673339,
+      -0.10127204942326377
+    ]
+  },
+  "final_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5798125938057183,
+      0.0008997044901180955,
+      0.7694547882773768
+    ],
+    "quaternion_wxyz": [
+      0.9945317637563675,
+      0.02504753889978746,
+      0.004812866123673339,
+      -0.10127204942326377
+    ]
+  },
+  "controller_execution_sim_s": null,
+  "execution_sim_s": 0.0,
+  "verified_hold_s": 0.0,
+  "required_hold_s": 2.0,
+  "wall_s": 0.3229715830020723,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": false,
+    "clear_of_table": true,
+    "target_lifted": false,
+    "relative_pose_stable": false,
+    "verified_hold": false
+  },
+  "controller_verified_hold": false,
+  "trace_path": "traces/bowl.condition_24.speed_100.json.gz",
+  "trial_id": "bowl.condition_24.speed_100",
+  "split": "training",
+  "measurement_wall_s": 0.32407108299958054
+}

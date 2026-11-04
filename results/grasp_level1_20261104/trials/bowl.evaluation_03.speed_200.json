@@ -1,0 +1,80 @@
+{
+  "case": {
+    "case_id": "bowl.evaluation_03",
+    "target_object": "bowl",
+    "position_label": "evaluation",
+    "seed": 5644,
+    "offset_xy_m": [
+      -0.077664,
+      0.014305
+    ],
+    "yaw_rad": -0.173067
+  },
+  "parameters": {
+    "initial_opening_m": 0.08,
+    "descent_speed_m_s": 0.2,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "c4e136e8b2d7128b75cacbed8cfacc6d5848fabf8903b93d72b859657e317a1f",
+  "initial_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.422335976159795,
+      -0.0656950266163981,
+      0.7184049917750716
+    ],
+    "quaternion_wxyz": [
+      0.9962583123391194,
+      -8.1539736088786e-06,
+      6.122121906899808e-06,
+      -0.08642554594124713
+    ]
+  },
+  "final_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.4157583189062411,
+      -0.076274274939235,
+      0.8569647547788216
+    ],
+    "quaternion_wxyz": [
+      0.9902241699991606,
+      -0.13898319194976957,
+      -0.011425956320908435,
+      0.0030352968686411723
+    ]
+  },
+  "controller_execution_sim_s": 11.272000000000768,
+  "execution_sim_s": 12.274000000001102,
+  "verified_hold_s": 2.000000000000668,
+  "required_hold_s": 2.0,
+  "wall_s": 1.604738041998644,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bowl.evaluation_03.speed_200.json.gz",
+  "trial_id": "bowl.evaluation_03.speed_200",
+  "split": "evaluation",
+  "recommended": true,
+  "predicted_success_probability": 1.0,
+  "threshold": 0.9,
+  "threshold_met": true,
+  "measurement_wall_s": 1.621264124994923
+}

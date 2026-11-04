@@ -1,0 +1,80 @@
+{
+  "case": {
+    "case_id": "bowl.evaluation_04",
+    "target_object": "bowl",
+    "position_label": "evaluation",
+    "seed": 5644,
+    "offset_xy_m": [
+      0.055146,
+      -0.051812
+    ],
+    "yaw_rad": -0.048448
+  },
+  "parameters": {
+    "initial_opening_m": 0.08,
+    "descent_speed_m_s": 0.2,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "ab1a3d0034d0f68df7dcff14be41d27a12c96db8268b5ecdf22c05f8f3de2ef1",
+  "initial_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.555145979653015,
+      -0.13181202937387165,
+      0.7184049917750716
+    ],
+    "quaternion_wxyz": [
+      0.9997066132073741,
+      -8.519369499119464e-06,
+      5.602499941522567e-06,
+      -0.02422163094167925
+    ]
+  },
+  "final_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.5545987145583384,
+      -0.1430740130267562,
+      0.8576486532403754
+    ],
+    "quaternion_wxyz": [
+      0.9901226742606916,
+      -0.13952077578888641,
+      -0.01374128854043922,
+      0.001489975628188678
+    ]
+  },
+  "controller_execution_sim_s": 12.320000000001118,
+  "execution_sim_s": 13.322000000001452,
+  "verified_hold_s": 2.000000000000668,
+  "required_hold_s": 2.0,
+  "wall_s": 1.7139582919990062,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bowl.evaluation_04.speed_200.json.gz",
+  "trial_id": "bowl.evaluation_04.speed_200",
+  "split": "evaluation",
+  "recommended": true,
+  "predicted_success_probability": 1.0,
+  "threshold": 0.9,
+  "threshold_met": true,
+  "measurement_wall_s": 1.7252000000007683
+}

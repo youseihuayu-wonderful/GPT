@@ -1,0 +1,76 @@
+{
+  "case": {
+    "case_id": "bowl.condition_01",
+    "target_object": "bowl",
+    "position_label": "training",
+    "seed": 5644,
+    "offset_xy_m": [
+      -0.08,
+      -0.08
+    ],
+    "yaw_rad": 0.0
+  },
+  "parameters": {
+    "initial_opening_m": 0.08,
+    "descent_speed_m_s": 0.1,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": true,
+  "controller_status": "succeeded",
+  "failure_reason": null,
+  "initial_state_fingerprint": "904178314354cbad4dc0a6ca7ec4141c95d748a7d8dbdb56464de53cbb54a206",
+  "initial_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.4199999810991446,
+      -0.16000003032440008,
+      0.7184049917750716
+    ],
+    "quaternion_wxyz": [
+      0.9999999999480165,
+      -8.652571714983604e-06,
+      5.394503218509132e-06,
+      -6.038476122894928e-12
+    ]
+  },
+  "final_pose": {
+    "name": "bowl_object",
+    "position_m": [
+      0.42092057448647757,
+      -0.17117606230195043,
+      0.8577653169363115
+    ],
+    "quaternion_wxyz": [
+      0.9903796483608801,
+      -0.13805075836871566,
+      -0.007411025386387935,
+      0.005934385319869623
+    ]
+  },
+  "controller_execution_sim_s": 13.648000000001561,
+  "execution_sim_s": 14.650000000001896,
+  "verified_hold_s": 2.000000000000668,
+  "required_hold_s": 2.0,
+  "wall_s": 1.8889412919961615,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": true,
+    "relative_pose_stable": true,
+    "verified_hold": true
+  },
+  "controller_verified_hold": true,
+  "trace_path": "traces/bowl.condition_01.speed_100.json.gz",
+  "trial_id": "bowl.condition_01.speed_100",
+  "split": "training",
+  "measurement_wall_s": 1.9012336669984506
+}

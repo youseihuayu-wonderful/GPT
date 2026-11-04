@@ -1,0 +1,76 @@
+{
+  "case": {
+    "case_id": "bottle.condition_05",
+    "target_object": "bottle",
+    "position_label": "training",
+    "seed": 5644,
+    "offset_xy_m": [
+      -0.08,
+      0.0
+    ],
+    "yaw_rad": 0.2
+  },
+  "parameters": {
+    "initial_opening_m": 0.04,
+    "descent_speed_m_s": 0.1,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": false,
+  "controller_status": "failed",
+  "failure_reason": "酒瓶掉落、滑移或未达到要求的离桌高度",
+  "initial_state_fingerprint": "76e382f53fb00665db71b719ab3c2663f8b598a14e7ae186b5dd2b83dd20c0ad",
+  "initial_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.2775784213071695,
+      -0.2657515384649194,
+      0.7421715088635474
+    ],
+    "quaternion_wxyz": [
+      0.6159931035545856,
+      0.6974203003952991,
+      0.11765970286931152,
+      0.3468625308251461
+    ]
+  },
+  "final_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.3536628382743463,
+      -0.3783855189054805,
+      0.746955334132677
+    ],
+    "quaternion_wxyz": [
+      0.35742346143478776,
+      0.03137488690163207,
+      0.011947610368697115,
+      0.9333388132368451
+    ]
+  },
+  "controller_execution_sim_s": 15.41800000000178,
+  "execution_sim_s": 15.420000000001778,
+  "verified_hold_s": 0.0,
+  "required_hold_s": 2.0,
+  "wall_s": 2.148959833000845,
+  "warnings": [],
+  "collisions": {
+    "episodes": 0,
+    "duration_s": 0.0,
+    "peak_force_n": 0.0,
+    "pairs": [],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": true,
+    "clear_of_table": true,
+    "target_lifted": false,
+    "relative_pose_stable": true,
+    "verified_hold": false
+  },
+  "controller_verified_hold": false,
+  "trace_path": "traces/bottle.condition_05.speed_100.json.gz",
+  "trial_id": "bottle.condition_05.speed_100",
+  "split": "training",
+  "measurement_wall_s": 2.1589735000015935
+}

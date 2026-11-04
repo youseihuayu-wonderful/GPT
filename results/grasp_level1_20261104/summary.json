@@ -1,0 +1,150 @@
+{
+  "kind": "proposal_level1_grasp_speed_pilot",
+  "status": "completed",
+  "stage": "finished",
+  "started_at": "2026-11-04T20:32:08.207199+00:00",
+  "protocol": "protocol.json",
+  "training": {
+    "attempted": 108,
+    "labelled": 99,
+    "successes": 81,
+    "failures": 18,
+    "invalid_initial_states": 9,
+    "failure_reasons": {
+      "机械臂未在时限内到达目标位姿": 15,
+      "技能执行超时": 1,
+      "酒瓶掉落、滑移或未达到要求的离桌高度": 2
+    },
+    "invalid_initial_state_reasons": {
+      "Grasp requires a target stably supported on the table": 9
+    },
+    "sum_collection_wall_s": 218.90609721098735,
+    "mean_collection_wall_s": 2.0269083075091423,
+    "min_collection_wall_s": 0.32206079199386295,
+    "max_collection_wall_s": 3.3076421660007327,
+    "unexpected_contact_trials": 21,
+    "numerical_warning_trials": 0
+  },
+  "evaluation": {
+    "attempted": 54,
+    "labelled": 54,
+    "successes": 48,
+    "failures": 6,
+    "invalid_initial_states": 0,
+    "failure_reasons": {
+      "机械臂未在时限内到达目标位姿": 6
+    },
+    "invalid_initial_state_reasons": {},
+    "sum_collection_wall_s": 117.10458662401652,
+    "mean_collection_wall_s": 2.168603456000306,
+    "min_collection_wall_s": 1.413085708001745,
+    "max_collection_wall_s": 3.1051887499997974,
+    "unexpected_contact_trials": 9,
+    "numerical_warning_trials": 0
+  },
+  "selected_execution": {
+    "attempted": 18,
+    "labelled": 18,
+    "successes": 16,
+    "failures": 2,
+    "invalid_initial_states": 0,
+    "failure_reasons": {
+      "机械臂未在时限内到达目标位姿": 2
+    },
+    "invalid_initial_state_reasons": {},
+    "sum_collection_wall_s": 35.527231583990215,
+    "mean_collection_wall_s": 1.9737350879994564,
+    "min_collection_wall_s": 1.621264124994923,
+    "max_collection_wall_s": 2.9382654999935767,
+    "unexpected_contact_trials": 3,
+    "numerical_warning_trials": 0
+  },
+  "development_evidence": [
+    {
+      "source": "/var/folders/7b/d1s4j6zs5hv2lpmq_6j6tg8r0000gn/T/grasp-throughput-adq75eov/summary.json",
+      "copy": "development/00_summary.json",
+      "sha256": "e1d438b382aea3e3a71202ae0201ab6f32e746bda5a8f4eb1da9a99373dc3355",
+      "used_for_training": false,
+      "note": "Earlier feasibility/development observations, excluded from held-out evaluation; retained for cost transparency"
+    },
+    {
+      "source": "/var/folders/7b/d1s4j6zs5hv2lpmq_6j6tg8r0000gn/T/grasp-level1-preflight-w_m4373z/development_trials.json",
+      "copy": "development/01_development_trials.json",
+      "sha256": "9c31a51f08a5fe69fd75fa0129f0e944edd871aae7b7894bedce4bd008e80083",
+      "used_for_training": false,
+      "note": "Earlier feasibility/development observations, excluded from held-out evaluation; retained for cost transparency"
+    }
+  ],
+  "limitations": [
+    "Only two existing object assets; held-out conditions are not held-out objects",
+    "Random-forest probabilities are not calibrated and do not guarantee safety",
+    "No active-learning, D-optimal, GPT, 27B, or MRIoC comparison is performed",
+    "Controller timeouts and contact failures are retained and must be interpreted separately",
+    "Numerical/internal errors are not negative grasp labels"
+  ],
+  "elapsed_wall_s": 336.35046266599966,
+  "training_wall_s": 0.04090679199725855,
+  "model_sha256": "c9e4cf038dd38474b7f48da0004642a103636ada06b49dc9290c3a21d9db503c",
+  "recommendations": 18,
+  "unmet_threshold_recommendations": 3,
+  "prediction_metrics": {
+    "labelled": 54,
+    "accuracy_at_0_5": 0.9444444444444444,
+    "brier_score": 0.05555555555555555,
+    "true_negatives": 6,
+    "false_positives": 0,
+    "false_negatives": 3,
+    "true_positives": 45,
+    "scope": "Descriptive held-out-condition results, with three correlated speeds per condition; no unseen-object or calibrated-probability claim"
+  },
+  "speed_comparison": {
+    "matched_valid_conditions": 18,
+    "methods": {
+      "recommended": {
+        "attempted": 18,
+        "successes": 16,
+        "success_rate": 0.8888888888888888,
+        "mean_success_execution_sim_s": 13.00975000000118,
+        "meanings": "Mean duration is success-only; differing success sets are not a causal speedup comparison"
+      },
+      "0.04": {
+        "attempted": 18,
+        "successes": 16,
+        "success_rate": 0.8888888888888888,
+        "mean_success_execution_sim_s": 18.64187499999999,
+        "meanings": "Mean duration is success-only; differing success sets are not a causal speedup comparison"
+      },
+      "0.1": {
+        "attempted": 18,
+        "successes": 16,
+        "success_rate": 0.8888888888888888,
+        "mean_success_execution_sim_s": 14.138000000001721,
+        "meanings": "Mean duration is success-only; differing success sets are not a causal speedup comparison"
+      },
+      "0.2": {
+        "attempted": 18,
+        "successes": 16,
+        "success_rate": 0.8888888888888888,
+        "mean_success_execution_sim_s": 12.634000000001222,
+        "meanings": "Mean duration is success-only; differing success sets are not a causal speedup comparison"
+      }
+    },
+    "speed_dependent_outcome_conditions": [],
+    "fastest_failed_but_slower_succeeded_conditions": [],
+    "recommended_minus_fastest_on_joint_success": {
+      "pairs": 16,
+      "mean_sim_s": 0.37574999999995573
+    }
+  },
+  "level1_checks": {
+    "real_positive_and_negative_training_labels": true,
+    "trained_model_saved_and_reloaded": true,
+    "three_probabilities_for_every_evaluation_condition": true,
+    "recommendations_saved_before_evaluation": true,
+    "all_recommendations_physically_checked": true,
+    "at_least_one_recommended_grasp_physically_succeeded": true,
+    "initial_states_match_across_speeds": true
+  },
+  "level1_completed": true,
+  "finished_at": "2026-11-04T20:37:44.560209+00:00"
+}

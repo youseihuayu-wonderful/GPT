@@ -10,6 +10,10 @@ import numpy as np
 from task_specs import SKILLS, TASKS, TASK_SKILLS
 
 
+class IKConvergenceError(ValueError):
+    """The bounded IK search did not converge to the requested pose."""
+
+
 @dataclass(frozen=True)
 class GraspParameters:
     """SI-unit settings; inclusive bounds live in each field's metadata."""
@@ -374,18 +378,20 @@ class GraspSkill:
             jac = np.vstack((self.jacp[:, self.arm_dof], 0.3 * self.jacr[:, self.arm_dof]))
             error = np.concatenate((position_error, 0.3 * rotation_error))
             update = jac.T @ np.linalg.solve(jac @ jac.T + 1e-4 * np.eye(6), error)
+            if not np.isfinite(update).all():
+                raise FloatingPointError("IK solver produced a non-finite update")
             update *= min(1.0, 0.08 / max(float(np.max(np.abs(update))), 1e-12))
             self.work.qpos[self.sim.arm_qpos] = np.clip(
                 self.work.qpos[self.sim.arm_qpos] + update,
                 self.joint_limits[:, 0] + 1e-4,
                 self.joint_limits[:, 1] - 1e-4,
             )
-        raise ValueError("目标抓取位姿不可达，未执行该段运动")
+        raise IKConvergenceError("目标抓取位姿不可达，未执行该段运动")
 
     def _move(self, phase: str, position: np.ndarray) -> None:
         try:
             target = self._inverse_kinematics(position)
-        except ValueError as exc:
+        except IKConvergenceError as exc:
             self.fail(str(exc))
             return
         self.motion_start = self.data.qpos[self.sim.arm_qpos].copy()

@@ -1,0 +1,105 @@
+{
+  "case": {
+    "case_id": "bottle.condition_02",
+    "target_object": "bottle",
+    "position_label": "training",
+    "seed": 5644,
+    "offset_xy_m": [
+      -0.08,
+      -0.08
+    ],
+    "yaw_rad": 0.2
+  },
+  "parameters": {
+    "initial_opening_m": 0.04,
+    "descent_speed_m_s": 0.2,
+    "close_trigger_height_m": 0.0
+  },
+  "trial_status": "completed",
+  "success": false,
+  "controller_status": "failed",
+  "failure_reason": "机械臂未在时限内到达目标位姿",
+  "initial_state_fingerprint": "6255d5441a74d65e4511c4683be9a8de42406c5a9aad6457bec4c622509080b4",
+  "initial_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.2672097013298857,
+      -0.3197833871398318,
+      0.7188624139796308
+    ],
+    "quaternion_wxyz": [
+      0.9959497113557566,
+      0.0004614677150106771,
+      0.005115741589114385,
+      0.08976518638049871
+    ]
+  },
+  "final_pose": {
+    "name": "bottle_object",
+    "position_m": [
+      0.2675388599866301,
+      -0.31969282208269084,
+      0.7188998497056576
+    ],
+    "quaternion_wxyz": [
+      0.9960868178774333,
+      0.0008744962323053918,
+      0.003971564711566319,
+      0.08828654020228156
+    ]
+  },
+  "controller_execution_sim_s": 11.31000000000078,
+  "execution_sim_s": 11.312000000000781,
+  "verified_hold_s": 0.0,
+  "required_hold_s": 2.0,
+  "wall_s": 1.642434042005334,
+  "warnings": [],
+  "collisions": {
+    "episodes": 159,
+    "duration_s": 11.062000000000364,
+    "peak_force_n": 319.86154314321817,
+    "pairs": [
+      {
+        "body_a": "bottle_object",
+        "body_b": "rack_object",
+        "episodes": 77,
+        "duration_s": 11.016000000000348,
+        "peak_force_n": 10.163931470054921
+      },
+      {
+        "body_a": "rack_object",
+        "body_b": "robot_hand",
+        "episodes": 59,
+        "duration_s": 0.3120000000000002,
+        "peak_force_n": 141.56884468394284
+      },
+      {
+        "body_a": "rack_object",
+        "body_b": "robot_left_finger",
+        "episodes": 15,
+        "duration_s": 0.11400000000000009,
+        "peak_force_n": 31.582110016218863
+      },
+      {
+        "body_a": "rack_object",
+        "body_b": "robot_link7",
+        "episodes": 8,
+        "duration_s": 2.3519999999999626,
+        "peak_force_n": 319.86154314321817
+      }
+    ],
+    "force_threshold_n": 0.1
+  },
+  "postconditions": {
+    "bilateral_grip": false,
+    "clear_of_table": false,
+    "target_lifted": false,
+    "relative_pose_stable": false,
+    "verified_hold": false
+  },
+  "controller_verified_hold": false,
+  "trace_path": "traces/bottle.condition_02.speed_200.json.gz",
+  "trial_id": "bottle.condition_02.speed_200",
+  "split": "training",
+  "measurement_wall_s": 1.6526216249985737
+}
