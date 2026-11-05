@@ -1,0 +1,154 @@
+{
+  "kind": "english_video_and_level1_report_verification",
+  "scope": "Presentation-only derivatives of existing evidence; no new simulation, classifier training, or GPT request",
+  "videos": {
+    "storage": {
+      "source": "media/grasp-demo.mp4",
+      "output": "media/grasp-demo-en.mp4",
+      "output_sha256": "39233c0fe7c589f8edb061629b428bef9c57256d90903cdfcbc8487abd8be01d",
+      "decoded_source_and_output_frames": 1779,
+      "all_presentation_timestamps_identical": true,
+      "end_time_identical": true,
+      "duration_s": 88.95,
+      "presentation_times_sha256": "c2791ca9679551ac8144f4804737df8a2daf1cd1b5358448793e54eee4be1812",
+      "h264_yuv420p_no_audio": true,
+      "faststart": true,
+      "sampled_images": 94,
+      "sampling": "First frame each whole second, frames around every recorded layout change, final frame"
+    },
+    "sorting": {
+      "source": "media/gpt-sorting-contact-feedback-demo.mp4",
+      "output": "media/gpt-sorting-contact-feedback-demo-en.mp4",
+      "output_sha256": "dfc284178ef41f506d10499d616815020b1c390f398a2a50f31034c522c0ab7a",
+      "decoded_source_and_output_frames": 3032,
+      "all_presentation_timestamps_identical": true,
+      "end_time_identical": true,
+      "duration_s": 509.0,
+      "presentation_times_sha256": "523cc8aab91b375c8f696805aa5519014766222d373091307409f517378c70af",
+      "h264_yuv420p_no_audio": true,
+      "faststart": true,
+      "sampled_images": 516,
+      "sampling": "First frame each whole second, frames around every recorded layout change, final frame"
+    }
+  },
+  "language_checks": {
+    "cjk_findings": [],
+    "examined_images": 614,
+    "images_with_no_recognized_text": [],
+    "recognized_lines": 15765,
+    "recognizer": "Apple Vision accurate, en-US/zh-Hans/zh-Hant, no language correction",
+    "scope": "Sampled images only; complemented by full-timeline geometry and playback checks",
+    "video_sample_images": 610,
+    "pdf_page_images": 4
+  },
+  "manual_visual_review": {
+    "storage_video_seconds": [
+      0,
+      42
+    ],
+    "sorting_video_seconds": [
+      90,
+      300,
+      480
+    ],
+    "pdf_pages": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "correction": "The initial sorting edit exposed Chinese controls and clipped the upper arm after dashboard scrolling. It was rejected and rerendered using all four observed layout intervals before these checks and upload."
+  },
+  "browser_playback": {
+    "storage": {
+      "duration_s": 88.95,
+      "end_observed": true,
+      "decoded_frames_observed": 1779,
+      "ready_state": 4,
+      "resolution": [
+        1280,
+        960
+      ]
+    },
+    "sorting": {
+      "seek_s": 240,
+      "playback_rate": 1,
+      "loop_enabled": true,
+      "decoded_frames_before": 507,
+      "decoded_frames_after": 2771,
+      "time_after_s": 110.594338,
+      "paused_after": false,
+      "note": "Playback advanced and looped; observed frame counter increased. The video was not a live simulation."
+    },
+    "surface": "Existing terminal-browser Chromium, local MP4 documents; visual screenshot and media-element state observed"
+  },
+  "pdf": {
+    "pages": 4,
+    "page_details": [
+      {
+        "page": 1,
+        "characters": 1897,
+        "links": 0
+      },
+      {
+        "page": 2,
+        "characters": 2357,
+        "links": 0
+      },
+      {
+        "page": 3,
+        "characters": 2496,
+        "links": 0
+      },
+      {
+        "page": 4,
+        "characters": 2028,
+        "links": 8
+      }
+    ],
+    "sha256": "a1debd658413d0e09b9accfb6058379ae75dcf4f2ad4f42b0c7f44db09217b2e",
+    "bytes": 704916,
+    "metadata_title": "Active Learning for Adaptive Grasp Speed Selection",
+    "cjk_characters_in_extracted_text": 0,
+    "text_outside_page": [],
+    "path": "Active Learning for Adaptive Grasp Speed Selection.pdf",
+    "source_batch": "results/grasp_level1_verified_20261104",
+    "source_summary_sha256": "7374a1d07a94e2b7d96f6c60cfc5d90e9310bcacc771b22cb4146e4befd3b463",
+    "documented_rebuild_command": "uv run --script build_grasp_speed_report.py",
+    "documented_rebuild_exit_code": 0,
+    "rebuild_matches_inspected_pdf_sha256": true
+  },
+  "media_entrypoint_checks": {
+    "commands": [
+      "uv run --script render_storage_video_en.py --help",
+      "uv run --script render_sorting_video_en.py --help"
+    ],
+    "exit_code": 0
+  },
+  "github_attachments": [
+    {
+      "file": "media/grasp-demo-en.mp4",
+      "url": "https://github.com/user-attachments/assets/54fb89f5-286b-4bee-9c07-fc46bf98d2e4",
+      "bytes": 2705825,
+      "sha256": "39233c0fe7c589f8edb061629b428bef9c57256d90903cdfcbc8487abd8be01d",
+      "content_type": "video/mp4",
+      "github_renderer_native_video": true,
+      "download_matches_local": true
+    },
+    {
+      "file": "media/gpt-sorting-contact-feedback-demo-en.mp4",
+      "url": "https://github.com/user-attachments/assets/cee405f9-fdad-46d8-a424-0cd2fd8d7e7d",
+      "bytes": 6170077,
+      "sha256": "dfc284178ef41f506d10499d616815020b1c390f398a2a50f31034c522c0ab7a",
+      "content_type": "video/mp4",
+      "github_renderer_native_video": true,
+      "download_matches_local": true
+    }
+  ],
+  "repository_visibility": "private, unchanged",
+  "verification_boundaries": [
+    "OCR checked sampled frames, not every pixel of every frame. Full presentation timestamps and final duration were checked for every decoded video frame.",
+    "Browser playback used local English MP4s. GitHub delivery was checked with its authenticated Markdown renderer and byte-for-byte downloads of both native attachments.",
+    "No physics or classifier regression suite was rerun for these presentation-only changes. Historical experiment verification scope is retained in the report."
+  ]
+}

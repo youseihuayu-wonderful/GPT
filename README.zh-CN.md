@@ -10,17 +10,27 @@
 
 界面实测：完整黑碗固定收纳流程与六物体固定分拣均在真实 MuJoCo 执行中成功完成。暂停物理仿真后往返切换语言，物理状态与已编辑草稿保持不变，未发送控制或模型请求；也验证了语言偏好记忆及存储被阻止时的明确提示。这些界面检查不是新的分类器实验或 GPT 对照试验。
 
+## 可分享的 Level 1 成果文件
+
+**[Active Learning for Adaptive Grasp Speed Selection — 全英文 PDF](Active%20Learning%20for%20Adaptive%20Grasp%20Speed%20Selection.pdf)**
+
+四页报告包含实际场景、真实标签采集、分类器特征、三档预测、物理执行结果、计时、教授三个问题的回复和复现命令；明确区分已经证明的工程可行性与尚未证明的主动学习、选速收益。
+
 ## 两段独立视频
 
 下面是两个不同场景的独立录像，分别播放，不拼接：第一个做黑碗入屉与关屉，第二个只做彩色碗杯分拣。视频来自真实 MuJoCo 执行，不是 GitHub 页面内在线运行的仿真。
+
+两个播放器均使用原始录像的**全英文展示版**。保留物理动作、每帧展示时间戳、等待批准和结尾停留，按原速播放；仅修改展示，不是新的仿真或 GPT 请求。原语言录像另以明确标注的历史归档链接保留。
 
 ### 视频 1：黑碗放入抽屉 → 关闭抽屉 → 机械臂归位
 
 抓取黑碗、移到已打开的下层抽屉、支撑放置并松爪、撤出夹爪、接触推关抽屉，最后空手归位。这里的黑色容器实际是碗，不是彩色杯子。
 
-https://github.com/user-attachments/assets/52878d01-3f40-4ef7-8964-c73e69dbba4b
+https://github.com/user-attachments/assets/54fb89f5-286b-4bee-9c07-fc46bf98d2e4
 
-[下载仓库中的原始 MP4](media/grasp-demo.mp4) · [对应物理验收记录](results/subscription_storage.json)
+[下载全英文 MP4](media/grasp-demo-en.mp4) · [对应物理验收记录](results/subscription_storage.json) · [英文编辑来源记录](results/storage_video_english.json)
+
+[原始录像归档（中文界面）](media/grasp-demo.mp4)
 
 这是一段约 **1 分 29 秒**的完整历史收纳录像，包含关屉、归位和成功画面；一次订阅提案获批后执行固定收纳流程，不冒充逐项 GPT 闭环录像。
 
@@ -28,11 +38,25 @@ https://github.com/user-attachments/assets/52878d01-3f40-4ef7-8964-c73e69dbba4b
 
 红、蓝、黄三色各一只碗和一只杯，共 **3 碗＋3 杯**。GPT 完整提案获批后，本地控制器依次完成真实夹持、抬升、转移、支撑放置和松爪；六件全部验收后空手归位。本场景没有抽屉，也不执行关屉动作。
 
-https://github.com/user-attachments/assets/c2c58695-b541-4502-ae3f-c1862f18cd8e
+https://github.com/user-attachments/assets/cee405f9-fdad-46d8-a424-0cd2fd8d7e7d
 
-[下载仓库中的原始 MP4](media/gpt-sorting-contact-feedback-demo.mp4) · [对应提案与物理验收记录](results/gpt_sorting_contact_feedback_demo.json)
+[下载全英文 MP4](media/gpt-sorting-contact-feedback-demo-en.mp4) · [对应提案与物理验收记录](results/gpt_sorting_contact_feedback_demo.json) · [英文编辑来源记录](results/sorting_video_english.json)
+
+[原始录像归档（中文界面）](media/gpt-sorting-contact-feedback-demo.mp4)
 
 录像约 **8 分 29 秒**，包含等待批准及展示停留；物理任务耗时为 **197.786 仿真秒**。录像时长不能当作机器人执行耗时，也不与第一个视频拼接比较。
+
+### 重新生成英文展示文件
+
+以下独立脚本读取历史录像和已验证结果，不运行 MuJoCo、不训练模型、不请求 GPT。各渲染脚本的 `--help` 提供字体路径覆盖选项。
+
+```sh
+uv run --script render_storage_video_en.py
+uv run --script render_sorting_video_en.py
+uv run --script build_grasp_speed_report.py
+```
+
+[展示文件验证记录](results/english_presentation_verification.json)包含全帧时间戳核对、抽样语言检查、实际浏览器播放和上传附件检查。
 
 ## 项目与实验说明
 
@@ -121,9 +145,9 @@ uv run python -m unittest discover -s tests -v
 
 ### 修正版浏览器演示
 
-[完整动态 MP4](media/gpt-sorting-contact-feedback-demo.mp4) · [真实提案与最终物理状态](results/gpt_sorting_contact_feedback_demo.json)。任务要求“黄 A、蓝 B、红 C，先碗后杯、黄碗优先”；GPT 实际提出黄碗、蓝碗、红碗、黄杯、蓝杯、红杯。提案期间暂停且没有启动技能，核对映射和优先级后明确批准；六件全部完成、空手归位，内置整批保持 5 仿真秒，无意外碰撞。执行耗时 **197.786 仿真秒**，真实订阅请求 **9.508 墙钟秒**，请求型号仍为 `gpt-5.6-terra`。
+[完整全英文动态 MP4](media/gpt-sorting-contact-feedback-demo-en.mp4) · [真实提案与最终物理状态](results/gpt_sorting_contact_feedback_demo.json)。任务要求“黄 A、蓝 B、红 C，先碗后杯、黄碗优先”；GPT 实际提出黄碗、蓝碗、红碗、黄杯、蓝杯、红杯。提案期间暂停且没有启动技能，核对映射和优先级后明确批准；六件全部完成、空手归位，内置整批保持 5 仿真秒，无意外碰撞。执行耗时 **197.786 仿真秒**，真实订阅请求 **9.508 墙钟秒**，请求型号仍为 `gpt-5.6-terra`。
 
-该演示不计入配对对照。录像为 1440 × 1080、H.264、6 fps、约 509 秒，包含等待批准和成功后停留；浏览器自动化的终态等待提前超时，但物理执行正常继续，随后观察到真实成功再暂停并结束录制。录像时长不是任务计时，也不把它称为独立的额外保持实验。
+该演示不计入配对对照。原始录像为 1440 × 1080、H.264、平均约 5.96 fps；英文版为 1280 × 960，完整保留 509 秒展示时间线，包括等待批准和成功后停留。浏览器自动化的终态等待提前超时，但物理执行正常继续，随后观察到真实成功再暂停并结束录制。录像时长不是任务计时，也不把它称为独立的额外保持实验。
 
 当前服务的实际界面检查还包括：390 px 下分拣初态、完整提案和成功终态无页面横向溢出；原收纳模式仍可由页面实际执行 `grasp_and_hold` 并满足全部持物判据，报告切换不改变暂停现场。两个模式的检查均未出现浏览器错误。
 

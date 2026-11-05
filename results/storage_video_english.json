@@ -1,0 +1,152 @@
+{
+  "kind": "english_presentation_of_original_storage_recording",
+  "source": {
+    "path": "media/grasp-demo.mp4",
+    "sha256": "4885b0a3ecf76e34da6cf44fde7e6d2b9a6078ebca86c49bba993dddb3e90447",
+    "width": 1440,
+    "height": 1050,
+    "time_base": "1/10240",
+    "average_rate": "20/1",
+    "declared_frames": 1779,
+    "stream_duration_ticks": 910848,
+    "container_duration_s": 88.95,
+    "audio_streams": 0,
+    "decoded_frames": 1779,
+    "first_pts": 0,
+    "last_pts": 910336,
+    "last_duration_ticks": 512,
+    "frame_pts_duration_sha256": "f3704ddec4a154fbc59301f3260680e860d942587eecaff4cd446624c94cdb00",
+    "frame_pts_duration_hash_format": "ASCII rows: pts:duration\\n, in presentation order"
+  },
+  "evidence": {
+    "path": "results/subscription_storage.json",
+    "sha256": "6ef7d203f0170109595c9ab697cf51f909235d64312068b9fc9095f36868b7a9",
+    "native_recording": {
+      "source": "Chromium Page.startScreencast",
+      "captured_frames": 1701,
+      "capture_span_s": 88.72879910469055,
+      "execute_video_offset_s": 14.56127462501172
+    },
+    "control_model": "One approved subscription proposal followed by a fixed complete storage sequence; not per-skill GPT closed-loop control",
+    "recorded_result": {
+      "status": "succeeded",
+      "storage": {
+        "bowl_inside_drawer": true,
+        "bowl_supported": true,
+        "gripper_clear": true,
+        "drawer_position_m": -0.0007919293525825507,
+        "drawer_closed": true,
+        "home_error_rad": 1.3164654588670999e-08,
+        "home_reached": true,
+        "verification_hold_s": 1.0200000000000007,
+        "drawer_travel_m": 0.15920807064741746,
+        "push_contact_seen": true
+      }
+    }
+  },
+  "geometry": {
+    "coordinate_convention": "Crop xyxy is half-open; overlay rectangle xyxy is inclusive",
+    "method": "Every decoded frame: find first blue-gray sky row jointly at x=250,450,650; reject any top other than 177 or 66",
+    "layout_intervals": [
+      {
+        "first_frame": 0,
+        "first_pts": 0,
+        "start_s": 0.0,
+        "crop_xyxy": [
+          24,
+          177,
+          696,
+          679
+        ],
+        "has_overlay": false
+      },
+      {
+        "first_frame": 284,
+        "first_pts": 145408,
+        "start_s": 14.2,
+        "crop_xyxy": [
+          24,
+          66,
+          696,
+          569
+        ],
+        "has_overlay": true
+      }
+    ],
+    "destination_scene_box_xyxy": [
+      24,
+      132,
+      924,
+      806
+    ],
+    "scaling": "Isotropic fit to width 900, nearest-integer height, vertically centered; no workcell cropping",
+    "overlay_presence": "Source pixel x=43,y=scene_top+25 has all RGB channels below 65",
+    "original_overlay_box": "Approximately x=38..179, y=scene_top+12..67; rounded original opaque box retained",
+    "replacement_rectangle": {
+      "x": [
+        41,
+        177
+      ],
+      "y_relative_to_scene_top": [
+        19,
+        61
+      ]
+    },
+    "replacement_text": [
+      "FIXED SEQUENCE",
+      "Original footage"
+    ],
+    "hidden_pixels": "No reconstruction or inpainting; only original opaque overlay text region is replaced"
+  },
+  "timing": {
+    "policy": "One output frame per original decoded frame; original integer PTS and durations supplied to encoder/muxer in original time base",
+    "cuts": [],
+    "speed_factor": 1,
+    "native_capture_vs_encoded_source": "Evidence reports 1701 native captures over 88.72879910469055 s; actual original MP4 contains 1779 frames at 20 fps over 88.95 s. This presentation preserves that encoded MP4, not unrecoverable native capture timestamps.",
+    "phase_display": "Static sequence reference only, never a live phase indicator",
+    "alignment_ambiguity": "Evidence phases and drawer_motion use simulation time. execute_video_offset_s alone does not establish exact simulation-to-encoded-frame phase alignment; no phase timing is guessed.",
+    "rounding": "Original and output container time bases are recorded above; integer source PTS are passed without speed conversion. Scene height rounding affects only spatial scale, not timestamps."
+  },
+  "render": {
+    "script": "render_storage_video_en.py",
+    "script_sha256": "e71ae94a7097bf59249ea80ab5d9723bce005b1e118253f6aef6673ef2233500",
+    "pyav_version": "19.0.2",
+    "pillow_version": "13.0.0",
+    "font": "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "font_sha256": "525979822591a3447cfc49d943d6f7683508e25543407871c0ed8fed05fd2bd9",
+    "bold_font": "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    "bold_font_sha256": "d72db21f9242aedd6b917d8549ad5921766b24d5f8d0becfda2ff4c620b3c2e0",
+    "encoder": "libx264",
+    "encoder_options": {
+      "preset": "slow",
+      "crf": "22",
+      "maxrate": "760k",
+      "bufsize": "1520k",
+      "profile": "high"
+    },
+    "canvas": [
+      1280,
+      960
+    ],
+    "new_simulation": false,
+    "new_model_request": false
+  },
+  "output": {
+    "path": "media/grasp-demo-en.mp4",
+    "sha256": "39233c0fe7c589f8edb061629b428bef9c57256d90903cdfcbc8487abd8be01d",
+    "size_bytes": 2705825,
+    "width": 1280,
+    "height": 960,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "time_base": "1/10240",
+    "average_rate": "20/1",
+    "declared_frames": 1779,
+    "encoded_packets": 1779,
+    "stream_duration_ticks": 910848,
+    "container_duration_s": 88.95,
+    "audio_streams": 0,
+    "faststart_requested": true
+  },
+  "qa": "Final playback, language, and timing QA belong to the integrating parent; no such verification is claimed here"
+}

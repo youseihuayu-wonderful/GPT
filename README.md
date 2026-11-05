@@ -10,17 +10,27 @@ Switching changes presentation only: it does not advance, reset, or execute the 
 
 Localization smoke check: the complete fixed black-bowl storage sequence and six-object fixed sorting both completed successfully in actual MuJoCo execution. With physics paused, language round trips preserved physical state and edited drafts and emitted no control or model requests. Preference persistence and an explicit warning when storage is blocked were also exercised. These UI checks are not additional classifier experiments or new GPT-comparison trials.
 
+## Shareable Level 1 results
+
+**[Active Learning for Adaptive Grasp Speed Selection — English PDF](Active%20Learning%20for%20Adaptive%20Grasp%20Speed%20Selection.pdf)**
+
+A four-page handout covering the actual scene, collected labels, classifier features, three-speed predictions, physical execution results, measured timings, answers to the professor's three questions, and reproduction commands. It distinguishes demonstrated engineering feasibility from unproven active-learning and adaptive-speed benefits.
+
 ## Two independent videos
 
 These are separate recordings of two different scenes, played independently rather than concatenated: the first stores the black bowl in a drawer and closes it; the second only sorts colored bowls and cups. Both videos show actual MuJoCo execution, not a simulation running inside the GitHub page.
+
+Both players use **English-only presentation editions** of those original recordings. The physical motion, every source frame's presentation timestamp, approval waits, and final dwell are retained at original speed. Only presentation changes; these are not new simulations or new GPT requests. Original-language recordings remain available as explicitly labelled archives.
 
 ### Video 1: Black bowl into drawer → close drawer → return arm home
 
 Grasp the black bowl, move it to the open bottom drawer, place it with support and release the gripper, withdraw the gripper, push the drawer closed through contact, and finally return home empty-handed. The black container here is a bowl, not a colored cup.
 
-https://github.com/user-attachments/assets/52878d01-3f40-4ef7-8964-c73e69dbba4b
+https://github.com/user-attachments/assets/54fb89f5-286b-4bee-9c07-fc46bf98d2e4
 
-[Download the original repository MP4](media/grasp-demo.mp4) · [Corresponding physical acceptance record](results/subscription_storage.json)
+[Download the English MP4](media/grasp-demo-en.mp4) · [Corresponding physical acceptance record](results/subscription_storage.json) · [English edit provenance](results/storage_video_english.json)
+
+[Archived original recording (Chinese interface)](media/grasp-demo.mp4)
 
 This complete historical storage recording is approximately **1 minute 29 seconds**, including drawer closing, return home, and the success display. A single subscription-backed proposal was approved before the fixed storage procedure ran; this is not presented as a step-by-step GPT closed-loop recording.
 
@@ -28,11 +38,25 @@ This complete historical storage recording is approximately **1 minute 29 second
 
 There is one bowl and one cup in each of red, blue, and yellow: **3 bowls + 3 cups**. After approval of a complete GPT proposal, the local controller sequentially performs actual gripping, lifting, transfer, supported placement, and release. After all six objects pass acceptance, the arm returns home empty-handed. This scene has no drawer and performs no drawer-closing action.
 
-https://github.com/user-attachments/assets/c2c58695-b541-4502-ae3f-c1862f18cd8e
+https://github.com/user-attachments/assets/cee405f9-fdad-46d8-a424-0cd2fd8d7e7d
 
-[Download the original repository MP4](media/gpt-sorting-contact-feedback-demo.mp4) · [Corresponding proposal and physical acceptance record](results/gpt_sorting_contact_feedback_demo.json)
+[Download the English MP4](media/gpt-sorting-contact-feedback-demo-en.mp4) · [Corresponding proposal and physical acceptance record](results/gpt_sorting_contact_feedback_demo.json) · [English edit provenance](results/sorting_video_english.json)
+
+[Archived original recording (Chinese interface)](media/gpt-sorting-contact-feedback-demo.mp4)
 
 The recording is approximately **8 minutes 29 seconds**, including the approval wait and display dwell time; the physical task takes **197.786 simulation seconds**. Video duration is not robot execution time, and is not combined with the first video for comparison.
+
+### Regenerate the English presentation files
+
+These standalone scripts read the archived recordings and verified results; they do not run MuJoCo, train a model, or request GPT. Font overrides are listed by each renderer's `--help`.
+
+```sh
+uv run --script render_storage_video_en.py
+uv run --script render_sorting_video_en.py
+uv run --script build_grasp_speed_report.py
+```
+
+[Presentation verification](results/english_presentation_verification.json) records full-frame timestamp checks, sampled English-language checks, actual browser playback, and uploaded-attachment checks.
 
 ## Project and experiment overview
 
@@ -121,9 +145,9 @@ The [targeted yellow-bowl → A measurement](results/sorting_support_search_smok
 
 ### Corrected browser demonstration
 
-[Complete dynamic MP4](media/gpt-sorting-contact-feedback-demo.mp4) · [Actual proposal and final physical state](results/gpt_sorting_contact_feedback_demo.json). The task requested “黄 A、蓝 B、红 C，先碗后杯、黄碗优先” (“yellow A, blue B, red C; bowls before cups, yellow bowl first”). GPT actually proposed yellow bowl, blue bowl, red bowl, yellow cup, blue cup, red cup. Physics was paused during proposal generation and no skill started. After checking the mapping and priorities, execution was explicitly approved. All six objects completed, the arm returned home empty-handed, and the built-in batch hold lasted 5 simulation seconds, with no unexpected collisions. Execution took **197.786 simulation seconds**; the actual subscription request took **9.508 wall-clock seconds**, still requesting `gpt-5.6-terra`.
+[Complete English dynamic MP4](media/gpt-sorting-contact-feedback-demo-en.mp4) · [Actual proposal and final physical state](results/gpt_sorting_contact_feedback_demo.json). The task requested “黄 A、蓝 B、红 C，先碗后杯、黄碗优先” (“yellow A, blue B, red C; bowls before cups, yellow bowl first”). GPT actually proposed yellow bowl, blue bowl, red bowl, yellow cup, blue cup, red cup. Physics was paused during proposal generation and no skill started. After checking the mapping and priorities, execution was explicitly approved. All six objects completed, the arm returned home empty-handed, and the built-in batch hold lasted 5 simulation seconds, with no unexpected collisions. Execution took **197.786 simulation seconds**; the actual subscription request took **9.508 wall-clock seconds**, still requesting `gpt-5.6-terra`.
 
-This demonstration is not included in the paired comparison. The recording is 1440 × 1080, H.264, 6 fps, approximately 509 seconds, including the approval wait and post-success dwell. The browser automation's final-state wait timed out early, but physical execution continued normally. Actual success was subsequently observed before pausing and ending the recording. Video duration is not task timing, and this is not described as a separate additional-hold experiment.
+This demonstration is not included in the paired comparison. The original recording is 1440 × 1080, H.264, approximately 5.96 fps on average. The English edition is 1280 × 960 and preserves its complete 509-second presentation timeline, including the approval wait and post-success dwell. The browser automation's final-state wait timed out early, but physical execution continued normally. Actual success was subsequently observed before pausing and ending the recording. Video duration is not task timing, and this is not described as a separate additional-hold experiment.
 
 Actual interface checks on the current service also included: no page-level horizontal overflow at 390 px for sorting's initial state, complete proposal, or successful final state; the original storage mode could still execute `grasp_and_hold` through the page and satisfy every holding criterion; switching reports did not change the paused scene. Neither mode produced browser errors during those checks.
 

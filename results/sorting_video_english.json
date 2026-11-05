@@ -1,0 +1,268 @@
+{
+  "kind": "english_presentation_edit_of_existing_recording",
+  "renderer": "render_sorting_video_en.py",
+  "dependencies": {
+    "av": "19.0.2",
+    "pillow": "13.0.0"
+  },
+  "source": {
+    "path": "media/gpt-sorting-contact-feedback-demo.mp4",
+    "sha256": "73becad5209a042157724badffeef2bd1049416f49f1b706b3184583d13222e0",
+    "bytes": 10149037,
+    "width": 1440,
+    "height": 1080,
+    "codec": "h264",
+    "pixel_format": "yuvj420p",
+    "time_base": "1/12288",
+    "stream_duration_ticks": 6254592,
+    "container_duration_s": 509.0,
+    "declared_frames": 3032,
+    "encoded_samples": 3032,
+    "average_rate": "3032/509",
+    "first_pts": 0,
+    "last_pts": 6252544,
+    "last_duration_ticks": 2048,
+    "presentation_end_ticks": 6254592,
+    "sample_durations_ticks": {
+      "2048": 3030,
+      "20480": 1,
+      "28672": 1
+    },
+    "pts_and_durations_sha256": "42196a23f26750f6ae68ac442bf1235e4f21a7084472985b9e3cfa337e52fcd5",
+    "presentation_pts_sha256": "575c58bc3442c46acdebcb4b0355625afafefa2b5fa6d1f252007acbd1ffdf4a",
+    "presentation_pts_and_intervals_sha256": "ba4683a28458773656d692e44845633a50f359ef5da17009a856fc295b910732"
+  },
+  "evidence": {
+    "path": "results/gpt_sorting_contact_feedback_demo.json",
+    "sha256": "0a1de3316005344a7271f4c564ed08dc747cf1b4b4828a4031ee6cc4ee1ecfef",
+    "native_capture_metadata": {
+      "path": "/Users/shihuayu/Projects/robot-grasp-simulation/media/gpt-sorting-contact-feedback-demo.mp4",
+      "durationMs": 507800,
+      "frames": 690,
+      "bytes": 10149037
+    },
+    "native_capture_note": "690 native captures are not the encoded frame count; this renderer processes all 3032 decoded frames."
+  },
+  "output": {
+    "path": "media/gpt-sorting-contact-feedback-demo-en.mp4",
+    "sha256": "dfc284178ef41f506d10499d616815020b1c390f398a2a50f31034c522c0ab7a",
+    "bytes": 6170077,
+    "width": 1280,
+    "height": 960,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "time_base": "1/12288",
+    "stream_duration_ticks": 6254592,
+    "container_duration_s": 509.0,
+    "declared_frames": 3032,
+    "encoded_samples": 3032,
+    "average_rate": "3032/509",
+    "first_pts": 0,
+    "last_pts": 6252544,
+    "last_duration_ticks": 2048,
+    "presentation_end_ticks": 6254592,
+    "sample_durations_ticks": {
+      "2048": 3030,
+      "20480": 1,
+      "28672": 1
+    },
+    "pts_and_durations_sha256": "ba4683a28458773656d692e44845633a50f359ef5da17009a856fc295b910732",
+    "presentation_pts_sha256": "575c58bc3442c46acdebcb4b0355625afafefa2b5fa6d1f252007acbd1ffdf4a",
+    "presentation_pts_and_intervals_sha256": "ba4683a28458773656d692e44845633a50f359ef5da17009a856fc295b910732",
+    "audio": false,
+    "faststart_requested": true
+  },
+  "presentation": {
+    "canvas_size": [
+      1280,
+      960
+    ],
+    "scene_destination_box_xyxy": [
+      24,
+      132,
+      924,
+      806
+    ],
+    "crop_coordinate_convention": "Source pixels, left/top inclusive and right/bottom exclusive; entire physical viewport, excluding dashboard chrome.",
+    "layout_selection": "Per-frame probes require a non-sky header immediately above the sky boundary at both scene edges. This distinguishes the y177 initial viewport from y66 after scrolling, even though y177 remains sky inside the scrolled viewport. Independent wide-scene probes select the enlarged layout.",
+    "layout_intervals": [
+      {
+        "first_frame": 0,
+        "first_pts": 0,
+        "first_time_s": 0.0,
+        "source_crop_xyxy": [
+          24,
+          177,
+          696,
+          680
+        ],
+        "last_frame": 513,
+        "last_pts": 1050624
+      },
+      {
+        "first_frame": 514,
+        "first_pts": 1052672,
+        "first_time_s": 85.66666666666667,
+        "source_crop_xyxy": [
+          24,
+          66,
+          696,
+          570
+        ],
+        "last_frame": 1287,
+        "last_pts": 2635776
+      },
+      {
+        "first_frame": 1288,
+        "first_pts": 2656256,
+        "first_time_s": 216.16666666666666,
+        "source_crop_xyxy": [
+          50,
+          83,
+          1431,
+          713
+        ],
+        "last_frame": 2843,
+        "last_pts": 5840896
+      },
+      {
+        "first_frame": 2844,
+        "first_pts": 5869568,
+        "first_time_s": 477.6666666666667,
+        "source_crop_xyxy": [
+          24,
+          66,
+          696,
+          570
+        ],
+        "last_frame": 3031,
+        "last_pts": 6252544
+      }
+    ],
+    "status_box_method": "Detect original dark box right edge in solid top padding. Opaque English label replaces both original lines, including two-pixel compressed edges. No inpainting or fabricated physical content.",
+    "status_box_rectangles": [
+      {
+        "source_xyxy_inclusive": [
+          36,
+          77,
+          215,
+          136
+        ],
+        "frame_count": 188
+      },
+      {
+        "source_xyxy_inclusive": [
+          36,
+          77,
+          221,
+          136
+        ],
+        "frame_count": 270
+      },
+      {
+        "source_xyxy_inclusive": [
+          36,
+          77,
+          225,
+          136
+        ],
+        "frame_count": 233
+      },
+      {
+        "source_xyxy_inclusive": [
+          36,
+          77,
+          240,
+          136
+        ],
+        "frame_count": 271
+      },
+      {
+        "source_xyxy_inclusive": [
+          76,
+          97,
+          441,
+          170
+        ],
+        "frame_count": 868
+      },
+      {
+        "source_xyxy_inclusive": [
+          76,
+          97,
+          453,
+          170
+        ],
+        "frame_count": 361
+      },
+      {
+        "source_xyxy_inclusive": [
+          76,
+          97,
+          478,
+          170
+        ],
+        "frame_count": 327
+      }
+    ],
+    "scaling": "Isotropic Lanczos resizing and centered letterboxing; source camera/layout changes remain.",
+    "panel_semantics": "Static approved-queue reference and explicitly historical recorded-run result. No invented live progress or phase alignment.",
+    "requested_mapping": {
+      "yellow": "A",
+      "blue": "B",
+      "red": "C"
+    },
+    "requested_priority": "yellow_bowl_first_then_all_bowls_before_cups",
+    "approved_queue": [
+      {
+        "object_id": "yellow_bowl",
+        "destination": "A"
+      },
+      {
+        "object_id": "blue_bowl",
+        "destination": "B"
+      },
+      {
+        "object_id": "red_bowl",
+        "destination": "C"
+      },
+      {
+        "object_id": "yellow_cup",
+        "destination": "A"
+      },
+      {
+        "object_id": "blue_cup",
+        "destination": "B"
+      },
+      {
+        "object_id": "red_cup",
+        "destination": "C"
+      }
+    ],
+    "gpt_calls_in_evidence": 1,
+    "execution": "One real GPT proposal was explicitly approved; the local bounded contact-feedback controller executed the complete queue. Not online per-object GPT replanning.",
+    "fonts": {
+      "regular_sha256": "525979822591a3447cfc49d943d6f7683508e25543407871c0ed8fed05fd2bd9",
+      "bold_sha256": "d72db21f9242aedd6b917d8549ad5921766b24d5f8d0becfda2ff4c620b3c2e0"
+    }
+  },
+  "timing": {
+    "decoded_source_frames_processed": 3032,
+    "source_time_base": "1/12288",
+    "processed_pts_and_display_intervals_sha256": "ba4683a28458773656d692e44845633a50f359ef5da17009a856fc295b910732",
+    "method": "One output frame per decoded source frame. Original PTS and adjacent-PTS display intervals assigned to encoder/muxer in source time base; no trimming, acceleration, frame duplication or simulation replay.",
+    "packet_duration_note": "Source B-frame packet durations are decode-order sample durations, not display intervals. The output has no B-frames, so packet-duration associations differ at two source gaps while PTS and actual display intervals are preserved. Compare presentation_pts_and_intervals_sha256, not the packet-duration fingerprint.",
+    "rounding": "Source 1/12288-second time base is requested for both codec and MP4 track, avoiding a new timestamp quantization grid. MP4 container duration is independently reported in microseconds.",
+    "wall_vs_simulation": "Video duration includes approval wait and post-success dwell; it is not simulation execution time."
+  },
+  "encoding": {
+    "codec": "libx264",
+    "preset": "slow",
+    "crf": 24,
+    "maxrate": "140k",
+    "bufsize": "280k",
+    "b_frames": 0,
+    "keyframe_interval_frames": 120
+  },
+  "verification_scope": "Renderer provenance only. Final playback, English-language and visual completeness QA are performed separately by the integrating agent."
+}
