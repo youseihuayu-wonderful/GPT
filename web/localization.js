@@ -2,7 +2,6 @@
 
 // Presentation catalog only: original backend data and request protocols are unchanged.
 const ENGLISH_COPY = {
-  "GPT 实时单技能决策 · 物理执行与反馈": "GPT live single-skill decisions · Physical execution and feedback",
   "实时决策": "Live decisions",
   "GPT 单技能决策": "GPT single-skill decisions",
   "· 观察、执行、反馈": "· Observe, execute, receive feedback",
@@ -486,7 +485,6 @@ const ENGLISH_COPY = {
   "实际支撑": "Actual support",
   "物体稳定": "Object stable",
   "已与夹爪分离": "Separated from gripper",
-  "GPT / 固定规划 · 彩色碗杯物理分拣": "GPT / fixed planning · Physical colored bowl and cup sorting",
   "暂停": "Pause",
   "位置 · m": "Position · m",
   "四元数": "Quaternion",

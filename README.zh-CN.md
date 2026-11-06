@@ -1,6 +1,8 @@
 <a href="README.md"><kbd>English</kbd></a> <a href="README.zh-CN.md"><kbd>中文</kbd></a>
 
-# GPT — 机器人多子任务执行仿真
+# Intelligent Grasping: Predicting Success and Selecting Approach Speeds of Robotic Arms
+
+历史实验名称、GPT 模型引用与录像保留原貌以供追溯；改名不改变已有实验结果。
 
 ## 中英文阅读与界面切换
 
@@ -62,7 +64,7 @@ uv run --script build_grasp_speed_report.py
 
 为 GPT 高层任务规划提供真实物理执行能力。默认收纳场景通过当前 ChatGPT 订阅，每轮从五项本地技能中选择**一个动作**，执行后把实际结果送回 GPT。独立分拣场景支持**一次生成完整六物体提案，核对并批准后执行**，同时保留无模型的固定规则对照。两种规划粒度不同，不混称闭环重规划。不需要 API 密钥，没有固定模型回复、物体绑定或动画平移；尚未加入视觉识别或 DP。
 
-仓库：https://github.com/youseihuayu-wonderful/GPT
+仓库：https://github.com/youseihuayu-wonderful/Intelligent-Grasping-Predicting-Success-and-Selecting-Approach-Speeds-of-Robotic-Arms
 
 默认收纳场景包含 Franka Panda 七轴机械臂、双指夹爪、桌面、黑碗、酒瓶、三层抽屉柜、酒架。浏览器画面由正在运行的 MuJoCo Renderer 生成，不是视频或预录轨迹回放。物体位姿直接取自仿真器。另有下述独立彩色碗杯分拣场景，支持 GPT 提案与固定规划。
 
@@ -250,8 +252,8 @@ uv run python -m unittest discover -s tests -p 'test_sorting.py' -v
 先克隆仓库，再安装锁定的依赖（需要 Python 3.12 和 [uv](https://docs.astral.sh/uv/)）：
 
 ```sh
-git clone https://github.com/youseihuayu-wonderful/GPT.git
-cd GPT
+git clone https://github.com/youseihuayu-wonderful/Intelligent-Grasping-Predicting-Success-and-Selecting-Approach-Speeds-of-Robotic-Arms.git intelligent-grasping
+cd intelligent-grasping
 uv sync --locked
 uv run python server.py --port 8765
 ```

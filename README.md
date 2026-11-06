@@ -1,6 +1,8 @@
 <a href="README.md"><kbd>English</kbd></a> <a href="README.zh-CN.md"><kbd>中文</kbd></a>
 
-# GPT — Robot Multi-Task Execution Simulation
+# Intelligent Grasping: Predicting Success and Selecting Approach Speeds of Robotic Arms
+
+Historical experiment names, GPT model references, and recorded videos are retained for provenance; the rename does not change their results.
 
 ## Reading and switching between Chinese and English
 
@@ -62,7 +64,7 @@ uv run --script build_grasp_speed_report.py
 
 This project provides real physical execution for GPT high-level task planning. In the default storage scene, the current ChatGPT subscription selects **one action** from five local skills per round, and the actual execution result is fed back to GPT. The independent sorting scene supports **generating one complete six-object proposal, reviewing it, and executing it after approval**, while retaining a model-free fixed-rule control. These are different planning granularities and are not both described as closed-loop replanning. No API key is required. There are no fixed model replies, object attachments, or animated object translations; visual recognition and DP have not been added.
 
-Repository: https://github.com/youseihuayu-wonderful/GPT
+Repository: https://github.com/youseihuayu-wonderful/Intelligent-Grasping-Predicting-Success-and-Selecting-Approach-Speeds-of-Robotic-Arms
 
 The default storage scene contains a seven-axis Franka Panda arm, two-finger gripper, table, black bowl, wine bottle, three-drawer cabinet, and wine rack. Browser images are produced by the running MuJoCo Renderer, not by a video or prerecorded trajectory replay. Object poses come directly from the simulator. The separate colored bowl/cup sorting scene below supports GPT proposals and fixed planning.
 
@@ -248,8 +250,8 @@ The historical recording contains one subscription-backed planning request, prev
 Clone the repository, then install locked dependencies (requires Python 3.12 and [uv](https://docs.astral.sh/uv/)):
 
 ```sh
-git clone https://github.com/youseihuayu-wonderful/GPT.git
-cd GPT
+git clone https://github.com/youseihuayu-wonderful/Intelligent-Grasping-Predicting-Success-and-Selecting-Approach-Speeds-of-Robotic-Arms.git intelligent-grasping
+cd intelligent-grasping
 uv sync --locked
 uv run python server.py --port 8765
 ```

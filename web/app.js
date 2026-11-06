@@ -1255,7 +1255,7 @@ function updateSceneMode() {
   const sorting = sceneMode === "sorting";
   storageElements.forEach((element) => { element.hidden = sorting; });
   sortingElements.forEach((element) => { element.hidden = !sorting; });
-  setLocalizedTitle(sorting ? "GPT / 固定规划 · 彩色碗杯物理分拣" : "GPT 实时单技能决策 · 物理执行与反馈");
+  setLocalizedTitle("Intelligent Grasping: Predicting Success and Selecting Approach Speeds of Robotic Arms");
   if (!sorting && !storageReportsLoaded) {
     storageReportsLoaded = true;
     loadExperiments();
